@@ -3,11 +3,11 @@
     <div class="login-container">
       <div class="title-container">
         <div class="title">로그인</div>
-        <div class="subtitle">판매점 아이디 와 비밀번호를 입력하세요</div>
+        <div class="subtitle">사용자 아이디 와 비밀번호를 입력하세요</div>
       </div>
 
       <div class="group">
-        <label for="username">판매점 아이디</label>
+        <label for="username">사용자 아이디</label>
         <input type="text" id="username" name="username" v-model="username" />
         <p v-if="!username" class="input-error-message">{{ usernameErr }}</p>
       </div>
@@ -24,17 +24,19 @@
         </span>
         <span v-else>로그인</span>
       </button>
-      <hr />
 
-      <router-link to="/signup">
-        <button class="signup-button">판매점 계약 접수</button>
-      </router-link>
+      <div class="sign-up-div">
+        <span>계정이 없나요?</span>
+        <span @click="router.push('/signup')" class="sign-up-text">사용자 등록</span>
+      </div>
+
+      <div></div>
     </div>
 
     <p class="foot-note">
-      상호 : 심패스(Simpass) | 대표 : 김익태 | 대표전화 : 02-2108-3121 | FAX : 02-2108-3120 사업자등록번호 :
-      343-18-00713 | 통신판매신고번호 : 제 2021-서울구로-1451 호 서울시 구로구 디지털로33길 28, 우림이비지센터 1차
-      1210호
+      상호 : 심패스(Simpass) | 대표 : 김익태 | 대표전화 : 02-2108-3121 | FAX : 02-2108-3120
+      사업자등록번호 : 343-18-00713 | 통신판매신고번호 : 제 2021-서울구로-1451 호 서울시 구로구
+      디지털로33길 28, 우림이비지센터 1차 1210호
     </p>
   </div>
 </template>
@@ -78,27 +80,36 @@ async function login(event) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: username.value,
-        password: password.value,
-      }),
+        password: password.value
+      })
     })
 
-    if (response.ok) {
-      const data = await response.json()
-      useAuthenticationStore().login(data['accessToken'], data['refreshToken'], data['id'], data['username'])
+    if (!response.ok) throw '로그인정보가 없거나 일치하지 않습니다.'
 
-      //checks if user had intended route, and push that route. if not push '/'
-      if (useRouteMemoryStore().intendedRoute) {
-        let url = useRouteMemoryStore().intendedRoute
-        useRouteMemoryStore().clear() //clearing intended route afters redirected
-        router.push(url)
-      } else {
-        router.push('/')
-      }
-    } else {
-      useSnackbarStore().showSnackbar('Invalid credentials') // show snackbar with a success message
-    }
+    const data = await response.json()
+
+    // console.log(data.roles)
+
+    useAuthenticationStore().login(
+      data['accessToken'],
+      data['refreshToken'],
+      data['id'],
+      data['username'],
+      data['roles']
+    )
+
+    router.push('/')
+
+    // //checks if user had intended route, and push that route. if not push '/'
+    // if (useRouteMemoryStore().intendedRoute) {
+    //   let url = useRouteMemoryStore().intendedRoute
+    //   useRouteMemoryStore().clear() //clearing intended route afters redirected
+    //   router.push(url)
+    // } else {
+    //   router.push('/')
+    // }
   } catch (err) {
-    useSnackbarStore().showSnackbar(err.toString())
+    useSnackbarStore().show(err.toString())
   }
 
   isLoading.value = false
@@ -177,10 +188,15 @@ hr {
   margin: 10px;
 }
 
-.signup-button {
-  width: 100%;
-  background-color: #ffb428;
-  margin-bottom: 30px;
+.sign-up-div {
+  font-size: 15px;
+}
+
+.sign-up-text {
+  margin-left: 10px;
+  font-weight: 500;
+  color: var(--main-color);
+  cursor: pointer;
 }
 
 @media (max-width: 600px) {
@@ -193,14 +209,13 @@ hr {
     box-shadow: none;
 
     width: 100%;
-    height: 100%;
     display: flex;
     flex-flow: column;
     justify-content: center;
   }
 
   .foot-note {
-    width: 100%;
+    width: 90%;
   }
 }
 </style>

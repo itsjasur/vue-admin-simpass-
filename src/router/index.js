@@ -3,17 +3,9 @@ import { useAuthenticationStore } from '../stores/authentication'
 import { useRouteMemoryStore } from '../stores/router-memory-store'
 import DashBaordView from '../views/DashBoardView.vue'
 import LoginView from '../views/LoginView.vue'
-import SignupView from '../views/SignupView.vue'
-import HomeView from '../views/HomeView.vue'
-import RegistrationFormsView from '../views/RegistrationFormsView.vue'
-import ProfileView from '../views/ProfileView.vue'
-import FormDetailsView from '../views/FormDetailsView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
-import RentalRegistrationView from '../views/RentalFormsView.vue'
-import ApplicationsView from '../views/ApplicationsView.vue'
-import DownloadForms from '../views/DownloadForms.vue'
-import BusinessRequest from '../views/BusinessRequestView.vue'
-import BusinessPartners from '../views/BusinessPartnersView.vue'
+import Profile from '../views/ProfileView.vue'
+import ManageUsers from '../views/ManageUsersView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,121 +15,46 @@ const router = createRouter({
       name: 'login',
       component: LoginView,
       meta: {
-        requiresAuth: false, // No authentication required
-      },
+        requiresAuth: false // No authentication required
+      }
     },
 
-    {
-      path: '/signup',
-      name: 'signup',
-      component: SignupView,
-      meta: {
-        requiresAuth: false,
-      },
-    },
     {
       path: '/',
       name: 'dashboard',
-      redirect: '/home',
+      redirect: '/profile',
       component: DashBaordView,
       meta: {
-        requiresAuth: true,
+        requiresAuth: true
       },
       children: [
         {
-          path: '/home',
-          name: 'home',
-          component: HomeView,
-          meta: {
-            requiresAuth: true,
-          },
-        },
-        {
           path: '/profile',
           name: 'profile',
-          component: ProfileView,
+          component: Profile,
           meta: {
-            requiresAuth: true,
-          },
-        },
-        {
-          path: '/registration-forms',
-          name: 'registration-forms',
-          component: RegistrationFormsView,
-          meta: {
-            requiresAuth: true,
-          },
-        },
-        {
-          path: '/form-details/:id',
-          name: 'form-details',
-          component: FormDetailsView,
-          meta: {
-            requiresAuth: true,
-          },
-          props: true,
-        },
-        {
-          path: '/rental-forms',
-          name: 'rental-forms',
-          component: RentalRegistrationView,
-          meta: {
-            requiresAuth: true,
-          },
-        },
-        {
-          path: '/applications',
-          name: 'applications',
-          component: ApplicationsView,
-          meta: {
-            requiresAuth: true,
-          },
+            requiresAuth: true
+          }
         },
 
         {
-          path: '/download-forms',
-          name: 'download-forms',
-          component: DownloadForms,
+          path: '/manage-users',
+          name: 'manage-users',
+          component: ManageUsers,
           meta: {
-            requiresAuth: true,
-          },
-        },
-
-        {
-          path: '/business-request',
-          name: 'business-request',
-          component: BusinessRequest,
-          meta: {
-            requiresAuth: true,
-          },
-        },
-
-        {
-          path: '/business-partners',
-          name: 'business-partners',
-          component: BusinessPartners,
-          meta: {
-            requiresAuth: true,
-          },
-        },
-      ],
+            requiresAuth: true
+          }
+        }
+      ]
     },
     // this catchs any  route
     {
       // path: '/:pathMatch(.*)*',
       path: '/:catchAll(.*)',
       name: 'NotFound',
-      component: NotFoundView,
-    },
-    // {
-    //   path: '/about',
-    //   name: 'about',
-    //   // route level code-splitting
-    //   // this generates a separate chunk (About.[hash].js) for this route
-    //   // which is lazy-loaded when the route is visited.
-    //   component: () => import('../views/AboutView.vue')
-    // }
-  ],
+      component: NotFoundView
+    }
+  ]
 })
 
 router.beforeEach((to, from, next) => {

@@ -1,6 +1,9 @@
 <template>
   <div class="dashboard-container">
-    <div v-if="sideMenuStore.isDesktop" :class="['dashboard-side-menu', { open: sideMenuStore.isOpen }]">
+    <div
+      v-if="sideMenuStore.isDesktop"
+      :class="['dashboard-side-menu', { open: sideMenuStore.isOpen }]"
+    >
       <SideMenu />
     </div>
 
@@ -16,7 +19,11 @@
   </div>
 
   <template v-if="!sideMenuStore.isDesktop">
-    <div v-if="sideMenuStore.isOpen" @click="sideMenuStore.close()" class="m-dashboard-side-menu-overlay"></div>
+    <div
+      v-if="sideMenuStore.isOpen"
+      @click="sideMenuStore.close()"
+      class="m-dashboard-side-menu-overlay"
+    ></div>
     <div :class="['m-dashboard-side-menu', { closed: !sideMenuStore.isOpen }]">
       <SideMenu />
     </div>
@@ -53,6 +60,7 @@ onUnmounted(() => {
   width: 100vw;
   z-index: 1000;
   background-color: #ffc0cb76;
+  overflow-x: hidden;
 }
 
 .dashboard-side-menu {
@@ -88,7 +96,9 @@ onUnmounted(() => {
   flex-flow: column;
   height: 100%;
   /* width: 100%; */
-  overflow-y: scroll;
+  width: calc(100vw - 300px);
+  overflow-y: auto;
+  /* overflow-x: hidden; */
 }
 
 .icon {

@@ -1,38 +1,19 @@
 <template>
   <div class="menu">
     <div class="logo">
-      <router-link @click="sideMenuClose" to="/home"
+      <router-link @click="sideMenuClose" to="/profile"
         ><img src="../assets/logo.png" alt="Logo" style="width: 200px" />
       </router-link>
     </div>
-    <router-link @click="sideMenuClose" to="/home" class="menu-item">
-      <span class="material-symbols-outlined"> home </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[0] }}</span>
-    </router-link>
 
     <router-link @click="sideMenuClose" to="/profile" class="menu-item">
       <span class="material-symbols-outlined"> person </span>
+      <span class="menu-title">{{ SIDEMENUNAMES[0] }}</span>
+    </router-link>
+
+    <router-link @click="sideMenuClose" to="/manage-users" class="menu-item">
+      <span class="material-symbols-outlined"> patient_list </span>
       <span class="menu-title">{{ SIDEMENUNAMES[1] }}</span>
-    </router-link>
-
-    <router-link @click="sideMenuClose" to="/registration-forms" class="menu-item">
-      <span class="material-symbols-outlined"> description </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[2] }}</span>
-    </router-link>
-
-    <router-link @click="sideMenuClose" to="/rental-forms" class="menu-item">
-      <span class="material-symbols-outlined"> demography </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[3] }}</span>
-    </router-link>
-
-    <router-link @click="sideMenuClose" to="/applications" class="menu-item">
-      <span class="material-symbols-outlined"> checklist_rtl </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[4] }}</span>
-    </router-link>
-
-    <router-link @click="sideMenuClose" to="/download-forms" class="menu-item">
-      <span class="material-symbols-outlined"> file_save </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[5] }}</span>
     </router-link>
   </div>
 </template>

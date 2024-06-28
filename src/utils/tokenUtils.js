@@ -12,10 +12,10 @@ export async function refreshToken() {
     const response = await fetch(import.meta.env.VITE_API_BASE_URL + 'auth/refreshtoken', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
         // any other necessary headers?
       },
-      body: JSON.stringify({ refreshToken: currentRefreshToken }),
+      body: JSON.stringify({ refreshToken: currentRefreshToken })
     })
 
     if (response.ok) {
@@ -50,6 +50,9 @@ export async function fetchWithTokenRefresh(url, options) {
   if (!(options.body instanceof FormData)) options.headers['Content-Type'] = 'application/json'
   try {
     response = await fetch(fullUrl, options)
+
+    // const decodedResponse = await response.json()
+    // console.log(decodedResponse)
 
     if (response.status === 401 && !options._retry) {
       options._retry = true

@@ -3,7 +3,7 @@
     <div class="snackbar-content">
       {{ snackbarStore.message }}
     </div>
-    <div class="close-icon" @click="snackbarStore.hideSnackbar">&times;</div>
+    <div class="close-icon" @click="snackbarStore.hide">&times;</div>
   </div>
 </template>
 

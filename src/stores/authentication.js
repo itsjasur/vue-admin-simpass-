@@ -2,11 +2,11 @@ import { defineStore } from 'pinia'
 
 export const useAuthenticationStore = defineStore('status', {
   state: () => ({
-    isLoggedIn: localStorage.getItem('accessToken') !== null,
-    // role: [],
+    // isLoggedIn: localStorage.getItem('accessToken') !== null,
+    isLoggedIn: true,
     id: '',
     userName: '',
-    isAutoLoggedOut: true,
+    isAutoLoggedOut: true
   }),
 
   actions: {
@@ -17,21 +17,21 @@ export const useAuthenticationStore = defineStore('status', {
       // window.location.href = '/login'
     },
 
-    login(token, refreshToken, id, userName) {
+    login(token, refreshToken, id, userName, roles) {
       this.isLoggedIn = true
       localStorage.setItem('accessToken', token)
       localStorage.setItem('refreshToken', refreshToken)
       localStorage.setItem('id', id)
       localStorage.setItem('userName', userName)
 
-      // window.location.href = '/home'
-      // router.push('/home')
+      const stringifiedRolesArray = JSON.stringify(roles)
+      localStorage.setItem('roles', stringifiedRolesArray)
     },
 
-    // retrieveFromStorage() {
-    //   const token = localStorage.getItem('token')
-    //   const refreshToken = localStorage.getItem('refreshToken')
-    //   const roleJSON = localStorage.getItem('role')
-    // }
-  },
+    getRoles() {
+      const roles = localStorage.getItem('roles')
+      const rolesArray = JSON.parse(roles)
+      return rolesArray
+    }
+  }
 })
