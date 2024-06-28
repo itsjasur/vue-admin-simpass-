@@ -1,85 +1,77 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <a-config-provider
+    :theme="{
+      token: {
+        colorPrimary: '#00d42a', //primary
+        colorPrimaryHover: '#00d42a', //primary hover
+        colorBorder: '#cccccc', // border color
+        controlHeight: 40, // input/select/button height
+        borderRadius: 4, //all border radius
+        lineWidth: 1, //border line width
+        controlOutline: 'none', //focus outline
+        fontSize: 15
+      }
+    }"
+  >
+  </a-config-provider>
+  <router-view />
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+  <Snackbar />
+  <Warning />
+  <SearchAddressPopup />
+  <SelectPlanPopup />
+  <PrintablePopup />
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
+<script setup>
+import { onMounted, onUnmounted, watch } from 'vue'
+import Snackbar from './components/Snackbar.vue'
+import Warning from './components/Warning.vue'
+// import router from './router'
+import { useRouter } from 'vue-router'
+import { useAuthenticationStore } from './stores/authentication'
+import { useRouteMemoryStore } from './stores/router-memory-store'
+import { useSideMenuStore } from './stores/side-menu'
+import SearchAddressPopup from './components/SearchAddressPopup.vue'
+import SelectPlanPopup from './components/SelectPlanPopup.vue'
+import PrintablePopup from './components/PrintablePopup.vue'
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+const router = useRouter()
+const authStore = useAuthenticationStore()
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+// Watch for changes in isLoggedIn and redirect to login
+watch(
+  () => authStore.isLoggedIn,
+  (newIsLoggedIn) => {
+    if (!newIsLoggedIn) {
+      if (authStore.isAutoLoggedOut) useRouteMemoryStore().save(router.currentRoute.value.fullPath)
+      router.push('/login')
+    }
   }
+)
 
-  .logo {
-    margin: 0 2rem 0 0;
+const sidemenuStore = useSideMenuStore()
+
+const handleResize = () => {
+  if (window.innerWidth <= 960) {
+    sidemenuStore.close()
   }
+}
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+  handleResize() //
+})
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
+</script>
 
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--main-background-color);
 }
 </style>
