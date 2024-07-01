@@ -15,6 +15,11 @@
       <span class="material-symbols-outlined"> patient_list </span>
       <span class="menu-title">{{ SIDEMENUNAMES[1] }}</span>
     </router-link>
+
+    <router-link @click="sideMenuClose" to="/manage-plans" class="menu-item">
+      <span class="material-symbols-outlined"> dashboard </span>
+      <span class="menu-title">{{ SIDEMENUNAMES[2] }}</span>
+    </router-link>
   </div>
 </template>
 

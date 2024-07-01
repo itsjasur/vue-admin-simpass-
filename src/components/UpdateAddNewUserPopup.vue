@@ -51,15 +51,25 @@
               v-model="forms.phoneNumber"
               placeholder=""
               @input="validateForms"
-              v-cleave="cleavePatterns.phoneNumberPattern"
+              name="phoneNumber"
+              v-cleave="{ ...cleavePatterns.phoneNumberPattern, onValueChanged }"
             />
+            <p v-if="isSubmitted && errors.phoneNumber" class="input-error-message">
+              {{ errors.phoneNumber }}
+            </p>
           </div>
         </div>
 
         <div v-if="props.isNew" class="group-row">
           <div class="group">
             <label>비밀번호 </label>
-            <input v-model="forms.password" placeholder="" type="password" @input="validateForms" />
+            <input
+              v-model="forms.password"
+              placeholder=""
+              @input="validateForms"
+              type="password"
+              autocomplete="new-password"
+            />
             <p v-if="isSubmitted && errors.password" class="input-error-message">
               {{ errors.password }}
             </p>
@@ -72,6 +82,7 @@
               placeholder=""
               type="password"
               @input="validateForms"
+              autocomplete="new-password"
             />
             <p v-if="isSubmitted && errors.passwordCheck" class="input-error-message">
               {{ errors.passwordCheck }}
@@ -130,6 +141,7 @@ import { MEMBER_STATUSES, COUNTRIES, USER_ROLES } from '../assets/constants'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { useAuthenticationStore } from '@/stores/authentication'
+import lodash from 'lodash'
 
 import * as VALIDATOR from '../utils/validators'
 
@@ -137,8 +149,10 @@ const emit = defineEmits(['closePopup'])
 
 const props = defineProps({
   username: { type: String, default: null },
-  isNew: { type: Boolean, default: false }
+  isNew: { type: Boolean, default: true }
 })
+
+const userId = ref()
 
 async function fetchMemberDetails() {
   try {
@@ -150,15 +164,15 @@ async function fetchMemberDetails() {
 
     const decodedResponse = await response.json()
 
-    console.log(decodedResponse)
     const info = decodedResponse?.data?.info ?? {}
+
     forms.username = info.username
     forms.name = info.name
     forms.email = info.email
     forms.phoneNumber = info.phone_number
     forms.country = info.country
     forms.status = info.status
-
+    userId.value = info.id
     info.strRoles.forEach((item) => selectedRoles.value.add(item))
 
     handleCheckboxes()
@@ -167,13 +181,18 @@ async function fetchMemberDetails() {
   }
 }
 
+//cleave value change callback
+function onValueChanged(event) {
+  if (event.target.name === 'phoneNumber') forms.phoneNumber = event.target.value
+}
+
 const forms = reactive({
   username: '',
   name: '',
   email: '',
   phoneNumber: '',
-  password: 'Jjjjjjj8822!',
-  passwordCheck: 'Jjjjjjj8822!',
+  password: '',
+  passwordCheck: '',
   country: 'KR',
   status: 'Y'
 })
@@ -206,13 +225,22 @@ function validateForms() {
   }
 
   // console.log(res)
+
   return res.every((value) => value === null)
 }
 
 async function registerOrUpdateUser() {
   isSubmitted.value = true
+
+  // console.log('roles length', selectedRoles.value.size)
+
   //not all forms validated
   if (!validateForms()) return
+
+  if (!selectedRoles.value.size > 0) {
+    useSnackbarStore().show('사용자 역할을 1개 이상 선택하세요.')
+    return
+  }
 
   let registerBody = {
     username: forms.username,
@@ -225,9 +253,8 @@ async function registerOrUpdateUser() {
     role: [...selectedRoles.value]
   }
 
-  console.log(registerBody)
-
   let updateBody = {
+    id: userId.value,
     username: forms.username,
     name: forms.name,
     country: forms.country,
@@ -247,14 +274,17 @@ async function registerOrUpdateUser() {
     )
 
     const decodedResponse = await response.json()
-    // console.log()
+
     useSnackbarStore().show(decodedResponse?.message ?? 'Success')
   } catch (error) {
     useSnackbarStore().show(error.toString())
   }
 }
 
-const userRoles = reactive([...USER_ROLES])
+//deep copy to not keep state when page refsheses
+const userRoles = reactive(lodash.cloneDeep(USER_ROLES))
+// const userRoles = reactive([...USER_ROLES])
+
 const globalLowRoleCodes = ref(new Set([]))
 const globalHighRoleCodes = ref(new Set([]))
 
@@ -297,7 +327,7 @@ function handleCheckboxes() {
 
 function checkSelfRoles() {
   const myRoles = useAuthenticationStore().getRoles()
-  console.log('my roles', myRoles)
+  // console.log('my roles', myRoles)
 
   if (myRoles?.includes('ROLE_SUPER')) {
     userRoles[0].state = 'hidden'

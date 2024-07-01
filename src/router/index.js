@@ -6,6 +6,7 @@ import LoginView from '../views/LoginView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import Profile from '../views/ProfileView.vue'
 import ManageUsers from '../views/ManageUsersView.vue'
+import ManagePlans from '../views/ManagePlansView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -41,6 +42,15 @@ const router = createRouter({
           path: '/manage-users',
           name: 'manage-users',
           component: ManageUsers,
+          meta: {
+            requiresAuth: true
+          }
+        },
+
+        {
+          path: '/manage-plans',
+          name: 'manage-plans',
+          component: ManagePlans,
           meta: {
             requiresAuth: true
           }

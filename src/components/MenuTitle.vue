@@ -20,6 +20,10 @@ const title = computed(() => {
     return SIDEMENUNAMES[1]
   }
 
+  if (route.path === '/manage-plans') {
+    return SIDEMENUNAMES[2]
+  }
+
   return ''
 })
 </script>

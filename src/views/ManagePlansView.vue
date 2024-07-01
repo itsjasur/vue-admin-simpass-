@@ -39,7 +39,7 @@
 
             <template v-if="column.dataIndex === 'action'">
               <span
-                @click="openEditOrPopup(record.username)"
+                @click="openEditOrPopup(record.username, record.id)"
                 class="material-symbols-outlined edit-icon"
               >
                 edit
@@ -112,6 +112,7 @@
     v-if="addUpdatePopup"
     :isNew="selectedUsername === null"
     :username="selectedUsername"
+    :id="id"
     @closePopup="addUpdatePopup = false"
   />
 </template>
@@ -131,11 +132,12 @@ const rowLimit = ref(10)
 //add or update user
 const addUpdatePopup = ref(false)
 const selectedUsername = ref(null)
-const userId = ref(null)
+const id = ref(null)
 
-function openEditOrPopup(userName) {
+function openEditOrPopup(userName, id) {
   addUpdatePopup.value = true
   selectedUsername.value = userName ?? null
+  id.value = id ?? null
 }
 
 //from date set to 7 days ago default when initialized
