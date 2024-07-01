@@ -12,7 +12,7 @@
         <Header />
       </span>
 
-      <div class="scrollable-view">
+      <div :class="['scrollable-view', { sidemenuOpen: sideMenuStore.isOpen }]">
         <RouterView />
       </div>
     </div>
@@ -68,6 +68,7 @@ onUnmounted(() => {
   width: 0px;
   transition: width 0.3s ease;
   z-index: 1001;
+  overflow-x: none;
 }
 
 .dashboard-side-menu.open {
@@ -95,10 +96,13 @@ onUnmounted(() => {
   display: flex;
   flex-flow: column;
   height: 100%;
-  /* width: 100%; */
-  width: calc(100vw - 300px);
+  min-width: 100%;
+  width: 100vw;
   overflow-y: auto;
-  /* overflow-x: hidden; */
+}
+
+.scrollable-view.sidemenuOpen {
+  width: calc(100vw - 300px);
 }
 
 .icon {

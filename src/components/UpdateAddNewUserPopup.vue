@@ -370,6 +370,7 @@ function keydownHandle(event) {
   background-color: white;
   border-radius: 8px;
   max-width: 700px;
+  max-height: 100%;
   display: flex;
   flex-flow: column;
   overflow-y: auto;

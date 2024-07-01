@@ -1,16 +1,42 @@
 <template>
   <div class="container">
-    <!-- button -->
-    <button @click="openEditOrPopup(null)" class="add-new-button">신규등록 +</button>
+    <!-- filter and search part -->
+    <div class="filter-part">
+      <button
+        @click="updateAddPlanPopup = true"
+        class="add-new-button"
+        style="width: auto; min-width: 150px"
+      >
+        신규등록 +
+      </button>
+
+      <button class="filter-button" @click="plansFilterPopup.open()">
+        <span class="material-symbols-outlined button-icon"> filter_alt </span>
+        <span>필터</span>
+        <span v-if="plansFilterPopup.activeFiltersCount()" class="badge">{{
+          plansFilterPopup.activeFiltersCount()
+        }}</span>
+      </button>
+
+      <div class="group" style="min-width: 250px">
+        <label>요금제명</label>
+        <input v-model="plansFilterPopup.searchText" />
+      </div>
+
+      <!-- <button class="search-button" @click="fetchData">
+        <span class="material-symbols-outlined button-icon"> search </span>
+        <span>검색</span>
+      </button> -->
+    </div>
 
     <!-- table -->
     <div class="table-part">
       <a-pagination
         class="pagination"
         size="small"
-        :total="totalCount"
-        :current="currentPage"
-        :pageSize="rowLimit"
+        :total="plansFilterPopup.totalCount"
+        :current="plansFilterPopup.currentPage"
+        :pageSize="plansFilterPopup.rowLimit"
         show-size-changer
         :show-total="(total, range) => `${range[0]}-${range[1]} / ${total}`"
         @change="onPagChange"
@@ -54,9 +80,9 @@
       <a-pagination
         class="pagination"
         size="small"
-        :total="totalCount"
-        :current="currentPage"
-        :pageSize="rowLimit"
+        :total="plansFilterPopup.totalCount"
+        :current="plansFilterPopup.currentPage"
+        :pageSize="plansFilterPopup.rowLimit"
         show-size-changer
         @change="onPagChange"
       >
@@ -109,28 +135,61 @@
     <div></div>
   </div>
   <AddNewUserPopup
-    v-if="addUpdatePopup"
+    v-if="addNewPlanPopup"
     :isNew="selectedUsername === null"
     :username="selectedUsername"
     :id="id"
     @closePopup="addUpdatePopup = false"
   />
+  <ManagePlansFilterPopup v-if="plansFilterPopup.active" />
+
+  <UpdateAddNewPlanPopup v-if="updateAddPlanPopup" @closePopup="closePopup" />
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import * as cleavePatterns from '../utils/cleavePatterns'
 import { formatDate } from '../utils/helpers'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import AddNewUserPopup from '../components/UpdateAddNewUserPopup.vue'
+import ManagePlansFilterPopup from '../components/ManagePlansFilterPopup.vue'
+import { usePlansFilterPopup } from '../stores/manage-plans-popup-store'
 
-const totalCount = ref(0)
-const currentPage = ref(1)
-const rowLimit = ref(10)
+import UpdateAddNewPlanPopup from '../components/UpdateAddNewPlanPopup.vue'
+
+const plansFilterPopup = usePlansFilterPopup()
+
+//update or add plan popup
+const updateAddPlanPopup = ref(false)
+function closePopup(result) {
+  if (closePopup) fetchData()
+  updateAddPlanPopup.value = false
+}
+
+//filter and search data
+watch(
+  () => [
+    plansFilterPopup.carrier,
+    plansFilterPopup.mvno,
+    plansFilterPopup.agent,
+    plansFilterPopup.carrierType,
+    plansFilterPopup.carrierPlanType,
+    plansFilterPopup.status,
+    plansFilterPopup.searchText
+  ],
+  fetchData
+)
+
+watch(
+  () => [plansFilterPopup.carrier],
+  (n, o) => {
+    fetchData()
+  }
+)
 
 //add or update user
-const addUpdatePopup = ref(false)
+const addNewPlanPopup = ref(false)
 const selectedUsername = ref(null)
 const id = ref(null)
 
@@ -146,65 +205,114 @@ const fromDate = ref(formatDate(new Date(new Date().setDate(new Date().getDate()
 
 //pagination change
 function onPagChange(curPage, perPage) {
-  currentPage.value = curPage
-  rowLimit.value = perPage
+  plansFilterPopup.currentPage = curPage
+  plansFilterPopup.rowLimit = perPage
   fetchData()
 }
 
 //table
-
 const columns = ref([
   {
     title: 'No.',
-    dataIndex: 'id',
-    key: 'id',
-    sorter: (a, b) => a.id ?? 0 - b.id ?? 0,
+    dataIndex: 'num',
+    key: 'num',
+    sorter: (a, b) => a.num ?? 0 - b.num ?? 0,
     sortDirections: ['descend', 'ascend']
   },
   {
-    title: '아이디',
-    dataIndex: 'username',
-    key: 'username',
-    sorter: (a, b) => (a.username ?? '').localeCompare(b.username ?? '')
-  },
-  {
-    title: '이름',
-    dataIndex: 'name',
-    key: 'name',
-    sorter: (a, b) => (a.name ?? '').localeCompare(b.name ?? '')
-  },
-  {
-    title: '국가',
-    dataIndex: 'country_nm',
-    key: 'country_nm',
-    sorter: (a, b) => (a.country_nm ?? '').localeCompare(b.country_nm ?? '')
-  },
-
-  {
-    title: '휴대전화',
-    dataIndex: 'phone_number',
-    key: 'phone_number',
-    sorter: (a, b) => (a.phone_number ?? '').localeCompare(b.phone_number ?? '')
-  },
-
-  {
-    title: '이매일',
-    dataIndex: 'email',
-    key: 'email',
-    sorter: (a, b) => (a.email ?? '').localeCompare(b.email ?? '')
-  },
-  {
-    title: '상태',
+    title: 'status',
     dataIndex: 'status',
     key: 'status',
     sorter: (a, b) => (a.status ?? '').localeCompare(b.status ?? '')
   },
+  {
+    title: '요금제명',
+    dataIndex: 'usim_plan_nm',
+    key: 'usim_plan_nm',
+    sorter: (a, b) => (a.usim_plan_nm ?? '').localeCompare(b.usim_plan_nm ?? '')
+  },
+  {
+    title: '통신사',
+    dataIndex: 'carrier_nm',
+    key: 'carrier_nm',
+    sorter: (a, b) => (a.carrier_nm ?? '').localeCompare(b.carrier_nm ?? '')
+  },
 
   {
-    title: '시작일자',
-    dataIndex: 'from_date',
-    key: 'from_date',
-    sorter: (a, b) => (a.from_date ?? '').localeCompare(b.from_date ?? '')
+    title: '브랜드',
+    dataIndex: 'mvno_nm',
+    key: 'mvno_nm',
+    sorter: (a, b) => (a.mvno_nm ?? '').localeCompare(b.mvno_nm ?? '')
+  },
+
+  {
+    title: '대리점',
+    dataIndex: 'agent_nm',
+    key: 'agent_nm',
+    sorter: (a, b) => (a.agent_nm ?? '').localeCompare(b.agent_nm ?? '')
+  },
+  {
+    title: '서비스 유형',
+    dataIndex: 'carrier_type_nm',
+    key: 'carrier_type_nm',
+    sorter: (a, b) => (a.carrier_type_nm ?? '').localeCompare(b.carrier_type_nm ?? '')
+  },
+  {
+    title: '가입대상',
+    dataIndex: 'carrier_plan_type_nm',
+    key: 'carrier_plan_type_nm',
+
+    sorter: (a, b) => (a.carrier_plan_type_nm ?? '').localeCompare(b.carrier_plan_type_nm ?? '')
+  },
+
+  {
+    title: '기본료',
+    dataIndex: 'basic_fee',
+    key: 'basic_fee',
+    sorter: (a, b) => (a.basic_fee ?? '').localeCompare(b.basic_fee ?? '')
+  },
+
+  {
+    title: '판매금액',
+    dataIndex: 'sales_fee',
+    key: 'sales_fee',
+    sorter: (a, b) => (a.sales_fee ?? '').localeCompare(b.sales_fee ?? '')
+  },
+  {
+    title: '음성',
+    dataIndex: 'voice',
+    key: 'voice',
+    sorter: (a, b) => (a.voice ?? '').localeCompare(b.voice ?? '')
+  },
+  {
+    title: '문자',
+    dataIndex: 'message',
+    key: 'message',
+    sorter: (a, b) => (a.message ?? '').localeCompare(b.message ?? '')
+  },
+  {
+    title: '데이터',
+    dataIndex: 'cell_data',
+    key: 'cell_data',
+    sorter: (a, b) => (a.cell_data ?? '').localeCompare(b.cell_data ?? '')
+  },
+  {
+    title: '영상/기타',
+    dataIndex: 'video_etc',
+    key: 'video_etc',
+    sorter: (a, b) => (a.video_etc ?? '').localeCompare(b.video_etc ?? '')
+  },
+  {
+    title: 'QOS',
+    dataIndex: 'qos',
+    key: 'qos',
+    sorter: (a, b) => (a.qos ?? '').localeCompare(b.qos ?? '')
+  },
+  {
+    title: '우선순위',
+    dataIndex: 'priority',
+    key: 'priority',
+    sorter: (a, b) => (a.priority ?? 0) - (b.priority ?? 0)
   },
   {
     title: '액션',
@@ -218,14 +326,24 @@ const dataList = ref([])
 
 async function fetchData() {
   try {
-    const response = await fetchWithTokenRefresh('admin/member', {
+    const response = await fetchWithTokenRefresh('agent/plan', {
       method: 'POST',
-      body: { page: currentPage.value, rowLimit: rowLimit.value }
+      body: {
+        usim_plan_nm: plansFilterPopup.searchText, //요금제명
+        carrier_cd: plansFilterPopup.carrier, //통신사
+        mvno_cd: plansFilterPopup.mvno, //브랜드
+        agent_cd: plansFilterPopup.agent, //대리점
+        carrier_type: plansFilterPopup.carrierType, //서비스유형
+        carrier_plan_type: plansFilterPopup.carrierPlanType, // 가입대상
+        status: plansFilterPopup.status, //상태
+        page: plansFilterPopup.currentPage,
+        rowLimit: plansFilterPopup.rowLimit
+      }
     })
     if (!response.ok) throw 'Fetch data error'
     const decodedResponse = await response.json()
-    dataList.value = decodedResponse.data.rows
-    totalCount.value = decodedResponse.data.totalNum
+    dataList.value = decodedResponse.data.plan_list
+    plansFilterPopup.totalCount = decodedResponse.data.totalNum
   } catch (error) {
     useSnackbarStore().show(error.toString())
   }
@@ -237,19 +355,11 @@ onMounted(fetchData)
 <style scoped>
 .container {
   width: 100%;
-  max-width: 1400px;
+  /* max-width: 1700px; */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-
-.add-new-button {
-  width: auto;
-  min-width: 150px;
-  align-self: flex-start;
-  margin: 0 20px;
-  margin-top: 30px;
 }
 
 .table-part {
@@ -263,13 +373,57 @@ onMounted(fetchData)
   margin: 0 20px;
 }
 
+.filter-part {
+  display: flex;
+  flex-flow: wrap;
+  align-items: flex-end;
+  gap: 20px;
+  margin-left: 20px;
+  margin-top: 20px;
+}
+
+.filter-button {
+  width: auto;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #828282;
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  padding: 5px 10px;
+  border-radius: 50%;
+  background-color: #ff1616;
+  color: white;
+  font-size: 12px;
+}
+
+.search-button {
+  width: auto;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #3554b4;
+}
+
+.filter-part .button-icon {
+  font-size: 22px;
+}
+
 .table-wrap {
   width: 100%;
   overflow-x: auto;
 }
 
 .table {
-  min-width: 1200px;
+  max-width: none;
+  min-width: 1800px;
   box-sizing: border-box;
   margin: 0 20px;
   margin-bottom: 5px;
@@ -306,8 +460,8 @@ onMounted(fetchData)
   background-color: var(--main-color);
 }
 
-.status-W {
-  background-color: #ed863d;
+.status-N {
+  background-color: #ff2e2e;
 }
 
 .reg-form-icon {

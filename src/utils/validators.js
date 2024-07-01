@@ -86,3 +86,13 @@ export function validateCountry(value) {
 
   return null
 }
+
+export function validateForNoneEmpty(value, name) {
+  value = value?.replaceAll(' ', '')
+
+  if (value == null || value.isEmpty) {
+    return `${name} 입력하세요.`
+  }
+
+  return null
+}

@@ -10,20 +10,20 @@ export const birthdayPattern = {
   date: true,
   delimiter: '-',
   datePattern: ['y', 'm', 'd'],
-  strictDate: true,
+  strictDate: true
 }
 
 export const birthdayPatternFull = {
   date: true,
   delimiter: '-',
   datePattern: ['Y', 'm', 'd'],
-  strictDate: true,
+  strictDate: true
 }
 
 export const datePattern = {
   date: true,
   delimiter: '-',
-  datePattern: ['Y', 'm', 'd'],
+  datePattern: ['Y', 'm', 'd']
   // dateMin: '1930-01-01',
   // dateMax: getTodaysDate(),
 }
@@ -31,11 +31,16 @@ export const datePattern = {
 export const phoneNumberPattern = {
   phone: true,
   phoneRegionCode: 'KR',
-  delimiter: '-',
+  delimiter: '-'
 }
 
 export const businessNumberPattern = {
   delimiter: '-',
   blocks: [3, 2, 5],
-  numericOnly: true,
+  numericOnly: true
+}
+
+export const numeral1000Pattern = {
+  numeral: true,
+  numeralThousandsGroupStyle: 'thousand'
 }
