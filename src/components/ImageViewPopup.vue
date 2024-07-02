@@ -62,20 +62,17 @@ watchEffect(() => {
   }
 })
 
-// converts base64 to Blob URL
 onMounted(() => {
   document.addEventListener('keydown', keydownHandle)
 })
 
-//this handles keyboard actions
+onUnmounted(() => {
+  document.removeEventListener('keydown', keydownHandle)
+})
+
 function keydownHandle(event) {
   if (event.key === 'Escape') popup.close()
 }
-
-onUnmounted(() => {
-  popup.close()
-  document.removeEventListener('keydown', keydownHandle)
-})
 </script>
 <style scoped>
 .overlay {

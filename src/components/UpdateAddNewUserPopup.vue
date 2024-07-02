@@ -144,6 +144,7 @@ import { useAuthenticationStore } from '@/stores/authentication'
 import lodash from 'lodash'
 
 import * as VALIDATOR from '../utils/validators'
+import router from '@/router'
 
 const emit = defineEmits(['closePopup'])
 
@@ -224,8 +225,6 @@ function validateForms() {
     )
   }
 
-  // console.log(res)
-
   return res.every((value) => value === null)
 }
 
@@ -267,15 +266,14 @@ async function registerOrUpdateUser() {
   try {
     const response = await fetchWithTokenRefresh(
       props.isNew ? 'admin/register' : 'admin/memberUpdate',
-      {
-        method: 'POST',
-        body: props.isNew ? registerBody : updateBody
-      }
+      { method: 'POST', body: props.isNew ? registerBody : updateBody }
     )
 
     const decodedResponse = await response.json()
+    if (!response.ok) throw decodedResponse?.message ?? 'Could not add/update user data'
 
     useSnackbarStore().show(decodedResponse?.message ?? 'Success')
+    emit('closePopup', true)
   } catch (error) {
     useSnackbarStore().show(error.toString())
   }
@@ -292,6 +290,27 @@ const selectedRoles = ref(new Set([]))
 
 function checkRole(role) {
   useSnackbarStore().hide()
+
+  // if (role.code === 'ROLE_ADMIN' && role.checked) {
+  //   selectedRoles.value.add('ROLE_ADMIN')
+  //   for (const role of userRoles) {
+  //     if (role.code !== 'ROLE_ADMIN') {
+  //       role.checked = false
+  //       role.state = 'hidden'
+  //     }
+  //   }
+  //   return
+  // }
+
+  // if (role.code === 'ROLE_ADMIN' && !role.checked) {
+  //   selectedRoles.value.clear()
+  //   for (const role of userRoles) {
+  //     role.checked = false
+  //     role.state = 'active'
+  //   }
+  //   return
+  // }
+
   if (globalHighRoleCodes.value.has(role.code)) {
     role.checked = false
     useSnackbarStore().show('이미 선택권한의 하위권한이 선택 또는 존재합니다.')
@@ -303,6 +322,24 @@ function checkRole(role) {
 function handleCheckboxes() {
   globalLowRoleCodes.value.clear()
   globalHighRoleCodes.value.clear()
+
+  if (selectedRoles.value.has('ROLE_ADMIN')) {
+    selectedRoles.value.clear()
+    selectedRoles.value.add('ROLE_ADMIN')
+
+    for (const role of userRoles) {
+      if (role.code !== 'ROLE_ADMIN') {
+        role.checked = false
+        role.state = 'hidden'
+      }
+
+      if (role.code === 'ROLE_ADMIN') {
+        role.checked = true
+        role.state = 'active'
+      }
+    }
+    return
+  }
 
   for (const role of userRoles) {
     //if avilable in selected
@@ -322,23 +359,19 @@ function handleCheckboxes() {
       role.state = 'active'
     }
   }
-  checkSelfRoles()
 }
 
 function checkSelfRoles() {
   const myRoles = useAuthenticationStore().getRoles()
-  // console.log('my roles', myRoles)
-
   if (myRoles?.includes('ROLE_SUPER')) {
-    userRoles[0].state = 'hidden'
-    userRoles[0].checked = false
-    globalLowRoleCodes.value.add('ROLE_SUPER')
+    userRoles[0].state = 'active'
   }
 }
 
 onMounted(() => {
   if (props.username) fetchMemberDetails()
   document.addEventListener('keydown', keydownHandle)
+  checkSelfRoles()
 })
 
 onUnmounted(() => {

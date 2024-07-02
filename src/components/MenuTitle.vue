@@ -27,8 +27,11 @@ const title = computed(() => {
   if (route.path === '/applications') {
     return SIDEMENUNAMES[3]
   }
-  if (route.path === '/application') {
+  if (route.path === '/partners') {
     return SIDEMENUNAMES[4]
+  }
+  if (route.path === '/self-requests') {
+    return SIDEMENUNAMES[5]
   }
 
   return ''

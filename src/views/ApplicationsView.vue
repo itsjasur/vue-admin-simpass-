@@ -121,12 +121,20 @@
         </div>
         <div class="card-row">
           <span class="left-label">상태: </span>
+
+          <!-- status can't be changed if act_status is Y -->
           <span
+            v-if="item.usim_act_status !== 'Y'"
             @click="openStatusUpdatePopup(item)"
-            :class="['status-' + item, 'status-default']"
-            class="right-content"
-            >{{ item.usim_act_status_nm }}</span
+            :class="['status-' + item.usim_act_status, 'status-default']"
           >
+            <span>{{ item.usim_act_status_nm }}</span>
+            <span class="material-symbols-outlined edit-icon"> edit </span>
+          </span>
+
+          <span v-else :class="['status-' + item.usim_act_status, 'status-default']">
+            <span>{{ item.usim_act_status_nm }}</span>
+          </span>
         </div>
         <div class="card-row">
           <span class="left-label">접수번호: </span>
@@ -146,14 +154,19 @@
         <div class="card-row">
           <span class="left-label">가입정보: </span>
           <span class="right-content">
-            <span class="material-symbols-outlined"> visibility </span>
+            <button @click="openDetailsPopup(item)" class="reg-details-button">가입정보</button>
           </span>
         </div>
 
         <div class="card-row">
           <span class="left-label">가입신청서: </span>
           <span class="right-content">
-            <span class="material-symbols-outlined reg-form-attach"> attach_file </span>
+            <span
+              @click="fetchForms(item.act_no)"
+              class="material-symbols-outlined reg-form-attach"
+            >
+              attach_file
+            </span>
           </span>
         </div>
 
@@ -444,17 +457,18 @@ onMounted(fetchData)
   background-color: transparent;
   border: 1px dashed var(--main-color);
   color: var(--main-color);
-  padding: 0;
+  padding: 0 5px;
   margin: 0px;
+
+  max-height: 30px;
+  min-height: unset;
 }
 
 .status-default {
   background-color: #828282;
-  padding: 3px 0px;
-  padding-left: 10px;
+  padding: 3px 10px;
   color: #fff;
   font-size: 14px;
-  width: 100%;
   border-radius: 20px;
   white-space: nowrap;
 
@@ -462,8 +476,9 @@ onMounted(fetchData)
   box-sizing: border-box;
   align-items: center;
   cursor: pointer;
-  justify-content: space-evenly;
+  justify-content: space-around;
   user-select: none;
+  gap: 5px;
 }
 
 .status-A {
@@ -478,8 +493,6 @@ onMounted(fetchData)
 
 .status-Y {
   background-color: #505050;
-  padding-left: 0px;
-  padding: 3px 10px;
 }
 
 .status-W {
@@ -541,6 +554,7 @@ onMounted(fetchData)
     display: flex;
     flex-flow: row;
     justify-content: space-between;
+    align-items: center;
   }
 
   .right-content {

@@ -43,7 +43,7 @@ export const USER_ROLES = [
     id: 1,
     label: '관리자',
     code: 'ROLE_ADMIN',
-    state: 'active',
+    state: 'hidden',
     checked: false,
     high: [],
     low: ['ALL']

@@ -152,37 +152,28 @@
     <div></div>
     <div></div>
   </div>
-  <AddNewUserPopup
-    v-if="addNewPlanPopup"
-    :isNew="selectedUsername === null"
-    :username="selectedUsername"
-    :id="id"
-    @closePopup="addUpdatePopup = false"
-  />
-  <ManagePlansFilterPopup v-if="plansFilterPopup.active" />
 
+  <ManagePlansFilterPopup v-if="plansFilterPopup.active" />
   <UpdateAddNewPlanPopup v-if="updateAddPlanPopup" @closePopup="closePopup" :id="id" />
 </template>
 
 <script setup>
 import { ref, onMounted, watch, onUnmounted } from 'vue'
-import * as cleavePatterns from '../utils/cleavePatterns'
-import { formatDate } from '../utils/helpers'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import AddNewUserPopup from '../components/UpdateAddNewUserPopup.vue'
 import ManagePlansFilterPopup from '../components/ManagePlansFilterPopup.vue'
 import { usePlansFilterPopup } from '../stores/manage-plans-popup-store'
-
 import UpdateAddNewPlanPopup from '../components/UpdateAddNewPlanPopup.vue'
 
 const plansFilterPopup = usePlansFilterPopup()
 
 //update or add plan popup
 const updateAddPlanPopup = ref(false)
+
 function closePopup(result) {
-  if (closePopup) fetchData()
+  id.value = null
   updateAddPlanPopup.value = false
+  if (closePopup) fetchData()
 }
 
 //filter and search data
@@ -216,10 +207,6 @@ function openEditOrPopup(selId) {
   id.value = selId ?? null
   updateAddPlanPopup.value = true
 }
-
-//from date set to 7 days ago default when initialized
-const toDate = ref(formatDate(new Date()))
-const fromDate = ref(formatDate(new Date(new Date().setDate(new Date().getDate() - 7))))
 
 //pagination change
 function onPagChange(curPage, perPage) {
@@ -360,8 +347,8 @@ async function fetchData() {
     })
     if (!response.ok) throw 'Fetch data error'
     const decodedResponse = await response.json()
-    dataList.value = decodedResponse.data.plan_list
-    plansFilterPopup.totalCount = decodedResponse.data.totalNum
+    dataList.value = decodedResponse?.data.plan_list ?? []
+    plansFilterPopup.totalCount = decodedResponse?.data?.totalNum ?? 0
   } catch (error) {
     useSnackbarStore().show(error.toString())
   }
@@ -535,6 +522,7 @@ onMounted(fetchData)
     display: flex;
     flex-flow: row;
     justify-content: space-between;
+    align-items: center;
   }
 
   .right-content {

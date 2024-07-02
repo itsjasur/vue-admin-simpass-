@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <!-- button -->
-    <button @click="openEditOrPopup(null)" class="add-new-button">신규등록 +</button>
+    <button @click="openPopup(null)" class="add-new-button">신규등록 +</button>
 
     <!-- table -->
     <div class="table-part">
@@ -38,10 +38,7 @@
             </template>
 
             <template v-if="column.dataIndex === 'action'">
-              <span
-                @click="openEditOrPopup(record.username)"
-                class="material-symbols-outlined edit-icon"
-              >
+              <span @click="openPopup(record.username)" class="material-symbols-outlined edit-icon">
                 edit
               </span>
             </template>
@@ -97,7 +94,7 @@
 
         <div class="card-row">
           <span class="left-label">액션: </span>
-          <span @click="openEditOrPopup(item.username)" class="right-content"
+          <span @click="openPopup(item.username)" class="right-content"
             ><span class="material-symbols-outlined edit-icon"> edit </span></span
           >
         </div>
@@ -112,7 +109,7 @@
     v-if="addUpdatePopup"
     :isNew="selectedUsername === null"
     :username="selectedUsername"
-    @closePopup="addUpdatePopup = false"
+    @closePopup="closePopup"
   />
 </template>
 
@@ -133,9 +130,14 @@ const addUpdatePopup = ref(false)
 const selectedUsername = ref(null)
 const userId = ref(null)
 
-function openEditOrPopup(userName) {
+function openPopup(userName) {
   addUpdatePopup.value = true
   selectedUsername.value = userName ?? null
+}
+
+function closePopup(result) {
+  addUpdatePopup.value = false
+  if (result) fetchData()
 }
 
 //from date set to 7 days ago default when initialized
@@ -359,6 +361,7 @@ onMounted(fetchData)
     display: flex;
     flex-flow: row;
     justify-content: space-between;
+    align-items: center;
   }
 
   .right-content {

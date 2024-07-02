@@ -3,11 +3,14 @@ import { useAuthenticationStore } from '../stores/authentication'
 import { useRouteMemoryStore } from '../stores/router-memory-store'
 import DashBaordView from '../views/DashBoardView.vue'
 import LoginView from '../views/LoginView.vue'
+import SignupView from '../views/SignupView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import Profile from '../views/ProfileView.vue'
 import ManageUsers from '../views/ManageUsersView.vue'
 import ManagePlans from '../views/ManagePlansView.vue'
 import Applications from '../views/ApplicationsView.vue'
+import Partners from '../views/PartnersView.vue'
+import SelfRequests from '../views/SelfRequestsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,47 +25,56 @@ const router = createRouter({
     },
 
     {
+      path: '/signup',
+      name: 'signup',
+      component: SignupView,
+      meta: { requiresAuth: false }
+    },
+
+    {
       path: '/',
       name: 'dashboard',
       redirect: '/profile',
       component: DashBaordView,
-      meta: {
-        requiresAuth: true
-      },
+      meta: { requiresAuth: true },
       children: [
         {
           path: '/profile',
           name: 'profile',
           component: Profile,
-          meta: {
-            requiresAuth: true
-          }
+          meta: { requiresAuth: true }
         },
 
         {
           path: '/manage-users',
           name: 'manage-users',
           component: ManageUsers,
-          meta: {
-            requiresAuth: true
-          }
+          meta: { requiresAuth: true }
         },
 
         {
           path: '/manage-plans',
           name: 'manage-plans',
           component: ManagePlans,
-          meta: {
-            requiresAuth: true
-          }
+          meta: { requiresAuth: true }
         },
         {
           path: '/applications',
-          name: 'application',
+          name: 'applications',
           component: Applications,
-          meta: {
-            requiresAuth: true
-          }
+          meta: { requiresAuth: true }
+        },
+        {
+          path: '/partners',
+          name: 'partners',
+          component: Partners,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: '/self-requests',
+          name: 'self-requests',
+          component: SelfRequests,
+          meta: { requiresAuth: true }
         }
       ]
     },

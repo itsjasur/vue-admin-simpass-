@@ -25,6 +25,16 @@
       <span class="material-symbols-outlined"> article </span>
       <span class="menu-title">{{ SIDEMENUNAMES[3] }}</span>
     </router-link>
+
+    <router-link @click="sideMenuClose" to="/partners" class="menu-item">
+      <span class="material-symbols-outlined"> storefront </span>
+      <span class="menu-title">{{ SIDEMENUNAMES[4] }}</span>
+    </router-link>
+
+    <router-link @click="sideMenuClose" to="/self-requests" class="menu-item">
+      <span class="material-symbols-outlined"> phone_in_talk </span>
+      <span class="menu-title">{{ SIDEMENUNAMES[5] }}</span>
+    </router-link>
   </div>
 </template>
 
@@ -45,7 +55,7 @@ function sideMenuClose() {
   min-width: 300px;
   width: 100%;
   height: 100%;
-  background-color: #404a54;
+  background-color: #282c35;
   display: flex;
   flex-flow: column;
   gap: 15px;

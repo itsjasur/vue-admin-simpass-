@@ -59,7 +59,7 @@ onUnmounted(() => {
   height: 100vh;
   width: 100vw;
   z-index: 1000;
-  background-color: #ffc0cb76;
+  /* background-color: #ffc0cb76; */
   overflow-x: hidden;
 }
 

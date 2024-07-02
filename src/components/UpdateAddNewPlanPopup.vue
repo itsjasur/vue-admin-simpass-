@@ -10,7 +10,7 @@
 
       <div class="scrollable-content">
         <div class="filters">
-          <div class="group" style="max-width: 120px">
+          <div class="group" style="max-width: 140px">
             <label>통신사</label>
             <a-select
               v-model:value="forms.carrier"
@@ -65,7 +65,7 @@
             <p v-if="isSubmitted && !forms.agent" class="input-error-message">디리점 선택하세요.</p>
           </div>
 
-          <div class="group" style="max-width: 130px">
+          <div class="group" style="max-width: 140px">
             <label>서비스 유형</label>
             <a-select
               v-model:value="forms.carrierType"
@@ -85,7 +85,7 @@
             </p>
           </div>
 
-          <div class="group" style="max-width: 120px">
+          <div class="group" style="max-width: 140px">
             <label>가입대상</label>
             <a-select
               v-model:value="forms.carrierPlanType"
@@ -112,7 +112,7 @@
             </p>
           </div>
 
-          <div class="group" style="max-width: 120px">
+          <div class="group" style="max-width: 140px">
             <label>상태</label>
             <a-select
               v-model:value="forms.status"
@@ -139,7 +139,7 @@
               v-cleave="{ numeral: true, onValueChanged }"
             />
             <p v-if="isSubmitted && !forms.basicFee" class="input-error-message">
-              요금제명 입력하세요.
+              기본료 입력하세요.
             </p>
           </div>
 
@@ -151,46 +151,36 @@
               v-cleave="{ numeral: true, onValueChanged }"
             />
             <p v-if="isSubmitted && !forms.salesFee" class="input-error-message">
-              요금제명 입력하세요.
+              판매금액 입력하세요.
             </p>
           </div>
 
           <div class="group" style="max-width: 150px">
             <label>문자</label>
             <input v-model="forms.message" />
-            <p v-if="isSubmitted && !forms.message" class="input-error-message">
-              요금제명 입력하세요.
-            </p>
+            <p v-if="isSubmitted && !forms.message" class="input-error-message">문자 입력하세요.</p>
           </div>
 
           <div class="group" style="max-width: 150px">
             <label>데이터</label>
             <input v-model="forms.data" />
-            <p v-if="isSubmitted && !forms.data" class="input-error-message">
-              요금제명 입력하세요.
-            </p>
+            <p v-if="isSubmitted && !forms.data" class="input-error-message">데이터 입력하세요.</p>
           </div>
 
           <div class="group" style="max-width: 150px">
             <label>음성</label>
             <input v-model="forms.voice" />
-            <p v-if="isSubmitted && !forms.voice" class="input-error-message">
-              요금제명 입력하세요.
-            </p>
+            <p v-if="isSubmitted && !forms.voice" class="input-error-message">음성 입력하세요.</p>
           </div>
 
           <div class="group" style="max-width: 150px">
             <label>영사 / 기타</label>
             <input v-model="forms.videEtc" />
-            <p v-if="isSubmitted && !forms.videEtc" class="input-error-message">
-              요금제명 입력하세요.
-            </p>
           </div>
 
           <div class="group" style="max-width: 150px">
             <label>QOS</label>
             <input v-model="forms.qos" />
-            <p v-if="isSubmitted && !forms.qos" class="input-error-message">요금제명 입력하세요.</p>
           </div>
 
           <div class="group" style="max-width: 150px">
@@ -200,9 +190,6 @@
               name="priority"
               v-cleave="{ numeral: true, onValueChanged }"
             />
-            <p v-if="isSubmitted && !forms.priority" class="input-error-message">
-              요금제명 입력하세요.
-            </p>
           </div>
 
           <!--  -->
@@ -230,7 +217,6 @@ const forms = reactive({
   carrierType: null,
   carrierPlanType: null,
   status: null,
-
   planName: null,
   basicFee: null,
   salesFee: null,
@@ -245,24 +231,6 @@ const forms = reactive({
 const rawForms = reactive({
   basicFee: null,
   salesFee: null,
-  priority: null
-})
-
-const errors = reactive({
-  carrier: null,
-  mvno: null,
-  agent: null,
-  carrierType: null,
-  carrierPlanType: null,
-  status: null,
-  planName: null,
-  basicFee: null,
-  salesFee: null,
-  message: null,
-  data: null,
-  voice: null,
-  videEtc: null,
-  qos: null,
   priority: null
 })
 
@@ -339,10 +307,23 @@ async function fetchData() {
 async function updateAddPlan() {
   isSubmitted.value = true
 
-  const allFilled = Object.values(forms).every(
-    (value) => value !== null && value !== undefined && value !== ''
-  )
-  if (!allFilled) return
+  const requiredFields = [
+    'carrier',
+    'mvno',
+    'agent',
+    'carrierType',
+    'carrierPlanType',
+    'status',
+    'planName',
+    'basicFee',
+    'salesFee',
+    'message',
+    'data',
+    'voice'
+  ]
+
+  const allReqFilled = requiredFields.every((field) => forms[field] !== null && forms[field] !== '')
+  if (!allReqFilled) return
 
   try {
     const response = await fetchWithTokenRefresh('agent/setPlan', {
@@ -367,19 +348,15 @@ async function updateAddPlan() {
       }
     })
 
-    if (!response.ok) throw 'Set data error'
-
     const decodedResponse = await response.json()
-    console.log(decodedResponse)
-    useSnackbarStore().show(decodedResponse.message)
 
     if (decodedResponse?.result === 'SUCCESS') {
       useSnackbarStore().show(decodedResponse.message)
-
       emit('closePopup', true)
-    } else {
-      throw 'Setplan error'
+      return
     }
+
+    useSnackbarStore().show(decodedResponse?.message ?? 'Set plan error')
   } catch (error) {
     useSnackbarStore().show(error.toString())
   }
