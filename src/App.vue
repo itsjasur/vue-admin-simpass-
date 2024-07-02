@@ -16,8 +16,11 @@
   </a-config-provider>
   <router-view />
 
+  <Loading />
   <Snackbar />
   <Warning />
+  <PrintablePopup />
+  <ImageViewPopup />
 </template>
 
 <script setup>
@@ -28,6 +31,9 @@ import { useRouter } from 'vue-router'
 import { useAuthenticationStore } from './stores/authentication'
 import { useRouteMemoryStore } from './stores/router-memory-store'
 import { useSideMenuStore } from './stores/side-menu'
+import PrintablePopup from './components/PrintablePopup.vue'
+import ImageViewPopup from './components/ImageViewPopup.vue'
+import Loading from './components/Loading.vue'
 
 const router = useRouter()
 const authStore = useAuthenticationStore()

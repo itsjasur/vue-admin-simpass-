@@ -46,6 +46,8 @@ export async function fetchWithTokenRefresh(url, options) {
     options.body = JSON.stringify(options.body)
   }
 
+  // console.log(options.body)
+
   //if body is not form data, content-type is always application/json
   if (!(options.body instanceof FormData)) options.headers['Content-Type'] = 'application/json'
   try {

@@ -24,6 +24,13 @@ const title = computed(() => {
     return SIDEMENUNAMES[2]
   }
 
+  if (route.path === '/applications') {
+    return SIDEMENUNAMES[3]
+  }
+  if (route.path === '/application') {
+    return SIDEMENUNAMES[4]
+  }
+
   return ''
 })
 </script>

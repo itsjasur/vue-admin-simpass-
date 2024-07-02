@@ -97,7 +97,7 @@
 
         <div class="card-row">
           <span class="left-label">액션: </span>
-          <span class="right-content"
+          <span @click="openEditOrPopup(item.username)" class="right-content"
             ><span class="material-symbols-outlined edit-icon"> edit </span></span
           >
         </div>
@@ -156,7 +156,7 @@ const columns = ref([
     title: 'No.',
     dataIndex: 'id',
     key: 'id',
-    sorter: (a, b) => a.id ?? 0 - b.id ?? 0,
+    sorter: (a, b) => (a.id ?? 0) - (b.id ?? 0),
     sortDirections: ['descend', 'ascend']
   },
   {

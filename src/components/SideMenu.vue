@@ -20,6 +20,11 @@
       <span class="material-symbols-outlined"> dashboard </span>
       <span class="menu-title">{{ SIDEMENUNAMES[2] }}</span>
     </router-link>
+
+    <router-link @click="sideMenuClose" to="/applications" class="menu-item">
+      <span class="material-symbols-outlined"> article </span>
+      <span class="menu-title">{{ SIDEMENUNAMES[3] }}</span>
+    </router-link>
   </div>
 </template>
 

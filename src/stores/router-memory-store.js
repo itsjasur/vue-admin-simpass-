@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useRouteMemoryStore = defineStore('router-memory-store', {
   state: () => ({
-    intendedRoute: null,
+    intendedRoute: null
   }),
 
   actions: {
@@ -11,6 +11,6 @@ export const useRouteMemoryStore = defineStore('router-memory-store', {
     },
     clear() {
       this.intendedRoute = null
-    },
-  },
+    }
+  }
 })

@@ -157,8 +157,10 @@
 
           <div class="group" style="max-width: 150px">
             <label>문자</label>
-            <input v-model="forms.sms" />
-            <p v-if="isSubmitted && !forms.sms" class="input-error-message">요금제명 입력하세요.</p>
+            <input v-model="forms.message" />
+            <p v-if="isSubmitted && !forms.message" class="input-error-message">
+              요금제명 입력하세요.
+            </p>
           </div>
 
           <div class="group" style="max-width: 150px">
@@ -219,7 +221,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import * as cleavePatterns from '../utils/cleavePatterns'
 
 const emit = defineEmits(['closePopup'])
-const props = defineProps({ id: { type: String, default: null } })
+const props = defineProps({ id: { type: Number, default: null } })
 
 const forms = reactive({
   carrier: null,
@@ -232,7 +234,7 @@ const forms = reactive({
   planName: null,
   basicFee: null,
   salesFee: null,
-  sms: null,
+  message: null,
   data: null,
   voice: null,
   videEtc: null,
@@ -256,7 +258,7 @@ const errors = reactive({
   planName: null,
   basicFee: null,
   salesFee: null,
-  sms: null,
+  message: null,
   data: null,
   voice: null,
   videEtc: null,
@@ -285,6 +287,7 @@ async function fetchData() {
     const response = await fetchWithTokenRefresh('agent/plan', {
       method: 'POST',
       body: {
+        id: props.id,
         usim_plan_nm: '', //요금제명
         carrier_cd: '', //통신사
         mvno_cd: '', //브랜드
@@ -297,9 +300,30 @@ async function fetchData() {
       }
     })
     if (!response.ok) throw 'Fetch data error'
+
     const decodedResponse = await response.json()
 
-    data.carrier_cd = decodedResponse.data.carrier_cd
+    //if props comes with id, values are set to 1st item in the list
+    if (props.id) {
+      const planInfo = decodedResponse.data.plan_list[0]
+      forms.carrier = planInfo?.carrier_cd ?? ''
+      forms.mvno = planInfo?.mvno_cd ?? ''
+      forms.agent = planInfo?.agent_cd ?? ''
+      forms.carrierType = planInfo?.carrier_type ?? ''
+      forms.carrierPlanType = planInfo?.carrier_plan_type ?? ''
+      forms.status = planInfo?.status ?? ''
+      forms.planName = planInfo?.usim_plan_nm ?? ''
+      forms.basicFee = planInfo?.basic_fee ?? ''
+      forms.salesFee = planInfo?.sales_fee ?? ''
+      forms.message = planInfo?.message ?? ''
+      forms.data = planInfo?.cell_data ?? ''
+      forms.voice = planInfo?.voice ?? ''
+      forms.videEtc = planInfo?.video_etc ?? ''
+      forms.qos = planInfo?.qos ?? ''
+      forms.priority = planInfo?.priority ?? ''
+    }
+
+    data.carrier = data.carrier_cd = decodedResponse.data.carrier_cd
     data.mvno_cd = decodedResponse.data.mvno_cd
     data.agent_cd = decodedResponse.data.agent_cd
     data.carrier_type = decodedResponse.data.carrier_type
@@ -313,7 +337,7 @@ async function fetchData() {
 }
 
 async function updateAddPlan() {
-  isSubmitted = true
+  isSubmitted.value = true
 
   const allFilled = Object.values(forms).every(
     (value) => value !== null && value !== undefined && value !== ''
@@ -342,7 +366,9 @@ async function updateAddPlan() {
         status: forms.status
       }
     })
-    if (!response.ok) throw 'Fetch data error'
+
+    if (!response.ok) throw 'Set data error'
+
     const decodedResponse = await response.json()
     console.log(decodedResponse)
     useSnackbarStore().show(decodedResponse.message)

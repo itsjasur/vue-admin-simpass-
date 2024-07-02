@@ -22,11 +22,6 @@
         <label>요금제명</label>
         <input v-model="plansFilterPopup.searchText" />
       </div>
-
-      <!-- <button class="search-button" @click="fetchData">
-        <span class="material-symbols-outlined button-icon"> search </span>
-        <span>검색</span>
-      </button> -->
     </div>
 
     <!-- table -->
@@ -64,10 +59,7 @@
             </template>
 
             <template v-if="column.dataIndex === 'action'">
-              <span
-                @click="openEditOrPopup(record.username, record.id)"
-                class="material-symbols-outlined edit-icon"
-              >
+              <span @click="openEditOrPopup(record.id)" class="material-symbols-outlined edit-icon">
                 edit
               </span>
             </template>
@@ -98,32 +90,58 @@
         </div>
 
         <div class="card-row">
-          <span class="left-label">아이디: </span>
-          <span class="right-content">{{ item.username }}</span>
+          <span class="left-label">요금제명: </span>
+          <span class="right-content">{{ item.usim_plan_nm }}</span>
         </div>
 
         <div class="card-row">
-          <span class="left-label">휴대폰: </span>
-          <span class="right-content">{{ item.phone_number }}</span>
-        </div>
-        <div class="card-row">
-          <span class="left-label">이매일: </span>
-          <span class="right-content">{{ item.email }}</span>
+          <span class="left-label">통신사: </span>
+          <span class="right-content">{{ item.carrier_nm }}</span>
         </div>
 
         <div class="card-row">
-          <span class="left-label">국가: </span>
-          <span class="right-content">{{ item.country_nm }}</span>
+          <span class="left-label">브랜드: </span>
+          <span class="right-content">{{ item.mvno_nm }}</span>
         </div>
 
         <div class="card-row">
-          <span class="left-label">시작일자: </span>
-          <span class="right-content">{{ item.from_date }}</span>
+          <span class="left-label">대리점: </span>
+          <span class="right-content">{{ item.agent_nm }}</span>
+        </div>
+
+        <div class="card-row">
+          <span class="left-label">서비스 유형: </span>
+          <span class="right-content">{{ item.carrier_type_nm }}</span>
+        </div>
+
+        <div class="card-row">
+          <span class="left-label">가입대상: </span>
+          <span class="right-content">{{ item.carrier_plan_type_nm }}</span>
+        </div>
+
+        <div class="card-row">
+          <span class="left-label">기본료: </span>
+          <span class="right-content">{{ item.basic_fee }}</span>
+        </div>
+
+        <div class="card-row">
+          <span class="left-label">음성: </span>
+          <span class="right-content">{{ item.voice }}</span>
+        </div>
+
+        <div class="card-row">
+          <span class="left-label">문자: </span>
+          <span class="right-content">{{ item.message }}</span>
+        </div>
+
+        <div class="card-row">
+          <span class="left-label">데이터: </span>
+          <span class="right-content">{{ item.cell_data }}</span>
         </div>
 
         <div class="card-row">
           <span class="left-label">액션: </span>
-          <span class="right-content"
+          <span @click="openEditOrPopup(item.id)" class="right-content"
             ><span class="material-symbols-outlined edit-icon"> edit </span></span
           >
         </div>
@@ -143,11 +161,11 @@
   />
   <ManagePlansFilterPopup v-if="plansFilterPopup.active" />
 
-  <UpdateAddNewPlanPopup v-if="updateAddPlanPopup" @closePopup="closePopup" />
+  <UpdateAddNewPlanPopup v-if="updateAddPlanPopup" @closePopup="closePopup" :id="id" />
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import * as cleavePatterns from '../utils/cleavePatterns'
 import { formatDate } from '../utils/helpers'
 import { useSnackbarStore } from '../stores/snackbar'
@@ -193,10 +211,10 @@ const addNewPlanPopup = ref(false)
 const selectedUsername = ref(null)
 const id = ref(null)
 
-function openEditOrPopup(userName, id) {
-  addUpdatePopup.value = true
-  selectedUsername.value = userName ?? null
-  id.value = id ?? null
+const addUpdatePopup = ref(false)
+function openEditOrPopup(selId) {
+  id.value = selId ?? null
+  updateAddPlanPopup.value = true
 }
 
 //from date set to 7 days ago default when initialized
@@ -220,7 +238,7 @@ const columns = ref([
     sortDirections: ['descend', 'ascend']
   },
   {
-    title: 'status',
+    title: '상태',
     dataIndex: 'status',
     key: 'status',
     sorter: (a, b) => (a.status ?? '').localeCompare(b.status ?? '')
@@ -350,6 +368,8 @@ async function fetchData() {
 }
 
 onMounted(fetchData)
+
+// onUnmounted(plansFilterPopup.clear)
 </script>
 
 <style scoped>

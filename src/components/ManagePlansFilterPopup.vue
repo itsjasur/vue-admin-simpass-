@@ -110,7 +110,7 @@
         </div>
         <div class="action-buttons">
           <button @click="popup.clear" class="reset">초기화</button>
-          <button @click="popup.close()" class="search">검색</button>
+          <button @click="popup.close()" class="search">완료</button>
         </div>
       </div>
     </div>
