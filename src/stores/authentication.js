@@ -2,8 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useAuthenticationStore = defineStore('status', {
   state: () => ({
-    // isLoggedIn: localStorage.getItem('accessToken') !== null,
-    isLoggedIn: true,
+    isLoggedIn: localStorage.getItem('accessToken') !== null,
     id: '',
     userName: '',
     isAutoLoggedOut: true

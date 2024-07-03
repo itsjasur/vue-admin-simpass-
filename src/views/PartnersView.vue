@@ -298,7 +298,7 @@ async function fetchData() {
     const decodedResponse = await response.json()
     dataList.value = decodedResponse.data.partner_list
 
-    statuses.value = [{ cd: '', value: '잔체' }]
+    statuses.value = [{ cd: '', value: '전체' }]
 
     decodedResponse.data.status_list.forEach((item) => statuses.value.push(item))
     propStatuses.value = decodedResponse.data.status_list
@@ -356,7 +356,8 @@ onMounted(fetchData)
 }
 
 .table {
-  min-width: 1100px;
+  min-width: 1200px;
+  max-height: 700px;
   box-sizing: border-box;
   margin: 0 20px;
   margin-bottom: 5px;

@@ -3,7 +3,7 @@
     <div class="content-container">
       <div class="title-container">
         <div class="title">관리자 등록요청</div>
-        <div class="subtitle">기본전보 입력하세요</div>
+        <div class="subtitle">기본정보 입력하세요</div>
       </div>
 
       <div class="group">
@@ -73,7 +73,7 @@
       </div>
 
       <div class="group">
-        <label>비밓번호 확인</label>
+        <label>비밀번호 확인</label>
         <input
           @input="validateForms"
           v-model="forms.passwordCheck"
@@ -187,6 +187,9 @@ async function submit() {
     })
 
     const decodedResponse = await response.json()
+
+    if (!response.ok) throw decodedResponse?.message ?? 'Update error'
+
     useSnackbarStore().show(decodedResponse?.message ?? 'Server error')
 
     router.push('/login')

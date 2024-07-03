@@ -22,16 +22,72 @@
         </div>
 
         <div class="forms">
-          <div class="title">가입신청/고객정보</div>
+          <div class="title">요금제</div>
+
           <div class="group" style="width: 150px">
             <label>서비스유형</label>
             <input :value="applicationDetails.carrier_type_nm" readonly />
           </div>
 
           <div class="group" style="width: 150px">
-            <label>통신사</label>
+            <label>통신망</label>
             <input :value="applicationDetails.carrier_nm" readonly />
           </div>
+
+          <div class="group" style="width: 200px">
+            <label>통신사</label>
+            <input :value="applicationDetails.mvno_nm" readonly />
+          </div>
+
+          <div class="group" style="width: 400px">
+            <label>요금제명</label>
+            <input :value="applicationDetails.usim_plan_nm" readonly />
+          </div>
+
+          <div class="group" style="width: 150px">
+            <label>유심비용청구</label>
+            <input :value="applicationDetails.usim_fee_nm" readonly />
+          </div>
+
+          <div class="group" style="width: 150px">
+            <label>USIM 모델명</label>
+            <input :value="applicationDetails.usim_model_no" readonly />
+          </div>
+
+          <div class="group" style="width: 150px">
+            <label>일련번호</label>
+            <input :value="applicationDetails.usim_no" readonly />
+          </div>
+
+          <div class="group" style="width: 150px">
+            <label>개통구분</label>
+            <input :value="applicationDetails.usim_act_nm" readonly />
+          </div>
+
+          <div class="group" style="width: 150px">
+            <label>가입/이동 전화번호</label>
+            <input
+              :value="applicationDetails.phone_number"
+              readonly
+              v-cleave="{ phone: true, phoneRegionCode: 'KR', delimiter: '-' }"
+            />
+          </div>
+
+          <div class="group" style="width: 200px">
+            <label>희망번호</label>
+            <input
+              :value="
+                applicationDetails?.request_no_1 ?? '' + applicationDetails?.request_no_2
+                  ? (' / ', applicationDetails?.request_no_2)
+                  : '' + applicationDetails?.request_no_3
+                    ? (' / ', applicationDetails?.request_no_3)
+                    : ''
+              "
+              readonly
+            />
+          </div>
+
+          <div class="title">가입신청/고객정보</div>
 
           <div class="group" style="width: 150px">
             <label>고객정보</label>
@@ -76,53 +132,7 @@
             <input :value="applicationDetails.address" readonly />
           </div>
 
-          <div class="title">요금제</div>
-
-          <div class="group" style="width: 400px">
-            <label>요금제명</label>
-            <input :value="applicationDetails.usim_plan_nm" readonly />
-          </div>
-
-          <div class="group" style="width: 150px">
-            <label>유심비용청구</label>
-            <input :value="applicationDetails.usim_fee_nm" readonly />
-          </div>
-
-          <div class="group" style="width: 150px">
-            <label>USIM 모델명</label>
-            <input :value="applicationDetails.usim_model_no" readonly />
-          </div>
-
-          <div class="group" style="width: 150px">
-            <label>일련번호</label>
-            <input :value="applicationDetails.usim_no" readonly />
-          </div>
-
-          <div class="group" style="width: 150px">
-            <label>개통구분</label>
-            <input :value="applicationDetails.usim_act_nm" readonly />
-          </div>
-
-          <div class="group" style="width: 150px">
-            <label>가입/이동 전화번호</label>
-            <input :value="applicationDetails.mnp_phone_number" readonly />
-          </div>
-
-          <div class="group" style="width: 200px">
-            <label>희망번호</label>
-            <input
-              :value="
-                applicationDetails?.request_no_1 ?? '' + applicationDetails?.request_no_2
-                  ? (' / ', applicationDetails?.request_no_2)
-                  : '' + applicationDetails?.request_no_3
-                    ? (' / ', applicationDetails?.request_no_3)
-                    : ''
-              "
-              readonly
-            />
-          </div>
-
-          <div class="title">자동이채</div>
+          <div class="title">자동이체</div>
 
           <div class="group" style="width: 150px">
             <label>결제구분</label>

@@ -97,12 +97,12 @@
         </div>
 
         <div class="card-row">
-          <span class="left-label">통신사: </span>
+          <span class="left-label">통신망: </span>
           <span class="right-content">{{ item.carrier_nm }}</span>
         </div>
 
         <div class="card-row">
-          <span class="left-label">브랜드: </span>
+          <span class="left-label">통신사: </span>
           <span class="right-content">{{ item.mvno_nm }}</span>
         </div>
 
@@ -240,14 +240,14 @@ const columns = ref([
     sorter: (a, b) => (a.usim_plan_nm ?? '').localeCompare(b.usim_plan_nm ?? '')
   },
   {
-    title: '통신사',
+    title: '통신망',
     dataIndex: 'carrier_nm',
     key: 'carrier_nm',
     sorter: (a, b) => (a.carrier_nm ?? '').localeCompare(b.carrier_nm ?? '')
   },
 
   {
-    title: '브랜드',
+    title: '통신사',
     dataIndex: 'mvno_nm',
     key: 'mvno_nm',
     sorter: (a, b) => (a.mvno_nm ?? '').localeCompare(b.mvno_nm ?? '')
@@ -433,6 +433,7 @@ onMounted(fetchData)
 .table {
   max-width: none;
   min-width: 1700px;
+  max-height: 700px;
   box-sizing: border-box;
   margin: 0 20px;
   margin-bottom: 5px;

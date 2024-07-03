@@ -1,14 +1,18 @@
 <template>
   <div class="header-row">
     <div class="left">
-      <span v-if="sideMenuStore.isOpen" @click="sideMenuStore.close()" class="material-symbols-outlined">
+      <span
+        v-if="sideMenuStore.isOpen"
+        @click="sideMenuStore.close()"
+        class="material-symbols-outlined"
+      >
         menu_open
       </span>
       <span v-else @click="sideMenuStore.open()" class="material-symbols-outlined"> menu </span>
       <MenuTitle class="header-title" />
     </div>
-    <div class="button" @click="logout">로그 아웃</div>
-    <!-- <div class="button" @click="sideMenuStore.toggle()">Logout</div> -->
+
+    <button @click="logout">로그 아웃</button>
   </div>
 </template>
 
@@ -30,21 +34,24 @@ function logout() {
 <style scoped>
 .header-row {
   display: flex;
-  /* flex-flow: wrap; */
   width: 100%;
   height: 100%;
   padding: 0 20px;
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
-  /* background-color: #fff; */
 }
-.button {
-  font-size: 14px;
+
+.header-row button {
   padding: 10px;
-  box-sizing: border-box;
-  right: 20px;
+  text-align: center;
+  min-height: unset;
+  height: auto;
+  line-height: 1;
+  width: auto;
+  background-color: #b2b2b2;
 }
+
 .left {
   display: flex;
   align-items: center;

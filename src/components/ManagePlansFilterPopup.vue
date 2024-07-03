@@ -9,7 +9,7 @@
       <div class="scrollable-content">
         <div class="filters">
           <div class="group" style="max-width: 120px">
-            <label>통신사</label>
+            <label>통신망</label>
             <a-select
               v-model:value="popup.carrier"
               :style="{ width: '100%' }"
@@ -25,7 +25,7 @@
             </a-select>
           </div>
           <div class="group" style="max-width: 300px">
-            <label>브랜드</label>
+            <label>통신사</label>
             <a-select
               v-model:value="popup.mvno"
               :style="{ width: '100%' }"
@@ -42,7 +42,7 @@
           </div>
 
           <div class="group" style="max-width: 170px">
-            <label>디리점</label>
+            <label>대리점</label>
             <a-select
               v-model:value="popup.agent"
               :style="{ width: '100%' }"

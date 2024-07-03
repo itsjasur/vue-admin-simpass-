@@ -273,6 +273,7 @@ onMounted(fetchData)
 
 .table {
   min-width: 1200px;
+  max-height: 700px;
   box-sizing: border-box;
   margin: 0 20px;
   margin-bottom: 5px;

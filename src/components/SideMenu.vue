@@ -6,35 +6,16 @@
       </router-link>
     </div>
 
-    <router-link @click="sideMenuClose" to="/profile" class="menu-item">
-      <span class="material-symbols-outlined"> person </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[0] }}</span>
-    </router-link>
-
-    <router-link @click="sideMenuClose" to="/manage-users" class="menu-item">
-      <span class="material-symbols-outlined"> patient_list </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[1] }}</span>
-    </router-link>
-
-    <router-link @click="sideMenuClose" to="/manage-plans" class="menu-item">
-      <span class="material-symbols-outlined"> dashboard </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[2] }}</span>
-    </router-link>
-
-    <router-link @click="sideMenuClose" to="/applications" class="menu-item">
-      <span class="material-symbols-outlined"> article </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[3] }}</span>
-    </router-link>
-
-    <router-link @click="sideMenuClose" to="/partners" class="menu-item">
-      <span class="material-symbols-outlined"> storefront </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[4] }}</span>
-    </router-link>
-
-    <router-link @click="sideMenuClose" to="/self-requests" class="menu-item">
-      <span class="material-symbols-outlined"> phone_in_talk </span>
-      <span class="menu-title">{{ SIDEMENUNAMES[5] }}</span>
-    </router-link>
+    <template v-for="(item, index) in menuItems" :key="index">
+      <div
+        @click="router.push(item.path)"
+        class="menu-item"
+        :class="{ currentlyOpen: isActive(item.path) }"
+      >
+        <span class="material-symbols-outlined"> {{ item.icon }} </span>
+        <span class="menu-title">{{ item.name }}</span>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -42,8 +23,26 @@
 import MenuTitle from '../components/MenuTitle.vue'
 import { SIDEMENUNAMES } from '../assets/constants'
 import { useSideMenuStore } from '../stores/side-menu'
+import { useRoute, useRouter } from 'vue-router'
+import { ref } from 'vue'
 
+const menuItems = ref([
+  { name: SIDEMENUNAMES[0], path: '/profile', icon: 'person' },
+  { name: SIDEMENUNAMES[1], path: '/manage-users', icon: 'patient_list' },
+  { name: SIDEMENUNAMES[2], path: '/manage-plans', icon: 'dashboard' },
+  { name: SIDEMENUNAMES[3], path: '/select-mvno', icon: 'article' },
+  { name: SIDEMENUNAMES[4], path: '/partners', icon: 'storefront' },
+  { name: SIDEMENUNAMES[5], path: '/self-requests', icon: 'phone_in_talk' }
+])
+
+const router = useRouter()
+const route = useRoute()
 const sideMenuStore = useSideMenuStore()
+
+function isActive(path) {
+  if (path === '/select-mvno' && route.path === '/applications') return true
+  if (path === route.path) return true
+}
 
 function sideMenuClose() {
   if (!sideMenuStore.isDesktop) sideMenuStore.close()
@@ -82,7 +81,6 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
-  /* background-color: #ffffff2c; */
   margin: 0 15px;
   border-radius: 5px;
   padding: 0 10px;
@@ -96,11 +94,12 @@ a {
 .menu-item:hover {
   background-color: #ffffff45;
 }
-.menu-item:active {
-  background-color: #ffffff57;
+
+.currentlyOpen {
+  background-color: #ffffff25;
 }
 
-.menu-item.router-link-active {
-  background-color: #ffffff25;
+.menu-item:active {
+  background-color: #ffffff57;
 }
 </style>

@@ -2,6 +2,20 @@
   <div class="container">
     <!-- button -->
     <div class="search-part">
+      <div class="group" style="min-width: 200px">
+        <label>통신사</label>
+        <a-select
+          v-model:value="useMvnoSelectStore().selected"
+          :style="{ width: '100%' }"
+          :options="
+            mvnos.map((i) => ({ value: i.mvno_cd, label: i.mvno_nm })) ?? [
+              { value: 'N/A', label: 'N/A' }
+            ]
+          "
+        >
+        </a-select>
+      </div>
+
       <div class="group" style="min-width: 150px">
         <label>검색 선택</label>
         <a-select v-model:value="searchType" :style="{ width: '100%' }" :options="types">
@@ -66,6 +80,10 @@
           :showSorterTooltip="false"
         >
           <template #bodyCell="{ column, text, record }">
+            <span v-if="column.dataIndex === 'mvno_cd'">
+              {{ record.mvno_cd_nm }}
+            </span>
+
             <template v-if="column.dataIndex === 'usim_act_status_nm'">
               <!-- status can't be changed if act_status is Y -->
               <span
@@ -82,18 +100,21 @@
               </span>
             </template>
 
+            <span v-if="column.dataIndex === 'apply_date' || column.dataIndex === 'act_date'">
+              {{ text?.split(' ')[0] }}
+            </span>
+
             <template v-if="column.dataIndex === 'regDetails'">
               <button @click="openDetailsPopup(record)" class="reg-details-button">가입정보</button>
             </template>
 
-            <template v-if="column.dataIndex === 'regForm'">
-              <span
-                @click="fetchForms(record.act_no)"
-                class="material-symbols-outlined reg-form-attach"
-              >
-                attach_file
-              </span>
-            </template>
+            <span
+              v-if="column.dataIndex === 'regForm'"
+              @click="fetchForms(record.act_no)"
+              class="material-symbols-outlined reg-form-attach"
+            >
+              attach_file
+            </span>
           </template>
         </a-table>
       </div>
@@ -116,7 +137,7 @@
 
       <div class="card" v-for="(item, index) in dataList" :key="index">
         <div class="card-row">
-          <span class="left-label">판매점영: </span>
+          <span class="left-label">판매점명: </span>
           <span class="right-content">{{ item.partner_nm }}</span>
         </div>
         <div class="card-row">
@@ -137,8 +158,8 @@
           </span>
         </div>
         <div class="card-row">
-          <span class="left-label">접수번호: </span>
-          <span class="right-content">{{ item.act_no }}</span>
+          <span class="left-label">통신사: </span>
+          <span class="right-content">{{ item.mvno_cd_nm }}</span>
         </div>
 
         <div class="card-row">
@@ -147,7 +168,7 @@
         </div>
 
         <div class="card-row">
-          <span class="left-label">휴대폰: </span>
+          <span class="left-label">가입번호: </span>
           <span class="right-content">{{ item.phone_number }}</span>
         </div>
 
@@ -168,11 +189,6 @@
               attach_file
             </span>
           </span>
-        </div>
-
-        <div class="card-row">
-          <span class="left-label">서명여부: </span>
-          <span class="right-content">{{ item.sign_yn_nm }}</span>
         </div>
       </div>
     </div>
@@ -207,6 +223,7 @@ import ApplicationStatusUpdatePopup from '../components/ApplicationStatusUpdateP
 import ApplicationDetailsPopup from '../components/ApplicationDetailsPopup.vue'
 import { usePageLoadingStore } from '@/stores/page-loading-store'
 import { usePrintableStore } from '../stores/printable-store'
+import { useMvnoSelectStore } from '@/stores/mvno_select_store'
 
 // Reactive variables
 const searchType = ref('status')
@@ -216,6 +233,10 @@ const types = ref([
   { value: 'regis-date', label: '개통일자' }
 ])
 
+//mvnos
+const mvnos = ref([])
+
+//status
 const selectedStatus = ref('')
 const statuses = ref([])
 
@@ -269,7 +290,7 @@ const columns = ref([
     sortDirections: ['descend', 'ascend']
   },
   {
-    title: '판매점영',
+    title: '판매점명',
     dataIndex: 'partner_nm',
     key: 'partner_nm',
     sorter: (a, b) => (a.partner_nm ?? '').localeCompare(b.partner_nm ?? '')
@@ -281,10 +302,10 @@ const columns = ref([
     sorter: (a, b) => (a.usim_act_status_nm ?? '').localeCompare(b.usim_act_status_nm ?? '')
   },
   {
-    title: '접수번호',
-    dataIndex: 'act_no',
-    key: 'act_no',
-    sorter: (a, b) => (a.act_no ?? '').localeCompare(b.act_no ?? '')
+    title: '통신사',
+    dataIndex: 'mvno_cd',
+    key: 'mvno_cd',
+    sorter: (a, b) => (a.mvno_cd ?? '').localeCompare(b.mvno_cd ?? '')
   },
 
   {
@@ -295,7 +316,7 @@ const columns = ref([
   },
 
   {
-    title: '후대펀',
+    title: '가입번호',
     dataIndex: 'phone_number',
     key: 'phone_number',
     sorter: (a, b) => (a.phone_number ?? '').localeCompare(b.phone_number ?? '')
@@ -324,12 +345,6 @@ const columns = ref([
     dataIndex: 'act_date',
     key: 'act_date',
     sorter: (a, b) => (a.act_date ?? '').localeCompare(b.act_date ?? '')
-  },
-  {
-    title: '서명여부',
-    dataIndex: 'sign_yn_nm',
-    key: 'sign_yn_nm',
-    sorter: (a, b) => (a.sign_yn_nm ?? '').localeCompare(b.sign_yn_nm ?? '')
   }
 ])
 
@@ -341,6 +356,7 @@ async function fetchData() {
       method: 'POST',
       body: {
         act_no: '',
+        mvno_cd: useMvnoSelectStore().selected,
         partner_cd: '',
         usim_act_status: searchType.value === 'status' ? selectedStatus.value : '',
         apply_fr_date: searchType.value === 'apply-date' ? fromDate.value : '', //접수일자 from
@@ -355,7 +371,10 @@ async function fetchData() {
     const decodedResponse = await response.json()
     dataList.value = decodedResponse.data.act_list
 
-    statuses.value = [{ cd: '', value: '잔체' }]
+    mvnos.value = [{ mvno_cd: '', mvno_nm: '전체' }]
+    decodedResponse.data.mvno_info_list.forEach((item) => mvnos.value.push(item))
+
+    statuses.value = [{ cd: '', value: '전체' }]
     decodedResponse.data.usim_act_status_code.forEach((item) => statuses.value.push(item))
     propsStatuses.value = decodedResponse.data.usim_act_status_code
 
@@ -430,7 +449,8 @@ onMounted(fetchData)
 }
 
 .table {
-  min-width: 1400px;
+  min-width: 1300px;
+  max-height: 700px;
   box-sizing: border-box;
   margin: 0 20px;
   margin-bottom: 5px;

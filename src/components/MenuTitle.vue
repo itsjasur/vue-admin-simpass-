@@ -24,8 +24,8 @@ const title = computed(() => {
     return SIDEMENUNAMES[2]
   }
 
-  if (route.path === '/applications') {
-    return SIDEMENUNAMES[3]
+  if (route.path === '/select-mvno') {
+    return '통신사 선택'
   }
   if (route.path === '/partners') {
     return SIDEMENUNAMES[4]

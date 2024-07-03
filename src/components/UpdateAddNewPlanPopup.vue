@@ -11,7 +11,7 @@
       <div class="scrollable-content">
         <div class="filters">
           <div class="group" style="max-width: 140px">
-            <label>통신사</label>
+            <label>통신망</label>
             <a-select
               v-model:value="forms.carrier"
               :style="{ width: '100%' }"
@@ -30,7 +30,7 @@
             </p>
           </div>
           <div class="group" style="max-width: 300px">
-            <label>브랜드</label>
+            <label>통신사</label>
             <a-select
               v-model:value="forms.mvno"
               :style="{ width: '100%' }"
@@ -48,7 +48,7 @@
           </div>
 
           <div class="group" style="max-width: 170px">
-            <label>디리점</label>
+            <label>대리점</label>
             <a-select
               v-model:value="forms.agent"
               :style="{ width: '100%' }"
@@ -174,7 +174,7 @@
           </div>
 
           <div class="group" style="max-width: 150px">
-            <label>영사 / 기타</label>
+            <label>영상 / 기타</label>
             <input v-model="forms.videEtc" />
           </div>
 

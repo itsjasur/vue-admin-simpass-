@@ -11,6 +11,7 @@ import ManagePlans from '../views/ManagePlansView.vue'
 import Applications from '../views/ApplicationsView.vue'
 import Partners from '../views/PartnersView.vue'
 import SelfRequests from '../views/SelfRequestsView.vue'
+import SelectMvno from '../views/SelectMvnoView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,7 +35,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'dashboard',
-      redirect: '/profile',
+      redirect: '/applications',
       component: DashBaordView,
       meta: { requiresAuth: true },
       children: [
@@ -58,6 +59,15 @@ const router = createRouter({
           component: ManagePlans,
           meta: { requiresAuth: true }
         },
+
+        {
+          path: '/partners',
+          name: 'partners',
+          // component: Partners,
+          component: () => import('../views/PartnersView.vue'),
+          meta: { requiresAuth: true }
+        },
+
         {
           path: '/applications',
           name: 'applications',
@@ -65,11 +75,12 @@ const router = createRouter({
           meta: { requiresAuth: true }
         },
         {
-          path: '/partners',
-          name: 'partners',
-          component: Partners,
+          path: 'select-mvno',
+          name: 'select-mvno',
+          component: SelectMvno,
           meta: { requiresAuth: true }
         },
+
         {
           path: '/self-requests',
           name: 'self-requests',

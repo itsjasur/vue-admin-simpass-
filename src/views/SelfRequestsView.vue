@@ -264,10 +264,10 @@ async function fetchData() {
 
     dataList.value = decodedResponse.data.apply_list
 
-    statuses.value = [{ cd: '', value: '잔체' }]
+    statuses.value = [{ cd: '', value: '전체' }]
     decodedResponse.data.status_list.forEach((item) => statuses.value.push(item))
 
-    countries.value = [{ cd: '', value: '잔체' }]
+    countries.value = [{ cd: '', value: '전체' }]
     decodedResponse.data.country_list.forEach((item) => countries.value.push(item))
 
     totalCount.value = decodedResponse.data.totalNum
@@ -323,7 +323,8 @@ onMounted(fetchData)
 }
 
 .table {
-  min-width: 1400px;
+  min-width: 1300px;
+  max-height: 700px;
   box-sizing: border-box;
   margin: 0 20px;
   margin-bottom: 5px;
