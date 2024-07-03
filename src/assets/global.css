@@ -137,7 +137,7 @@ input:focus {
 
 .bordered-status-button {
   background-color: #828282;
-  padding: 6px 10px;
+  padding: 7px;
   color: #fff;
   font-size: 14px;
   border-radius: 20px;
@@ -146,12 +146,15 @@ input:focus {
   box-sizing: border-box;
   align-items: center;
   cursor: pointer;
-  justify-content: space-evenly;
   user-select: none;
   line-height: 1;
-  min-width: 60px;
+
+  justify-content: center;
   height: 30px;
   gap: 5px;
+  align-items: center;
+  width: auto;
+  min-width: 70px;
 }
 
 /* BACKGROUND IMAGE AND HOW TO GIVE PADDING */

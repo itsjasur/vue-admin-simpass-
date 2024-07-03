@@ -200,7 +200,8 @@ const columns = ref([
     title: '상태',
     dataIndex: 'status',
     key: 'status',
-    sorter: (a, b) => (a.status ?? '').localeCompare(b.status ?? '')
+    sorter: (a, b) => (a.status ?? '').localeCompare(b.status ?? ''),
+    width: 1
   },
 
   {

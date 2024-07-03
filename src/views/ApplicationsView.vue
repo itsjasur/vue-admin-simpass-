@@ -299,7 +299,8 @@ const columns = ref([
     title: '상태',
     dataIndex: 'usim_act_status_nm',
     key: 'usim_act_status_nm',
-    sorter: (a, b) => (a.usim_act_status_nm ?? '').localeCompare(b.usim_act_status_nm ?? '')
+    sorter: (a, b) => (a.usim_act_status_nm ?? '').localeCompare(b.usim_act_status_nm ?? ''),
+    width: 1
   },
   {
     title: '통신사',
