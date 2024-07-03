@@ -273,7 +273,7 @@ async function registerOrUpdateUser() {
     if (!response.ok) throw decodedResponse?.message ?? 'Could not add/update user data'
 
     useSnackbarStore().show(decodedResponse?.message ?? 'Success')
-    emit('closePopup', true)
+    emit('closePopup', true, props.isNew)
   } catch (error) {
     useSnackbarStore().show(error.toString())
   }
@@ -291,26 +291,6 @@ const selectedRoles = ref(new Set([]))
 function checkRole(role) {
   useSnackbarStore().hide()
 
-  // if (role.code === 'ROLE_ADMIN' && role.checked) {
-  //   selectedRoles.value.add('ROLE_ADMIN')
-  //   for (const role of userRoles) {
-  //     if (role.code !== 'ROLE_ADMIN') {
-  //       role.checked = false
-  //       role.state = 'hidden'
-  //     }
-  //   }
-  //   return
-  // }
-
-  // if (role.code === 'ROLE_ADMIN' && !role.checked) {
-  //   selectedRoles.value.clear()
-  //   for (const role of userRoles) {
-  //     role.checked = false
-  //     role.state = 'active'
-  //   }
-  //   return
-  // }
-
   if (globalHighRoleCodes.value.has(role.code)) {
     role.checked = false
     useSnackbarStore().show('이미 선택권한의 하위권한이 선택 또는 존재합니다.')
@@ -323,6 +303,7 @@ function handleCheckboxes() {
   globalLowRoleCodes.value.clear()
   globalHighRoleCodes.value.clear()
 
+  //checking if ROLE_ADMIN in the selected roles
   if (selectedRoles.value.has('ROLE_ADMIN')) {
     selectedRoles.value.clear()
     selectedRoles.value.add('ROLE_ADMIN')

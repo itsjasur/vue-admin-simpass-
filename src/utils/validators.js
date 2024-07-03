@@ -1,12 +1,17 @@
 export function validateId(value) {
-  value = value?.replaceAll(' ', '')
+  value = value?.replaceAll(' ', '') // remove spaces (if any)
 
-  // checking if the field is empty
+  // check if the field is empty
   if (!value) return '사용자 ID를 입력하세요.'
-  if (value.length < 4) {
-    return '사용할 ID는 4자 이상'
-  }
 
+  // check length (at least 4 characters)
+  if (value.length < 4) return '사용할 ID는 4자 이상'
+
+  // regular expression to match only English letters and digits
+  const isValidFormat = /^[a-zA-Z0-9]+$/.test(value)
+
+  if (!isValidFormat) return 'ID는 영문자와 숫자만 사용할 수 있습니다.'
+  // all checks passed
   return null
 }
 

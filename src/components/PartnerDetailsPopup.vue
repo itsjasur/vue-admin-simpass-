@@ -81,7 +81,7 @@
             <input :value="partnerDetails.dtl_address" readonly />
           </div>
 
-          <div class="group" style="width: 150px">
+          <div class="group" style="width: 250px">
             <label>이메일</label>
             <input :value="partnerDetails.email" readonly />
           </div>

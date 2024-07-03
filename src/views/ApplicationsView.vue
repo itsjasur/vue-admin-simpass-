@@ -71,14 +71,14 @@
               <span
                 v-if="record.usim_act_status !== 'Y'"
                 @click="openStatusUpdatePopup(record)"
-                :class="['status-' + record.usim_act_status, 'status-default']"
+                :class="['status-' + record.usim_act_status, 'bordered-status-button']"
               >
-                <span>{{ text }}</span>
+                {{ text }}
                 <span class="material-symbols-outlined edit-icon"> edit </span>
               </span>
 
-              <span v-else :class="['status-' + record.usim_act_status, 'status-default']">
-                <span>{{ text }}</span>
+              <span v-else :class="['status-' + record.usim_act_status, 'bordered-status-button']">
+                {{ text }}
               </span>
             </template>
 
@@ -126,13 +126,13 @@
           <span
             v-if="item.usim_act_status !== 'Y'"
             @click="openStatusUpdatePopup(item)"
-            :class="['status-' + item.usim_act_status, 'status-default']"
+            :class="['status-' + item.usim_act_status, 'bordered-status-button']"
           >
             <span>{{ item.usim_act_status_nm }}</span>
             <span class="material-symbols-outlined edit-icon"> edit </span>
           </span>
 
-          <span v-else :class="['status-' + item.usim_act_status, 'status-default']">
+          <span v-else :class="['status-' + item.usim_act_status, 'bordered-status-button']">
             <span>{{ item.usim_act_status_nm }}</span>
           </span>
         </div>
@@ -464,23 +464,6 @@ onMounted(fetchData)
   min-height: unset;
 }
 
-.status-default {
-  background-color: #828282;
-  padding: 3px 10px;
-  color: #fff;
-  font-size: 14px;
-  border-radius: 20px;
-  white-space: nowrap;
-
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  cursor: pointer;
-  justify-content: space-around;
-  user-select: none;
-  gap: 5px;
-}
-
 .status-A {
   background-color: #3f76e3;
 }
@@ -502,7 +485,7 @@ onMounted(fetchData)
   background-color: #ff4646;
 }
 
-.status-default .edit-icon {
+.bordered-status-button .edit-icon {
   font-size: 20px;
 }
 

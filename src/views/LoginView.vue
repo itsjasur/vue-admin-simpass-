@@ -88,8 +88,6 @@ async function login(event) {
 
     const data = await response.json()
 
-    // console.log(data.roles)
-
     useAuthenticationStore().login(
       data['accessToken'],
       data['refreshToken'],

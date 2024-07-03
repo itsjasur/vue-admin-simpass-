@@ -53,9 +53,17 @@
         >
           <template #bodyCell="{ column, text, record }">
             <template v-if="column.dataIndex === 'status'">
-              <span :class="['status-' + text, 'status-default']">
-                <span>{{ record.status_nm }}</span>
-                <!-- <span class="material-symbols-outlined edit-icon"> edit </span> -->
+              <span
+                v-if="text === 'W'"
+                @click="openStatusUpdatePopup(record)"
+                :class="['status-' + text, 'bordered-status-button']"
+              >
+                {{ record.status_nm }}
+                <span class="material-symbols-outlined edit-icon"> edit </span>
+              </span>
+
+              <span v-else :class="['status-' + text, 'bordered-status-button']">
+                {{ record.status_nm }}
               </span>
             </template>
 
@@ -93,9 +101,19 @@
         <div class="card-row">
           <span class="left-label">상태: </span>
 
-          <span :class="['status-' + item, 'status-default']" class="right-content">{{
-            item.status_nm
-          }}</span>
+          <span
+            v-if="item.status === 'W'"
+            @click="openStatusUpdatePopup(item)"
+            :class="['status-' + item.status, 'bordered-status-button']"
+            class="right-content"
+          >
+            {{ item.status_nm }}
+            <span class="material-symbols-outlined edit-icon"> edit </span>
+          </span>
+
+          <span v-else :class="['status-' + item.status, 'bordered-status-button']">
+            {{ item.status_nm }}
+          </span>
         </div>
         <div class="card-row">
           <span class="left-label">대리점명: </span>
@@ -135,6 +153,15 @@
       @closePopup="partnerDetailsPopup = false"
       :partnerCd="selectedPartnerCd"
     />
+
+    <PartnerStatusUpdatePopup
+      v-if="statusUpdatePOpup"
+      :partnerCd="selectedPartnerCd"
+      :agentCd="selectedAgentCd"
+      :currentStatus="currentStatus"
+      :statuses="propStatuses"
+      @closePopup="closeStatusUpdatePopup"
+    />
   </div>
 </template>
 
@@ -145,12 +172,15 @@ import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 
 import PartnerDetails from '../components/PartnerDetailsPopup.vue'
 import { useImagesHolderStore } from '@/stores/image-holder-store'
+import PartnerStatusUpdatePopup from '../components/PartnerStatusUpdatePopup.vue'
 
 const partnerDetailsPopup = ref(false)
 const selectedPartnerCd = ref()
+const selectedAgentCd = ref()
 
 const selectedStatus = ref('')
 const statuses = ref([])
+const propStatuses = ref([])
 const searchText = ref()
 
 const totalCount = ref(0)
@@ -167,6 +197,21 @@ function onPagChange(curPage, perPage) {
 function selectPartner(partnerCd) {
   selectedPartnerCd.value = partnerCd
   partnerDetailsPopup.value = true
+}
+
+//status update popup
+
+const currentStatus = ref(null)
+const statusUpdatePOpup = ref(false)
+function openStatusUpdatePopup(item) {
+  currentStatus.value = item.status
+  selectedPartnerCd.value = item.partner_cd
+  selectedAgentCd.value = item.agent_cd
+  statusUpdatePOpup.value = true
+}
+function closeStatusUpdatePopup(result) {
+  statusUpdatePOpup.value = false
+  if (result) fetchData()
 }
 
 const columns = ref([
@@ -256,6 +301,7 @@ async function fetchData() {
     statuses.value = [{ cd: '', value: '잔체' }]
 
     decodedResponse.data.status_list.forEach((item) => statuses.value.push(item))
+    propStatuses.value = decodedResponse.data.status_list
 
     totalCount.value = decodedResponse.data.totalNum
   } catch (error) {
@@ -343,31 +389,15 @@ onMounted(fetchData)
   width: auto;
 }
 
-.status-default {
-  background-color: #828282;
-  padding: 3px 10px;
-  color: #fff;
-  font-size: 14px;
-  border-radius: 20px;
-  white-space: nowrap;
-
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  cursor: pointer;
-  justify-content: space-evenly;
-  user-select: none;
-}
-
 .status-Y {
   background-color: var(--main-color);
 }
 
 .status-W {
-  background-color: #e33f4a;
+  background-color: #f4722c;
 }
 
-.status-default .edit-icon {
+.bordered-status-button .edit-icon {
   font-size: 20px;
 }
 

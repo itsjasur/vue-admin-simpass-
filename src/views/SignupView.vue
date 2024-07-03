@@ -8,15 +8,15 @@
 
       <div class="group">
         <label>아이디</label>
-        <input v-model="forms.username" />
-        <p v-if="isSubmitted && errors.name" class="input-error-message">
-          {{ errors.name }}
+        <input @input="validateForms" v-model="forms.username" />
+        <p v-if="isSubmitted && errors.username" class="input-error-message">
+          {{ errors.username }}
         </p>
       </div>
 
       <div class="group">
         <label>이름</label>
-        <input v-model="forms.name" />
+        <input @input="validateForms" v-model="forms.name" />
         <p v-if="isSubmitted && errors.name" class="input-error-message">
           {{ errors.name }}
         </p>
@@ -24,17 +24,26 @@
 
       <div class="group">
         <label>이메일</label>
-        <input v-model="forms.email" />
-        <p v-if="isSubmitted && errors.name" class="input-error-message">
-          {{ errors.name }}
+        <input @input="validateForms" v-model="forms.email" />
+        <p v-if="isSubmitted && errors.email" class="input-error-message">
+          {{ errors.email }}
         </p>
       </div>
 
       <div class="group">
         <label>휴대전화</label>
-        <input v-model="forms.phoneNumber" />
-        <p v-if="isSubmitted && errors.name" class="input-error-message">
-          {{ errors.name }}
+        <input
+          @input="validateForms"
+          v-model="forms.phoneNumber"
+          v-cleave="{
+            phone: true,
+            phoneRegionCode: 'KR',
+            delimiter: '-',
+            onValueChanged: (event) => (forms.phoneNumber = event.target.value)
+          }"
+        />
+        <p v-if="isSubmitted && errors.phoneNumber" class="input-error-message">
+          {{ errors.phoneNumber }}
         </p>
       </div>
 
@@ -48,34 +57,44 @@
           :options="COUNTRIES"
         >
         </a-select>
-
-        <p v-if="isSubmitted && errors.name" class="input-error-message">
-          {{ errors.name }}
-        </p>
       </div>
 
       <div class="group">
         <label>비밀번호</label>
-        <input v-model="forms.password" />
-        <p v-if="isSubmitted && errors.name" class="input-error-message">
-          {{ errors.name }}
+        <input
+          @input="validateForms"
+          v-model="forms.password"
+          type="password"
+          autocomplete="new-password"
+        />
+        <p v-if="isSubmitted && errors.password" class="input-error-message">
+          {{ errors.password }}
         </p>
       </div>
 
       <div class="group">
         <label>비밓번호 확인</label>
-        <input v-model="forms.passwordCheck" />
-        <p v-if="isSubmitted && errors.name" class="input-error-message">
-          {{ errors.name }}
+        <input
+          @input="validateForms"
+          v-model="forms.passwordCheck"
+          type="password"
+          autocomplete="new-password"
+        />
+        <p v-if="isSubmitted && errors.passwordCheck" class="input-error-message">
+          {{ errors.passwordCheck }}
         </p>
       </div>
 
       <div></div>
-      <button>등록하기</button>
+      <button @click="submit">등록하기</button>
 
       <div>
         이미 계정을 가지고 계십니까?
-        <span style="font-weight: 600; color: var(--main-color)">로그인</span>
+        <span
+          @click="router.push('/login')"
+          style="font-weight: 600; color: var(--main-color); cursor: pointer"
+          >로그인</span
+        >
       </div>
 
       <div></div>
@@ -97,6 +116,7 @@ import LoadingSpinner from '../components/Loader.vue'
 import { useRouteMemoryStore } from '@/stores/router-memory-store'
 import { useRouter } from 'vue-router'
 import { COUNTRIES } from '../assets/constants'
+import * as VALIDATOR from '../utils/validators'
 
 const forms = reactive({
   username: null,
@@ -113,18 +133,17 @@ const errors = reactive({
   name: null,
   email: null,
   phoneNumber: null,
-  country: null,
   password: null,
   passwordCheck: null
 })
-
-const isLoading = ref(false)
 
 const isSubmitted = ref(false)
 
 const router = useRouter()
 
 function validateForms() {
+  isSubmitted.value = true
+
   const res = [
     (errors.username = VALIDATOR.validateId(forms.username)),
     (errors.name = VALIDATOR.validateName(forms.name)),
@@ -138,31 +157,42 @@ function validateForms() {
 }
 
 async function submit() {
-  isLoading.value = true
+  if (!validateForms()) return
+
   isSubmitted.value = true
+
+  const body = {
+    username: forms.username,
+    password: forms.password,
+    email: forms.email,
+    name: forms.name,
+    country: forms.country,
+    phone_number: forms.phoneNumber
+  }
+
+  console.log(body)
 
   try {
     const response = await fetch(import.meta.env.VITE_API_BASE_URL + 'auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        username: 'asda23423s',
-        password: 'simpass',
-        email: 'kcparasdask@simpass.co.kr',
-        name: 'asdas',
-        country: 'EN',
-        phone_number: '010-4201-4345'
+        username: forms.username,
+        password: forms.password,
+        email: forms.email,
+        name: forms.name,
+        country: forms.country,
+        phone_number: forms.phoneNumber
       })
     })
 
-    if (!response.ok) throw '정보가 없거나 일치하지 않습니다.'
-    const data = await response.json()
+    const decodedResponse = await response.json()
+    useSnackbarStore().show(decodedResponse?.message ?? 'Server error')
+
     router.push('/login')
   } catch (err) {
     useSnackbarStore().show(err.toString())
   }
-
-  isLoading.value = false
 }
 </script>
 
@@ -208,46 +238,17 @@ async function submit() {
   display: flex;
   flex-flow: column;
   align-items: flex-start;
-}
-
-.input-group {
-  margin: 20px 0;
-  text-align: left;
-  width: 100%;
+  text-align: start;
 }
 
 .foot-note {
-  padding-top: 50px;
-  width: 80%;
+  margin: 30px;
   color: #4b4b4b;
   line-height: 1.6;
   font-size: 14px;
   text-align: center;
   width: 500px;
 }
-
-.submit-button {
-  width: 100%;
-  margin-top: 20px;
-}
-
-/* hr {
-  border: none;
-  border-top: 1px dashed #ccc;
-  color: #fff;
-  margin: 10px;
-} */
-
-/* .sign-up-div {
-  font-size: 15px;
-} */
-
-/* .sign-up-text {
-  margin-left: 10px;
-  font-weight: 500;
-  color: var(--main-color);
-  cursor: pointer;
-} */
 
 @media (max-width: 600px) {
   .main {

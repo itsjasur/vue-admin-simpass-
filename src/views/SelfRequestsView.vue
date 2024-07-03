@@ -67,7 +67,7 @@
         >
           <template #bodyCell="{ column, text, record }">
             <template v-if="column.dataIndex === 'status'">
-              <span :class="['status-' + text, 'status-default']">
+              <span :class="['status-' + text, 'bordered-status-button']">
                 <span>{{ record.status_nm }}</span>
               </span>
             </template>
@@ -106,7 +106,7 @@
       <div class="card" v-for="(item, index) in dataList" :key="index">
         <div class="card-row">
           <span class="left-label">상태: </span>
-          <span :class="['status-' + item.status, 'status-default']">
+          <span :class="['status-' + item.status, 'bordered-status-button']">
             <span>{{ item.status_nm }}</span>
           </span>
         </div>
@@ -350,29 +350,13 @@ onMounted(fetchData)
   background-color: transparent;
   border: 1px dashed var(--main-color);
   color: var(--main-color);
+  width: auto;
   padding: 0 5px;
   margin: 0px;
-  width: auto;
   max-height: 30px;
+  height: 30px;
+  line-height: 1;
   min-height: unset;
-  min-width: 80px;
-}
-
-.status-default {
-  background-color: #828282;
-  padding: 3px 10px;
-  color: #fff;
-  font-size: 14px;
-  border-radius: 20px;
-  white-space: nowrap;
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  cursor: pointer;
-  justify-content: space-around;
-  user-select: none;
-  gap: 5px;
-  width: 100px;
 }
 
 .status-A {
@@ -400,7 +384,7 @@ onMounted(fetchData)
   background-color: #ff4646;
 }
 
-.status-default .edit-icon {
+.bordered-status-button .edit-icon {
   font-size: 20px;
 }
 

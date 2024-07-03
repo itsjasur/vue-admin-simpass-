@@ -23,23 +23,6 @@
           </a-select>
         </div>
 
-        <div v-if="newStatus === 'Y'" class="group">
-          <label>휴대전화</label>
-          <input
-            v-model="phoneNumber"
-            v-cleave="{
-              phone: true,
-              phoneRegionCode: 'KR',
-              delimiter: '-',
-              prefix: '010',
-              onValueChanged
-            }"
-          />
-          <p v-if="isSubmitted && phoneNumber.length !== 13" class="input-error-message">
-            휴대전화 입력하세요.
-          </p>
-        </div>
-
         <button @click="fetchData" class="save-button">저장</button>
       </div>
     </div>
@@ -52,7 +35,8 @@ import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
 
 const props = defineProps({
-  actNo: { type: String, default: null },
+  partnerCd: { type: String, default: null },
+  agentCd: { type: String, default: null },
   statuses: { type: Array, default: [] },
   currentStatus: { type: String, default: '' }
 })
@@ -62,24 +46,14 @@ const emits = defineEmits(['closePopup'])
 const newStatus = ref(props.currentStatus)
 const phoneNumber = ref()
 
-function onValueChanged(event) {
-  phoneNumber.value = event.target.value
-}
-
-const isSubmitted = ref(false)
-
 async function fetchData() {
-  isSubmitted.value = true
-
-  if (newStatus.value === 'Y' && phoneNumber.value.length !== 13) return
-
   try {
-    const response = await fetchWithTokenRefresh('agent/setApplyStatus', {
+    const response = await fetchWithTokenRefresh('agent/setContractStatus', {
       method: 'POST',
       body: {
-        act_no: props.actNo,
-        phone_number: phoneNumber.value,
-        usim_act_status: newStatus.value
+        partner_cd: props.partnerCd,
+        agent_cd: props.agentCd,
+        status: newStatus.value
       }
     })
     if (!response.ok) throw 'Change status error'

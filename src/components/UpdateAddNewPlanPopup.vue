@@ -352,7 +352,7 @@ async function updateAddPlan() {
 
     if (decodedResponse?.result === 'SUCCESS') {
       useSnackbarStore().show(decodedResponse.message)
-      emit('closePopup', true)
+      emit('closePopup', true, props?.id === null)
       return
     }
 

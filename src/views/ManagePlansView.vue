@@ -53,7 +53,7 @@
         >
           <template #bodyCell="{ column, text, record }">
             <template v-if="column.dataIndex === 'status'">
-              <span :class="['status-' + text, 'status-default']">
+              <span :class="['status-' + text, 'bordered-status-button']">
                 {{ record.status_nm }}
               </span>
             </template>
@@ -86,7 +86,9 @@
       <div class="card" v-for="(item, index) in dataList" :key="index">
         <div class="card-row">
           <span class="left-label">상태: </span>
-          <span class="right-content">{{ item.status_nm }}</span>
+          <span :class="['status-' + item.status, 'bordered-status-button']">{{
+            item.status_nm
+          }}</span>
         </div>
 
         <div class="card-row">
@@ -170,10 +172,11 @@ const plansFilterPopup = usePlansFilterPopup()
 //update or add plan popup
 const updateAddPlanPopup = ref(false)
 
-function closePopup(result) {
+function closePopup(result, needsRefresh) {
   id.value = null
   updateAddPlanPopup.value = false
-  if (closePopup) fetchData()
+  if (needsRefresh) plansFilterPopup.currentPage = 1
+  if (result) fetchData()
 }
 
 //filter and search data
@@ -330,6 +333,7 @@ const columns = ref([
 const dataList = ref([])
 
 async function fetchData() {
+  console.log('fetch data called')
   try {
     const response = await fetchWithTokenRefresh('agent/plan', {
       method: 'POST',
@@ -355,8 +359,6 @@ async function fetchData() {
 }
 
 onMounted(fetchData)
-
-// onUnmounted(plansFilterPopup.clear)
 </script>
 
 <style scoped>
@@ -430,7 +432,7 @@ onMounted(fetchData)
 
 .table {
   max-width: none;
-  min-width: 1800px;
+  min-width: 1700px;
   box-sizing: border-box;
   margin: 0 20px;
   margin-bottom: 5px;
@@ -451,16 +453,6 @@ onMounted(fetchData)
 
 .table-wrap::-webkit-scrollbar-thumb:hover {
   background-color: #d4d4d4;
-}
-
-.status-default {
-  background-color: #828282;
-  padding: 5px 10px;
-  color: #fff;
-  font-size: 14px;
-  width: 100%;
-  border-radius: 20px;
-  white-space: nowrap;
 }
 
 .status-Y {
