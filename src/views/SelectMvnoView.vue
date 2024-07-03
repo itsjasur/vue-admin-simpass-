@@ -64,7 +64,7 @@ onMounted(fetchData)
 
 .card {
   width: 200px;
-  height: 200px;
+  height: 150px;
 
   padding: 60px 30px;
   font-size: 20px;

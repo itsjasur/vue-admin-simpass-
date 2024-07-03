@@ -203,6 +203,7 @@
     :actNo="actNo"
     :statuses="propsStatuses"
     :currentStatus="currentApplicationStatus"
+    :isNewNumber="isNewNumber"
     @closePopup="closeStatusUpdatePopup"
   />
 
@@ -252,9 +253,11 @@ const updateApplicationStatusPopup = ref(false)
 
 const propsStatuses = ref([])
 const currentApplicationStatus = ref(null)
+const isNewNumber = ref(true)
 const actNo = ref(null)
 
 function openStatusUpdatePopup(item) {
+  isNewNumber.value = item?.usim_act_cd === 'N'
   currentApplicationStatus.value = item?.usim_act_status
   actNo.value = item?.act_no ?? null
   updateApplicationStatusPopup.value = true

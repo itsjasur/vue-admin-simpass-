@@ -23,7 +23,7 @@
           </a-select>
         </div>
 
-        <div v-if="newStatus === 'Y'" class="group">
+        <div v-if="newStatus === 'Y' && props.isNewNumber" class="group">
           <label>휴대전화</label>
           <input
             v-model="phoneNumber"
@@ -54,7 +54,8 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue'
 const props = defineProps({
   actNo: { type: String, default: null },
   statuses: { type: Array, default: [] },
-  currentStatus: { type: String, default: '' }
+  currentStatus: { type: String, default: '' },
+  isNewNumber: { type: Boolean, default: false }
 })
 
 const emits = defineEmits(['closePopup'])
@@ -71,7 +72,7 @@ const isSubmitted = ref(false)
 async function fetchData() {
   isSubmitted.value = true
 
-  if (newStatus.value === 'Y' && phoneNumber.value.length !== 13) return
+  if (newStatus.value === 'Y' && props.isNewNumber && phoneNumber.value.length !== 13) return
 
   try {
     const response = await fetchWithTokenRefresh('agent/setApplyStatus', {
