@@ -1,14 +1,14 @@
 <template>
   <div class="menu">
     <div class="logo">
-      <router-link @click="sideMenuClose" to="/profile"
+      <router-link @click="sideMenuChoose" to="/profile"
         ><img src="../assets/logo.png" alt="Logo" style="width: 200px" />
       </router-link>
     </div>
 
     <template v-for="(item, index) in menuItems" :key="index">
       <div
-        @click="router.push(item.path)"
+        @click="sideMenuChoose(item)"
         class="menu-item"
         :class="{ currentlyOpen: isActive(item.path) }"
       >
@@ -44,8 +44,9 @@ function isActive(path) {
   if (path === route.path) return true
 }
 
-function sideMenuClose() {
+function sideMenuChoose(item) {
   if (!sideMenuStore.isDesktop) sideMenuStore.close()
+  router.push(item.path)
 }
 </script>
 
@@ -58,6 +59,7 @@ function sideMenuClose() {
   display: flex;
   flex-flow: column;
   gap: 15px;
+  overflow-y: auto;
 }
 .logo {
   padding: 10px;
