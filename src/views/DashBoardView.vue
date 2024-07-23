@@ -28,6 +28,8 @@
       <SideMenu />
     </div>
   </template>
+
+  <SelectPlanPopup v-if="selectPlansPopup.active" />
 </template>
 
 <script setup>
@@ -35,6 +37,10 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import SideMenu from '../components/SideMenu.vue'
 import Header from '../components/Header.vue'
 import { useSideMenuStore } from '../stores/side-menu'
+import SelectPlanPopup from '@/components/SelectPlanPopup.vue'
+import { useSelectPlansPopup } from '@/stores/select-plans-popup'
+
+const selectPlansPopup = useSelectPlansPopup()
 
 const sideMenuStore = useSideMenuStore()
 

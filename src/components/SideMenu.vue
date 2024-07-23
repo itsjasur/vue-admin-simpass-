@@ -30,9 +30,11 @@ const menuItems = ref([
   { name: SIDEMENUNAMES[1], path: '/manage-users', icon: 'patient_list' },
   { name: SIDEMENUNAMES[2], path: '/manage-plans', icon: 'dashboard' },
   { name: SIDEMENUNAMES[3], path: '/select-mvno', icon: 'article' },
-  { name: SIDEMENUNAMES[4], path: '/partner-requests', icon: 'storefront' },
+  { name: SIDEMENUNAMES[4], path: '/partner-requests', icon: 'fact_check' },
   { name: SIDEMENUNAMES[5], path: '/partners', icon: 'storefront' },
-  { name: SIDEMENUNAMES[6], path: '/self-requests', icon: 'phone_in_talk' }
+  { name: SIDEMENUNAMES[6], path: '/self-requests', icon: 'phone_in_talk' },
+  { name: SIDEMENUNAMES[7], path: '/rental-forms', icon: 'demography' },
+  { name: SIDEMENUNAMES[8], path: '/registration-forms', icon: 'description' }
 ])
 
 const router = useRouter()

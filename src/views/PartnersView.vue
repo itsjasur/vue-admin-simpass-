@@ -73,7 +73,7 @@
                 @click="fetchContractPDFAndPrint(record.agent_cd, record.partner_cd)"
                 class="see-contract-button"
               >
-                게약서 보기
+                계약서 보기
               </button>
             </template>
             <template v-if="column.dataIndex === 'details'">
@@ -150,7 +150,7 @@
             @click="fetchContractPDFAndPrint(item.agent_cd, item.partner_cd)"
             class="right-content see-contract-button"
           >
-            게약서 보기
+            계약서 보기
           </button>
         </div>
         <div class="card-row">
@@ -257,7 +257,7 @@ async function fetchContractPDFAndPrint(agentCd, partnerCd) {
     const url = URL.createObjectURL(blob)
     printablePdfPopup.open(url)
   } catch (error) {
-    useSnackbarStore().showSnackbar(error.toString())
+    useSnackbarStore().show(error.toString())
   }
 }
 

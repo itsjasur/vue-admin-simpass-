@@ -21,6 +21,7 @@
   <Warning />
   <PrintablePopup />
   <ImageViewPopup />
+  <SearchAddressPopup />
 </template>
 
 <script setup>
@@ -34,6 +35,7 @@ import { useSideMenuStore } from './stores/side-menu'
 import PrintablePopup from './components/PrintablePopup.vue'
 import ImageViewPopup from './components/ImageViewPopup.vue'
 import Loading from './components/Loading.vue'
+import SearchAddressPopup from './components/SearchAddressPopup.vue'
 
 const router = useRouter()
 const authStore = useAuthenticationStore()

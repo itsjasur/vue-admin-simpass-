@@ -43,8 +43,8 @@ export default {
         new CustomEvent('cleave:input', {
           detail: {
             formatted: el.value,
-            raw: el.cleave.getRawValue(),
-          },
+            raw: el.cleave.getRawValue()
+          }
         })
       )
     })
@@ -59,5 +59,5 @@ export default {
     if (el.cleave) {
       el.cleave.destroy()
     }
-  },
+  }
 }

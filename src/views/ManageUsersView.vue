@@ -117,7 +117,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import * as cleavePatterns from '../utils/cleavePatterns'
 import { formatDate } from '../utils/helpers'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'

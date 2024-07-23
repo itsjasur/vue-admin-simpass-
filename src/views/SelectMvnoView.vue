@@ -35,7 +35,7 @@ async function fetchData() {
     if (!response.ok) throw decodedResponse?.message ?? 'Fetch data error'
     if (decodedResponse.data && decodedResponse.data.info) mvnos.value = decodedResponse.data.info
   } catch (error) {
-    useSnackbarStore().showSnackbar(error.toString())
+    useSnackbarStore().show(error.toString())
   }
 }
 

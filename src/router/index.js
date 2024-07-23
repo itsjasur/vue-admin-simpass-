@@ -6,10 +6,8 @@ import LoginView from '../views/LoginView.vue'
 import SignupView from '../views/SignupView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import Profile from '../views/ProfileView.vue'
-import ManageUsers from '../views/ManageUsersView.vue'
 import ManagePlans from '../views/ManagePlansView.vue'
 import Applications from '../views/ApplicationsView.vue'
-import Partners from '../views/PartnersView.vue'
 import SelfRequests from '../views/SelfRequestsView.vue'
 import SelectMvno from '../views/SelectMvnoView.vue'
 
@@ -49,7 +47,8 @@ const router = createRouter({
         {
           path: '/manage-users',
           name: 'manage-users',
-          component: ManageUsers,
+          // component: ManageUsers,
+          component: () => import('../views/ManageUsersView.vue'),
           meta: { requiresAuth: true }
         },
 
@@ -93,6 +92,29 @@ const router = createRouter({
           name: 'self-requests',
           component: SelfRequests,
           meta: { requiresAuth: true }
+        },
+
+        {
+          path: '/rental-forms',
+          name: 'rental-forms',
+          component: () => import('../views/RentalFormsView.vue'),
+          meta: { requiresAuth: true }
+        },
+
+        {
+          path: '/registration-forms',
+          name: 'registration-forms',
+          component: () => import('../views/RegistrationFormsView.vue'),
+          meta: {
+            requiresAuth: true
+          }
+        },
+        {
+          path: '/form-details/:id',
+          name: 'form-details',
+          component: () => import('../views/FormDetailsView.vue'),
+          meta: { requiresAuth: true },
+          props: true
         }
       ]
     },

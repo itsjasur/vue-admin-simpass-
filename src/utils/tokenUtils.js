@@ -1,72 +1,66 @@
 import { useAuthenticationStore } from '../stores/authentication'
 
-// Function to refresh the access token
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+const ACCESS_TOKEN_KEY = 'accessToken'
+const REFRESH_TOKEN_KEY = 'refreshToken'
+
 export async function refreshToken() {
   try {
-    let currentRefreshToken = localStorage.getItem('refreshToken')
+    const currentRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
 
     if (!currentRefreshToken) {
-      throw 'No Refresh token available'
+      throw new Error('No refresh token available')
     }
 
-    const response = await fetch(import.meta.env.VITE_API_BASE_URL + 'auth/refreshtoken', {
+    const response = await fetch(`${API_BASE_URL}auth/refreshtoken`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-        // any other necessary headers?
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken: currentRefreshToken })
     })
 
     if (response.ok) {
       const data = await response.json()
-      const newAccessToken = data.accessToken
-      const newRefreshToken = data.accessToken
-      // saving the new access token in lclstorage
-      localStorage.setItem('accessToken', newAccessToken)
-      localStorage.setItem('refreshToken', newRefreshToken)
+      localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken)
+      localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken)
+      return data.accessToken
     } else {
-      throw 'Could not refresh the token'
+      useAuthenticationStore().logout()
+      throw new Error('Could not refresh the token')
     }
   } catch (error) {
-    useAuthenticationStore().logout()
+    console.error('Token refresh failed:', error)
     throw error
   }
 }
 
-// function to make HTTP requests with token refresh logic
-export async function fetchWithTokenRefresh(url, options) {
-  let response
-  let fullUrl = import.meta.env.VITE_API_BASE_URL + url
-  let accessToken = localStorage.getItem('accessToken')
+export async function fetchWithTokenRefresh(url, options = {}) {
+  const fullUrl = `${API_BASE_URL}${url}`
+  let accessToken = localStorage.getItem(ACCESS_TOKEN_KEY)
 
-  options.headers = { Authorization: `Bearer ${accessToken}` }
+  options.headers = {
+    ...options.headers,
+    Authorization: `Bearer ${accessToken}`
+  }
 
   if (options.method === 'POST' && options.body && !(options.body instanceof FormData)) {
     options.body = JSON.stringify(options.body)
+    options.headers['Content-Type'] = 'application/json'
   }
 
-  // console.log(options.body)
-
-  //if body is not form data, content-type is always application/json
-  if (!(options.body instanceof FormData)) options.headers['Content-Type'] = 'application/json'
   try {
-    response = await fetch(fullUrl, options)
-
-    // const decodedResponse = await response.json()
-    // console.log(decodedResponse)
+    let response = await fetch(fullUrl, options)
 
     if (response.status === 401 && !options._retry) {
       options._retry = true
       const newAccessToken = await refreshToken()
       if (newAccessToken) {
-        localStorage.setItem('accessToken', newAccessToken)
         options.headers['Authorization'] = `Bearer ${newAccessToken}`
-        return fetchWithTokenRefresh(fullUrl, options)
+        return fetchWithTokenRefresh(url, options)
       }
     }
     return response
   } catch (error) {
+    console.error('Request failed:', error)
     throw error
   }
 }
