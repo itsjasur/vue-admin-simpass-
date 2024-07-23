@@ -67,19 +67,16 @@
               </span>
             </template>
 
-            <template v-if="column.dataIndex === 'contract'">
-              <button
-                v-if="text === 'Y'"
-                @click="fetchContractPDFAndPrint(record.agent_cd, record.partner_cd)"
-                class="see-contract-button"
-              >
-                게약서 보기
-              </button>
-            </template>
             <template v-if="column.dataIndex === 'details'">
-              <button @click="seePartnerDetails(record.partner_cd)" class="reg-details-button">
+              <button @click="selectPartner(record.partner_cd)" class="reg-details-button">
                 가입정보
               </button>
+            </template>
+
+            <template v-if="column.dataIndex === 'contractor'">
+              <div style="max-width: 300px">
+                {{ text }}
+              </div>
             </template>
           </template>
         </a-table>
@@ -145,20 +142,8 @@
         </div>
 
         <div class="card-row">
-          <span class="left-label">계약서: </span>
-          <button
-            @click="fetchContractPDFAndPrint(item.agent_cd, item.partner_cd)"
-            class="right-content see-contract-button"
-          >
-            게약서 보기
-          </button>
-        </div>
-        <div class="card-row">
           <span class="left-label">상세정보: </span>
-          <button
-            @click="seePartnerDetails(item.partner_cd)"
-            class="right-content reg-details-button"
-          >
+          <button @click="selectPartner(item.partner_cd)" class="right-content reg-details-button">
             가입정보
           </button>
         </div>
@@ -182,11 +167,9 @@
       :currentStatus="currentStatus"
       :statuses="propStatuses"
       @closePopup="closeStatusUpdatePopup"
-      popupFor="partners"
+      popupFor="partner-requests"
     />
   </div>
-
-  <PrintablePdfPopup v-if="printablePdfPopup.active" />
 </template>
 
 <script setup>
@@ -195,11 +178,8 @@ import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 
 import PartnerDetails from '../components/PartnerDetailsPopup.vue'
+import { useImagesHolderStore } from '@/stores/image-holder-store'
 import PartnerStatusUpdatePopup from '../components/PartnerStatusUpdatePopup.vue'
-import PrintablePdfPopup from '../components/PrintablePdfPopup.vue'
-import { usePrintablePdfPopup } from '@/stores/printable-pdf-popup'
-
-const printablePdfPopup = usePrintablePdfPopup()
 
 const partnerDetailsPopup = ref(false)
 const selectedPartnerCd = ref()
@@ -216,18 +196,19 @@ const rowLimit = ref(10)
 
 //pagination change
 function onPagChange(curPage, perPage) {
+  console.log(curPage, perPage)
   currentPage.value = curPage
   rowLimit.value = perPage
   fetchData()
 }
 
-//see details
-function seePartnerDetails(partnerCd) {
+function selectPartner(partnerCd) {
   selectedPartnerCd.value = partnerCd
   partnerDetailsPopup.value = true
 }
 
 //status update popup
+
 const currentStatus = ref(null)
 const statusUpdatePOpup = ref(false)
 function openStatusUpdatePopup(item) {
@@ -239,26 +220,6 @@ function openStatusUpdatePopup(item) {
 function closeStatusUpdatePopup(result) {
   statusUpdatePOpup.value = false
   if (result) fetchData()
-}
-
-async function fetchContractPDFAndPrint(agentCd, partnerCd) {
-  try {
-    const response = await fetchWithTokenRefresh('agent/viewContract', {
-      method: 'POST',
-      body: { agent_cd: agentCd, partner_cd: partnerCd }
-    })
-
-    if (!response.ok) throw 'Fetch contract PDF data error'
-
-    const pdfData = await response.blob()
-    const blob = new Blob([pdfData], { type: 'application/pdf' })
-
-    // a URL for the Blob
-    const url = URL.createObjectURL(blob)
-    printablePdfPopup.open(url)
-  } catch (error) {
-    useSnackbarStore().showSnackbar(error.toString())
-  }
 }
 
 const columns = ref([
@@ -276,12 +237,7 @@ const columns = ref([
     sorter: (a, b) => (a.status ?? '').localeCompare(b.status ?? ''),
     width: 1
   },
-  {
-    title: '대리점명',
-    dataIndex: 'agent_nm',
-    key: 'agent_nm',
-    sorter: (a, b) => (a.agent_nm ?? '').localeCompare(b.agent_nm ?? '')
-  },
+
   {
     title: '판매점명',
     dataIndex: 'partner_nm',
@@ -294,6 +250,7 @@ const columns = ref([
     dataIndex: 'contractor',
     key: 'contractor',
     sorter: (a, b) => (a.contractor ?? '').localeCompare(b.contractor ?? '')
+    // ,width: 350
   },
 
   {
@@ -315,18 +272,7 @@ const columns = ref([
     key: 'apply_date',
     sorter: (a, b) => (a.apply_date ?? '').localeCompare(b.apply_date ?? '')
   },
-  {
-    title: '계약일자',
-    dataIndex: 'contract_date',
-    key: 'contract_date',
-    sorter: (a, b) => (a.contract_date ?? '').localeCompare(b.contract_date ?? '')
-  },
-  {
-    title: '계약서',
-    dataIndex: 'contract',
-    key: 'contract',
-    align: 'center'
-  },
+
   {
     title: '상세정보',
     dataIndex: 'details',
@@ -339,7 +285,7 @@ const dataList = ref([])
 
 async function fetchData() {
   try {
-    const response = await fetchWithTokenRefresh('agent/agentRole', {
+    const response = await fetchWithTokenRefresh('agent/partner', {
       method: 'POST',
       body: {
         partner_nm: searchText.value,
@@ -356,7 +302,6 @@ async function fetchData() {
 
     decodedResponse.data.status_list.forEach((item) => statuses.value.push(item))
     propStatuses.value = decodedResponse.data.status_list
-
     totalCount.value = decodedResponse.data.totalNum
   } catch (error) {
     useSnackbarStore().show(error.toString())
@@ -410,7 +355,7 @@ onMounted(fetchData)
 }
 
 .table {
-  min-width: 1300px;
+  min-width: 1200px;
   max-height: 700px;
   box-sizing: border-box;
   margin: 0 20px;
@@ -434,15 +379,6 @@ onMounted(fetchData)
   background-color: #d4d4d4;
 }
 
-.see-contract-button {
-  background-color: transparent;
-  border: 1px dashed #1362ff;
-  color: #1362ff;
-  padding: 0 5px;
-  max-height: 30px;
-  min-height: unset;
-  width: auto;
-}
 .reg-details-button {
   background-color: transparent;
   border: 1px dashed var(--main-color);

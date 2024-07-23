@@ -20,7 +20,6 @@
 </template>
 
 <script setup>
-import MenuTitle from '../components/MenuTitle.vue'
 import { SIDEMENUNAMES } from '../assets/constants'
 import { useSideMenuStore } from '../stores/side-menu'
 import { useRoute, useRouter } from 'vue-router'
@@ -31,8 +30,9 @@ const menuItems = ref([
   { name: SIDEMENUNAMES[1], path: '/manage-users', icon: 'patient_list' },
   { name: SIDEMENUNAMES[2], path: '/manage-plans', icon: 'dashboard' },
   { name: SIDEMENUNAMES[3], path: '/select-mvno', icon: 'article' },
-  { name: SIDEMENUNAMES[4], path: '/partners', icon: 'storefront' },
-  { name: SIDEMENUNAMES[5], path: '/self-requests', icon: 'phone_in_talk' }
+  { name: SIDEMENUNAMES[4], path: '/partner-requests', icon: 'storefront' },
+  { name: SIDEMENUNAMES[5], path: '/partners', icon: 'storefront' },
+  { name: SIDEMENUNAMES[6], path: '/self-requests', icon: 'phone_in_talk' }
 ])
 
 const router = useRouter()

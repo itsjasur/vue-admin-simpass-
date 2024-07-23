@@ -11,7 +11,6 @@
 <script setup>
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '../utils/tokenUtils'
-import { logoFinder } from '../utils/logoFinder'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMvnoSelectStore } from '../stores/mvno_select_store'

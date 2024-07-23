@@ -27,11 +27,14 @@ const title = computed(() => {
   if (route.path === '/select-mvno') {
     return '통신사 선택'
   }
-  if (route.path === '/partners') {
+  if (route.path === '/partner-requests') {
     return SIDEMENUNAMES[4]
   }
-  if (route.path === '/self-requests') {
+  if (route.path === '/partners') {
     return SIDEMENUNAMES[5]
+  }
+  if (route.path === '/self-requests') {
+    return SIDEMENUNAMES[6]
   }
 
   return ''

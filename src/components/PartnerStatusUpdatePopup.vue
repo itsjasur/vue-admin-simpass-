@@ -23,7 +23,7 @@
           </a-select>
         </div>
 
-        <button @click="fetchData" class="save-button">저장</button>
+        <button @click="updateStatus" class="save-button">저장</button>
       </div>
     </div>
   </div>
@@ -38,7 +38,8 @@ const props = defineProps({
   partnerCd: { type: String, default: null },
   agentCd: { type: String, default: null },
   statuses: { type: Array, default: [] },
-  currentStatus: { type: String, default: '' }
+  currentStatus: { type: String, default: '' },
+  popupFor: { type: String, default: '' }
 })
 
 const emits = defineEmits(['closePopup'])
@@ -46,15 +47,26 @@ const emits = defineEmits(['closePopup'])
 const newStatus = ref(props.currentStatus)
 const phoneNumber = ref()
 
-async function fetchData() {
+async function updateStatus() {
+  var url = 'agent/setPartnerStatus'
+  var body = {
+    partner_cd: props.partnerCd,
+    status: newStatus.value
+  }
+
+  if (props.popupFor === 'partners') {
+    url = 'agent/setContractStatus'
+    body = {
+      partner_cd: props.partnerCd,
+      agent_cd: props.agentCd,
+      status: newStatus.value
+    }
+  }
+
   try {
-    const response = await fetchWithTokenRefresh('agent/setContractStatus', {
+    const response = await fetchWithTokenRefresh(url, {
       method: 'POST',
-      body: {
-        partner_cd: props.partnerCd,
-        agent_cd: props.agentCd,
-        status: newStatus.value
-      }
+      body: body
     })
     if (!response.ok) throw 'Change status error'
     const decodedResponse = await response.json()

@@ -61,6 +61,13 @@ const router = createRouter({
         },
 
         {
+          path: '/partner-requests',
+          name: 'partner-requests',
+          component: () => import('../views/PartnerRequestsView.vue'),
+          meta: { requiresAuth: true }
+        },
+
+        {
           path: '/partners',
           name: 'partners',
           // component: Partners,
