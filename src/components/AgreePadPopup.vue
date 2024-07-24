@@ -1,7 +1,9 @@
 <template>
   <div class="overlay">
     <div class="popup-content">
-      <span @click="$emit('closePopup')" class="material-symbols-outlined close-button"> cancel </span>
+      <span @click="$emit('closePopup')" class="material-symbols-outlined close-button">
+        cancel
+      </span>
 
       <p class="title">서명(Name)란</p>
       <div class="image-container">
@@ -75,7 +77,7 @@ const initializePad = () => {
     penColor: 'black',
     onBegin: onBegin,
     onEnd: onEnd,
-    backgroundColor: 'rgba(0,0,0,0)',
+    backgroundColor: 'rgba(0,0,0,0)'
   })
 }
 
@@ -108,8 +110,11 @@ const savePad = () => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  /* width: 100vw; */
+  /* height: 100vh; */
+  width: 100%;
+  height: 100%;
+
   display: flex;
   justify-content: center;
   align-items: center;

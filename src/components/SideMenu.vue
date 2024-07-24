@@ -42,7 +42,7 @@ const route = useRoute()
 const sideMenuStore = useSideMenuStore()
 
 function isActive(path) {
-  if (path === '/select-mvno' && route.path === '/applications') return true
+  if (route.name === 'form-details' && path === '/registration-forms') return true
   if (path === route.path) return true
 }
 

@@ -234,15 +234,18 @@ const savePads = () => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  /* width: 100vw; */
+  /* height: 100vh; */
+  width: 100%;
+  height: 100%;
+
   display: flex;
   justify-content: center; /* Center horizontally */
   align-items: center; /* Center vertically */
   z-index: 1100;
   background-color: rgba(0, 0, 0, 0.552);
   padding: 20px;
-  overflow-y: scroll;
+  overflow: hidden;
 }
 
 .popup-content {
@@ -342,6 +345,7 @@ canvas {
 @media (max-width: 600px) {
   .canvas-container {
     width: 100% !important;
+    height: 180px !important;
   }
 }
 </style>

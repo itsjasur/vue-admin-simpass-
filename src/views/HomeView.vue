@@ -60,6 +60,8 @@ const router = useRouter()
   flex-flow: wrap;
   gap: 20px;
   justify-content: center;
+  overflow-y: auto;
+  padding-bottom: 200px;
 }
 
 .card {
