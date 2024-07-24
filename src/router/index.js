@@ -19,6 +19,7 @@ const router = createRouter({
       name: 'login',
       component: LoginView,
       meta: {
+        title: '로그인',
         requiresAuth: false // No authentication required
       }
     },
@@ -27,21 +28,29 @@ const router = createRouter({
       path: '/signup',
       name: 'signup',
       component: SignupView,
-      meta: { requiresAuth: false }
+      meta: {
+        title: '',
+        requiresAuth: false
+      }
     },
 
     {
       path: '/',
       name: 'dashboard',
-      redirect: '/applications',
+      // redirect: '/profile', //registration-forms
       component: DashBaordView,
-      meta: { requiresAuth: true },
+      meta: { title: 'Home' },
+
       children: [
         {
           path: '/profile',
           name: 'profile',
           component: Profile,
-          meta: { requiresAuth: true }
+          meta: {
+            title: '나의정보',
+            requiresAuth: true,
+            requiredRoles: ['ALL']
+          }
         },
 
         {
@@ -49,56 +58,100 @@ const router = createRouter({
           name: 'manage-users',
           // component: ManageUsers,
           component: () => import('../views/ManageUsersView.vue'),
-          meta: { requiresAuth: true }
+          meta: {
+            title: '사용자관리',
+            requiresAuth: true,
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN']
+          }
         },
 
         {
           path: '/manage-plans',
           name: 'manage-plans',
           component: ManagePlans,
-          meta: { requiresAuth: true }
+          meta: {
+            title: '요금제관리',
+            requiresAuth: true,
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN']
+          }
+        },
+        {
+          path: 'select-mvno',
+          name: 'select-mvno',
+          component: SelectMvno,
+          meta: {
+            title: '신청서접수현황',
+            requiresAuth: true,
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_OPEN_AGENCY']
+          }
+        },
+        {
+          path: 'applications',
+          name: 'applications',
+          component: () => import('../views/ApplicationsView.vue'),
+          meta: {
+            title: '신청서접수현황 Applications',
+            requiresAuth: true,
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_OPEN_AGENCY']
+          }
         },
 
         {
           path: '/partner-requests',
           name: 'partner-requests',
           component: () => import('../views/PartnerRequestsView.vue'),
-          meta: { requiresAuth: true }
+          meta: {
+            title: '판매점가입현황',
+            requiresAuth: true,
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN']
+          }
         },
 
         {
           path: '/partners',
           name: 'partners',
+
           // component: Partners,
           component: () => import('../views/PartnersView.vue'),
-          meta: { requiresAuth: true }
-        },
-
-        {
-          path: '/applications',
-          name: 'applications',
-          component: Applications,
-          meta: { requiresAuth: true }
-        },
-        {
-          path: 'select-mvno',
-          name: 'select-mvno',
-          component: SelectMvno,
-          meta: { requiresAuth: true }
+          meta: {
+            title: '판매점거래현황',
+            requiresAuth: true,
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN']
+          }
         },
 
         {
           path: '/self-requests',
           name: 'self-requests',
           component: SelfRequests,
-          meta: { requiresAuth: true }
+          meta: {
+            title: '상담사 개통 문의현황',
+            requiresAuth: true,
+            requiredRoles: [
+              'ROLE_SUPER',
+              'ROLE_ADMIN',
+              'ROLE_OPEN_ADMIN',
+              'ROLE_OPEN_MANAGER',
+              'ROLE_OPEN_MEMBER'
+            ]
+          }
         },
 
         {
           path: '/rental-forms',
           name: 'rental-forms',
           component: () => import('../views/RentalFormsView.vue'),
-          meta: { requiresAuth: true }
+          meta: {
+            title: '랜탈가입 신청서',
+            requiresAuth: true,
+            requiredRoles: [
+              'ROLE_SUPER',
+              'ROLE_ADMIN',
+              'ROLE_OPEN_ADMIN',
+              'ROLE_OPEN_MANAGER',
+              'ROLE_OPEN_MEMBER'
+            ]
+          }
         },
 
         {
@@ -106,15 +159,33 @@ const router = createRouter({
           name: 'registration-forms',
           component: () => import('../views/RegistrationFormsView.vue'),
           meta: {
-            requiresAuth: true
+            title: '가입/번호이동 신청서',
+            requiresAuth: true,
+            requiredRoles: [
+              'ROLE_SUPER',
+              'ROLE_ADMIN',
+              'ROLE_OPEN_ADMIN',
+              'ROLE_OPEN_MANAGER',
+              'ROLE_OPEN_MEMBER'
+            ]
           }
         },
         {
           path: '/form-details/:id',
           name: 'form-details',
           component: () => import('../views/FormDetailsView.vue'),
-          meta: { requiresAuth: true },
-          props: true
+          props: true,
+          meta: {
+            title: '신청서접수현황',
+            requiresAuth: true,
+            requiredRoles: [
+              'ROLE_SUPER',
+              'ROLE_ADMIN',
+              'ROLE_OPEN_ADMIN',
+              'ROLE_OPEN_MANAGER',
+              'ROLE_OPEN_MEMBER'
+            ]
+          }
         }
       ]
     },
@@ -123,23 +194,41 @@ const router = createRouter({
       // path: '/:pathMatch(.*)*',
       path: '/:catchAll(.*)',
       name: 'NotFound',
-      component: NotFoundView
+      component: NotFoundView,
+      meta: { title: 'N/A' }
     }
   ]
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth) {
-    if (!useAuthenticationStore().isLoggedIn) {
-      useRouteMemoryStore().save(to.fullPath)
-      next('/login')
-    } else {
-      next()
-    }
-  } else {
-    // non-protected route, allow access
-    next()
+  const authStore = useAuthenticationStore()
+
+  // checks if the route requires authentication
+  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+    useRouteMemoryStore().save(to.fullPath)
+    return next('/login')
   }
+
+  // checks for role-based access
+  if (to.meta.requiredRoles && !to.meta.requiredRoles.includes('ALL')) {
+    if (!authStore.containsRole(to.meta.requiredRoles)) {
+      return next('/unauthorized')
+    }
+  }
+
+  // // handles root path redirection to registration-forms or profile
+  if (to.path === '/') {
+    const routes = router.getRoutes()
+    const regForRoute = routes.find((route) => route.path === '/registration-forms')
+
+    if (regForRoute.meta.requiredRoles && authStore.containsRole(regForRoute.meta.requiredRoles)) {
+      return next('/registration-forms')
+    } else {
+      return next('/profile')
+    }
+  }
+
+  next()
 })
 
 export default router

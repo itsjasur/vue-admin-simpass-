@@ -39,6 +39,8 @@ import Header from '../components/Header.vue'
 import { useSideMenuStore } from '../stores/side-menu'
 import SelectPlanPopup from '@/components/SelectPlanPopup.vue'
 import { useSelectPlansPopup } from '@/stores/select-plans-popup'
+import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
+import { useAuthenticationStore } from '@/stores/authentication'
 
 const selectPlansPopup = useSelectPlansPopup()
 
@@ -51,11 +53,30 @@ const handleResize = () => {
 onMounted(() => {
   sideMenuStore.updateIsDesktop()
   window.addEventListener('resize', handleResize)
+  fetchProfileData()
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
 })
+
+const authStore = useAuthenticationStore()
+
+//used only to update user roles
+async function fetchProfileData() {
+  try {
+    const response = await fetchWithTokenRefresh('admin/myInfo', { method: 'GET' })
+    if (!response.ok) throw 'Fetch profile data error'
+    const decodedResponse = await response.json()
+
+    if (decodedResponse?.data && decodedResponse?.data?.info) {
+      let info = decodedResponse.data.info
+      authStore.updateRoles(info.strRoles)
+    }
+  } catch (error) {
+    // snackbar.show(error.toString())
+  }
+}
 </script>
 
 <style scoped>

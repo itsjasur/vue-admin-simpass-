@@ -67,11 +67,11 @@ function selectMvno(item) {
 }
 
 async function fetchData() {
-  console.log('fetch caled')
+  // console.log('fetch caled')
   try {
     const response = await fetchWithTokenRefresh('agent/applyCarrier', {
       method: 'POST',
-      body: { carrier_type: selectedType.value, carrier_cd: selectedCarrierCd.value },
+      body: { carrier_type: selectedType.value, carrier_cd: selectedCarrierCd.value }
     })
 
     const decodedResponse = await response.json()

@@ -1,54 +1,111 @@
 <template>
   <div class="menu">
     <div class="logo">
-      <router-link @click="sideMenuChoose" to="/profile"
+      <router-link @click="router.push('/')" to="/profile"
         ><img src="../assets/logo.png" alt="Logo" style="width: 200px" />
       </router-link>
     </div>
 
-    <template v-for="(item, index) in menuItems" :key="index">
+    <template v-for="(item, index) in visibleMenuItems" :key="index">
       <div
         @click="sideMenuChoose(item)"
         class="menu-item"
         :class="{ currentlyOpen: isActive(item.path) }"
       >
         <span class="material-symbols-outlined"> {{ item.icon }} </span>
-        <span class="menu-title">{{ item.name }}</span>
+        <span class="menu-title">{{ getTitleByRouteNameOrPath(item.path) }}</span>
       </div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { SIDEMENUNAMES } from '../assets/constants'
 import { useSideMenuStore } from '../stores/side-menu'
 import { useRoute, useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useAuthenticationStore } from '@/stores/authentication'
 
-const menuItems = ref([
-  { name: SIDEMENUNAMES[0], path: '/profile', icon: 'person' },
-  { name: SIDEMENUNAMES[1], path: '/manage-users', icon: 'patient_list' },
-  { name: SIDEMENUNAMES[2], path: '/manage-plans', icon: 'dashboard' },
-  { name: SIDEMENUNAMES[3], path: '/select-mvno', icon: 'article' },
-  { name: SIDEMENUNAMES[4], path: '/partner-requests', icon: 'fact_check' },
-  { name: SIDEMENUNAMES[5], path: '/partners', icon: 'storefront' },
-  { name: SIDEMENUNAMES[6], path: '/self-requests', icon: 'phone_in_talk' },
-  { name: SIDEMENUNAMES[7], path: '/rental-forms', icon: 'demography' },
-  { name: SIDEMENUNAMES[8], path: '/registration-forms', icon: 'description' }
-])
+const authStore = useAuthenticationStore()
+const userRoles = authStore.userRoles
 
 const router = useRouter()
 const route = useRoute()
 const sideMenuStore = useSideMenuStore()
 
+const menuItems = [
+  {
+    path: '/profile',
+    icon: 'person'
+  },
+  {
+    path: '/manage-users',
+    icon: 'patient_list'
+  },
+  {
+    path: '/manage-plans',
+    icon: 'dashboard'
+  },
+  {
+    path: '/select-mvno',
+    icon: 'article'
+  },
+  {
+    path: '/partner-requests',
+    icon: 'fact_check'
+  },
+  {
+    path: '/partners',
+    icon: 'storefront'
+  },
+  {
+    path: '/self-requests',
+    icon: 'phone_in_talk'
+  },
+  {
+    path: '/rental-forms',
+    icon: 'demography'
+  },
+  {
+    path: '/registration-forms',
+    icon: 'description'
+  }
+]
+
+const visibleMenuItems = computed(() =>
+  menuItems.filter((item) => {
+    //if null or undefined return, removes from avl items
+    if (!getRolesByRouteNameOrPath(item.path)) return false
+    //if it has 'ALL' it will be available to all, whcih is true
+    if (getRolesByRouteNameOrPath(item.path).includes('ALL')) return true
+    //checks if role contains path required roles
+    return authStore.containsRole(getRolesByRouteNameOrPath(item.path))
+  })
+)
+// console.log(authStore.containsRole(getRolesByRouteNameOrPath(item.path)))
+// console.log(visibleMenuItems.value)
+
 function isActive(path) {
   if (route.name === 'form-details' && path === '/registration-forms') return true
+  if (route.name === 'applications' && path === '/select-mvno') return true
   if (path === route.path) return true
 }
 
 function sideMenuChoose(item) {
   if (!sideMenuStore.isDesktop) sideMenuStore.close()
   router.push(item.path)
+}
+
+// gets  the title by path name or path
+function getTitleByRouteNameOrPath(nameOrPath) {
+  const routes = router.getRoutes()
+  const routeInfo = routes.find((route) => route.name === nameOrPath || route.path === nameOrPath)
+  if (routeInfo && routeInfo.meta && routeInfo.meta.title) return routeInfo.meta.title
+  else return 'No title'
+}
+function getRolesByRouteNameOrPath(nameOrPath) {
+  const routes = router.getRoutes()
+  const routeInfo = routes.find((route) => route.name === nameOrPath || route.path === nameOrPath)
+  return routeInfo.meta.requiredRoles
 }
 </script>
 

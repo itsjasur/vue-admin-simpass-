@@ -5,7 +5,8 @@ export const useAuthenticationStore = defineStore('status', {
     isLoggedIn: localStorage.getItem('accessToken') !== null,
     id: '',
     userName: '',
-    isAutoLoggedOut: true
+    isAutoLoggedOut: true,
+    userRoles: []
   }),
 
   actions: {
@@ -17,20 +18,34 @@ export const useAuthenticationStore = defineStore('status', {
     },
 
     login(token, refreshToken, id, userName, roles) {
-      this.isLoggedIn = true
+      this.isLoggedIn = roles
+      this.userRoles = roles
+
       localStorage.setItem('accessToken', token)
       localStorage.setItem('refreshToken', refreshToken)
       localStorage.setItem('id', id)
       localStorage.setItem('userName', userName)
 
-      const stringifiedRolesArray = JSON.stringify(roles)
-      localStorage.setItem('roles', stringifiedRolesArray)
+      // const stringifiedRolesArray = JSON.stringify(roles)
+      // localStorage.setItem('roles', stringifiedRolesArray)
     },
 
-    getRoles() {
-      const roles = localStorage.getItem('roles')
-      const rolesArray = JSON.parse(roles)
-      return rolesArray
+    updateRoles(roles) {
+      if (roles && roles instanceof Array) {
+        this.userRoles = roles
+      }
+    },
+
+    // getRoles() {
+    // const roles = localStorage.getItem('roles')
+    // const rolesArray = JSON.parse(roles)
+    // return rolesArray
+    // },
+
+    containsRole(routeRequiredRoles) {
+      // console.log('route roles in store: ', routeRequiredRoles)
+      // if (!routeRequiredRoles) return true
+      return routeRequiredRoles.some((role) => this.userRoles.includes(role))
     }
   }
 })

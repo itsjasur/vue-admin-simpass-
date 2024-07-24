@@ -212,7 +212,7 @@ async function openDocsPopup() {
     })
     if (!response.ok) throw 'Fetch forms data error'
     const decodedResponse = await response.json()
-    console.log(decodedResponse.data)
+    // console.log(decodedResponse.data)
 
     useImagesHolderStore().open(decodedResponse?.data?.apply_attach_list ?? [])
   } catch (error) {

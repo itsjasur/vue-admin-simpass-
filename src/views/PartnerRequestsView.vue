@@ -196,7 +196,7 @@ const rowLimit = ref(10)
 
 //pagination change
 function onPagChange(curPage, perPage) {
-  console.log(curPage, perPage)
+  // console.log(curPage, perPage)
   currentPage.value = curPage
   rowLimit.value = perPage
   fetchData()

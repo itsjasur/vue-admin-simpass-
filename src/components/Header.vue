@@ -9,7 +9,9 @@
         menu_open
       </span>
       <span v-else @click="sideMenuStore.open()" class="material-symbols-outlined"> menu </span>
-      <MenuTitle class="header-title" />
+      <span class="header-title">
+        {{ route.meta.title ?? 'asd' }}
+      </span>
     </div>
 
     <button @click="logout">로그 아웃</button>
@@ -17,10 +19,13 @@
 </template>
 
 <script setup>
-import MenuTitle from '../components/MenuTitle.vue'
 import { useSideMenuStore } from '../stores/side-menu'
 import { useAuthenticationStore } from '../stores/authentication'
 import { useRouteMemoryStore } from '@/stores/router-memory-store'
+import { useRoute } from 'vue-router'
+// import MenuTitle from '../components/MenuTitle.vue'
+
+const route = useRoute()
 
 const sideMenuStore = useSideMenuStore()
 

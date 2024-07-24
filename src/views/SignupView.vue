@@ -152,7 +152,7 @@ function validateForms() {
     (errors.password = VALIDATOR.validatePass(forms.password)),
     (errors.passwordCheck = VALIDATOR.validateRentryPass(forms.password, forms.passwordCheck))
   ]
-  console.log(res.every((value) => value === null))
+  // console.log(res.every((value) => value === null))
   return res.every((value) => value === null)
 }
 
@@ -170,7 +170,7 @@ async function submit() {
     phone_number: forms.phoneNumber
   }
 
-  console.log(body)
+  // console.log(body)
 
   try {
     const response = await fetch(import.meta.env.VITE_API_BASE_URL + 'auth/signup', {
