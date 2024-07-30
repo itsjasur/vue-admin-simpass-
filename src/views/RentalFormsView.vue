@@ -117,7 +117,6 @@
 <script setup>
 import { ref, watch } from 'vue'
 import * as cleavePatterns from '../utils/cleavePatterns'
-import SearchAddressPopup from '../components/SearchAddressPopup.vue'
 import { useSearchaddressStore } from '../stores/select-address-popup'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '../utils/tokenUtils'

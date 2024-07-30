@@ -7,9 +7,8 @@ import SignupView from '../views/SignupView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import Profile from '../views/ProfileView.vue'
 import ManagePlans from '../views/ManagePlansView.vue'
-import Applications from '../views/ApplicationsView.vue'
 import SelfRequests from '../views/SelfRequestsView.vue'
-import SelectMvno from '../views/SelectMvnoView.vue'
+import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -75,22 +74,13 @@ const router = createRouter({
             requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN']
           }
         },
-        {
-          path: 'select-mvno',
-          name: 'select-mvno',
-          component: SelectMvno,
-          meta: {
-            title: '신청서접수현황',
-            requiresAuth: true,
-            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_OPEN_AGENCY']
-          }
-        },
+
         {
           path: 'applications',
           name: 'applications',
           component: () => import('../views/ApplicationsView.vue'),
           meta: {
-            title: '신청서접수현황 Applications',
+            title: '신청서접수현황',
             requiresAuth: true,
             requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_OPEN_AGENCY']
           }
@@ -186,6 +176,17 @@ const router = createRouter({
               'ROLE_OPEN_MEMBER'
             ]
           }
+        },
+
+        {
+          path: '/chats',
+          name: 'chats',
+          component: () => import('../views/ChatsView.vue'),
+          meta: {
+            title: '채팅',
+            requiresAuth: true,
+            requiredRoles: ['ALL']
+          }
         }
       ]
     },
@@ -200,8 +201,18 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthenticationStore()
+
+  try {
+    const response = await fetchWithTokenRefresh('admin/myInfo', { method: 'GET' })
+    if (!response.ok) throw 'Fetch profile data error'
+    const decodedResponse = await response.json()
+    let info = decodedResponse.data.info
+    authStore.updateRoles(info.strRoles)
+  } catch (error) {
+    return '/login'
+  }
 
   // checks if the route requires authentication
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
@@ -211,7 +222,10 @@ router.beforeEach((to, from, next) => {
 
   // checks for role-based access
   if (to.meta.requiredRoles && !to.meta.requiredRoles.includes('ALL')) {
+    //used only to update user roles
+
     if (!authStore.containsRole(to.meta.requiredRoles)) {
+      console.log(authStore.containsRole(to.meta.requiredRoles))
       return next('/unauthorized')
     }
   }

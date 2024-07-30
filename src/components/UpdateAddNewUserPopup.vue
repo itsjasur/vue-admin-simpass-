@@ -343,7 +343,7 @@ function handleCheckboxes() {
 }
 
 function checkSelfRoles() {
-  const myRoles = useAuthenticationStore().getRoles()
+  const myRoles = useAuthenticationStore().userRoles
   if (myRoles?.includes('ROLE_SUPER')) {
     userRoles[0].state = 'active'
   }

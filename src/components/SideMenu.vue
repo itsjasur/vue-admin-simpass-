@@ -22,7 +22,7 @@
 <script setup>
 import { useSideMenuStore } from '../stores/side-menu'
 import { useRoute, useRouter } from 'vue-router'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useAuthenticationStore } from '@/stores/authentication'
 
 const authStore = useAuthenticationStore()
@@ -46,7 +46,7 @@ const menuItems = [
     icon: 'dashboard'
   },
   {
-    path: '/select-mvno',
+    path: '/applications',
     icon: 'article'
   },
   {
@@ -68,6 +68,10 @@ const menuItems = [
   {
     path: '/registration-forms',
     icon: 'description'
+  },
+  {
+    path: '/chats',
+    icon: 'chat'
   }
 ]
 
