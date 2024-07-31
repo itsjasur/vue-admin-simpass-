@@ -201,44 +201,92 @@ const router = createRouter({
   ]
 })
 
+// router.beforeEach(async (to, from, next) => {
+//   const authStore = useAuthenticationStore()
+
+//   // checks if the route requires authentication
+//   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+//     useRouteMemoryStore().save(to.fullPath)
+//     return next('/login')
+//   }
+
+//   try {
+//     const response = await fetchWithTokenRefresh('admin/myInfo', { method: 'GET' })
+//     if (!response.ok) throw 'Fetch profile data error'
+//     const decodedResponse = await response.json()
+//     let info = decodedResponse.data.info
+//     authStore.updateRoles(info.strRoles)
+//   } catch (error) {
+//     return next('/login')
+//   }
+
+//   // checks for role-based access
+//   if (to.meta.requiredRoles && !to.meta.requiredRoles.includes('ALL')) {
+//     //used only to update user roles
+
+//     if (!authStore.containsRole(to.meta.requiredRoles)) {
+//       console.log(authStore.containsRole(to.meta.requiredRoles))
+//       return next('/unauthorized')
+//     }
+//   }
+
+//   // // handles root path redirection to registration-forms or profile
+//   if (to.path === '/') {
+//     const routes = router.getRoutes()
+//     const regForRoute = routes.find((route) => route.path === '/registration-forms')
+
+//     if (regForRoute.meta.requiredRoles && authStore.containsRole(regForRoute.meta.requiredRoles)) {
+//       return next('/registration-forms')
+//     } else {
+//       return next('/profile')
+//     }
+//   }
+
+//   next()
+// })
+
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthenticationStore()
 
-  try {
-    const response = await fetchWithTokenRefresh('admin/myInfo', { method: 'GET' })
-    if (!response.ok) throw 'Fetch profile data error'
-    const decodedResponse = await response.json()
-    let info = decodedResponse.data.info
-    authStore.updateRoles(info.strRoles)
-  } catch (error) {
-    return '/login'
-  }
-
-  // checks if the route requires authentication
-  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+  // checks if user is logged in
+  if (to.path !== '/login' && !authStore.isLoggedIn) {
     useRouteMemoryStore().save(to.fullPath)
     return next('/login')
   }
 
-  // checks for role-based access
-  if (to.meta.requiredRoles && !to.meta.requiredRoles.includes('ALL')) {
-    //used only to update user roles
-
-    if (!authStore.containsRole(to.meta.requiredRoles)) {
-      console.log(authStore.containsRole(to.meta.requiredRoles))
-      return next('/unauthorized')
-    }
-  }
-
-  // // handles root path redirection to registration-forms or profile
+  // handles root path redirection
   if (to.path === '/') {
-    const routes = router.getRoutes()
-    const regForRoute = routes.find((route) => route.path === '/registration-forms')
-
+    const regForRoute = router.getRoutes().find((route) => route.path === '/registration-forms')
     if (regForRoute.meta.requiredRoles && authStore.containsRole(regForRoute.meta.requiredRoles)) {
       return next('/registration-forms')
     } else {
       return next('/profile')
+    }
+  }
+
+  // if the route doesn't require auth, proceed
+  if (!to.meta.requiresAuth) {
+    return next()
+  }
+
+  // always fetchs user info for authenticated routes
+  try {
+    const response = await fetchWithTokenRefresh('admin/myInfo', { method: 'GET' })
+    if (!response.ok) throw new Error('Fetch profile data error')
+    const decodedResponse = await response.json()
+    let info = decodedResponse.data.info
+    authStore.updateRoles(info.strRoles)
+  } catch (error) {
+    console.error('Error fetching user info:', error)
+    authStore.logout()
+    useRouteMemoryStore().save(to.fullPath)
+    return next('/login')
+  }
+
+  // Now check roles after fetching updated info
+  if (to.meta.requiredRoles && !to.meta.requiredRoles.includes('ALL')) {
+    if (!authStore.containsRole(to.meta.requiredRoles)) {
+      return next('/unauthorized')
     }
   }
 
