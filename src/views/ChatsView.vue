@@ -1,7 +1,7 @@
 <template>
   <div class="container">
-    <div class="receivers-section">
-      <div class="search-receiver">
+    <div class="chatrooms-section">
+      <div class="search-chatroom">
         <input
           type="text"
           id="username"
@@ -15,13 +15,15 @@
         <template v-for="(room, index) in chatRooms" :key="index">
           <div
             @click="selectRoom(room)"
-            :class="['receiver', { isSelected: selectedRoom.room_id === room.room_id }]"
+            :class="['chatroom', { isSelected: selectedRoom?.room_id === room?.room_id }]"
           >
-            {{ room.partner_name }}
-            <template v-if="userInfo?.agent_cd?.length > 1">
+            <div v-if="userInfo?.agent_cd?.length > 1" class="chatroom-name">
+              <span> {{ room.partner_name }}</span>
               <span class="material-symbols-outlined arrow_icon"> double_arrow </span>
               {{ room.agent_code }}
-            </template>
+            </div>
+
+            <div class="unread-count-badge">11</div>
           </div>
         </template>
       </div>
@@ -97,7 +99,6 @@ import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { nextTick, onMounted, ref } from 'vue'
 import { io } from 'socket.io-client'
-import { useAuthenticationStore } from '@/stores/authentication'
 
 const searchText = ref('')
 const userInfo = ref()
@@ -130,10 +131,9 @@ const scrollToBottom = () => {
 }
 
 function getRooms() {
-  // console.log('get rooms called')
+  console.log('get rooms called')
   socket.emit('get_rooms', {
-    searchText: searchText.value,
-    userToken: localStorage.getItem('accessToken')
+    searchText: searchText.value
   })
 }
 
@@ -143,8 +143,14 @@ onMounted(() => {
   chatContainer.value = document.querySelector('.container') //chat container to scroll up or down
 
   socket.on('connected', () => {
-    // console.log('Connected to server')
+    console.log('Connected to server')
     connectionStatus.value = 'Connected'
+    socket.emit('authenticate', localStorage.getItem('accessToken'))
+    // getRooms()
+  })
+  socket.on('authenticated', () => {
+    console.log('Authenticated to server')
+    connectionStatus.value = 'Authenticated'
     getRooms()
   })
 
@@ -157,7 +163,7 @@ onMounted(() => {
     chatRooms.value = rooms
 
     //clean current chat and selectedRoom if search result does not contain the room
-    if (!chatRooms.value.find((obj) => obj.room_id === selectedRoom.value)) {
+    if (!chatRooms.value.find((obj) => obj?.room_id === selectedRoom.value)) {
       chats.value = []
       selectedRoom.value = null
     }
@@ -205,8 +211,9 @@ onMounted(() => {
     scrollToBottom()
   })
   socket.on('error', (error) => {
-    useSnackbarStore().show(error.toString())
-    useAuthenticationStore().logout()
+    console.log(error.message)
+    useSnackbarStore().show(error.message.toString())
+    // useAuthenticationStore().logout()
   })
 })
 
@@ -313,7 +320,7 @@ async function fetchData() {
   /* overflow-y: hidden; */
 }
 
-.receivers-section {
+.chatrooms-section {
   width: 450px;
   height: 100%;
   /* position: relative; */
@@ -322,7 +329,7 @@ async function fetchData() {
   box-sizing: border-box;
   background-color: #e8e8e8;
 }
-.search-receiver {
+.search-chatroom {
   position: sticky;
   top: 0;
   /* padding: 0 20px; */
@@ -330,7 +337,7 @@ async function fetchData() {
   background-color: #e8e8e8;
 }
 
-.search-receiver input,
+.search-chatroom input,
 input:focus {
   border: none;
   outline: none;
@@ -352,8 +359,8 @@ input:focus {
   overflow-y: auto;
   padding: 0 10px;
 }
-.reveivers-list .receiver {
-  padding: 15px 10px;
+.chatroom {
+  padding: 10px;
   box-sizing: border-box;
   border-radius: 4px;
   font-weight: 600;
@@ -364,20 +371,43 @@ input:focus {
   text-overflow: ellipsis;
 
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatroom-name {
+  display: flex;
   gap: 10px;
   align-items: center;
 }
 
-.reveivers-list .receiver .arrow_icon {
+.unread-count-badge {
+  background-color: rgb(244, 159, 94);
+  height: 18px;
+  min-width: 18px;
+  padding: 5px;
+  border-radius: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1;
+
+  color: #fff;
+  font-size: 14px;
+}
+
+.chatroom .arrow_icon {
   font-size: 22px;
 }
 
-.reveivers-list .receiver.isSelected {
+.chatroom.isSelected {
   /* border: 1.5px solid var(--main-color); */
   background-color: #fff;
 }
 
-.reveivers-list .receiver:hover {
+.chatroom:hover {
   cursor: pointer;
   background-color: #fff;
   filter: brightness(0.8);

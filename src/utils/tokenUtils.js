@@ -1,12 +1,10 @@
 import { useAuthenticationStore } from '../stores/authentication'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-const ACCESS_TOKEN_KEY = 'accessToken'
-const REFRESH_TOKEN_KEY = 'refreshToken'
 
 export async function refreshToken() {
   try {
-    const currentRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
+    const currentRefreshToken = localStorage.getItem('refreshToken')
 
     if (!currentRefreshToken) {
       throw new Error('No refresh token available')
@@ -20,8 +18,8 @@ export async function refreshToken() {
 
     if (response.ok) {
       const data = await response.json()
-      localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken)
-      localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken)
+      localStorage.setItem('accessToken', data.accessToken)
+      localStorage.setItem('refreshToken', data.refreshToken)
       return data.accessToken
     } else {
       useAuthenticationStore().logout()
@@ -35,7 +33,7 @@ export async function refreshToken() {
 
 export async function fetchWithTokenRefresh(url, options = {}) {
   const fullUrl = `${API_BASE_URL}${url}`
-  let accessToken = localStorage.getItem(ACCESS_TOKEN_KEY)
+  let accessToken = localStorage.getItem('accessToken')
 
   options.headers = {
     ...options.headers,
