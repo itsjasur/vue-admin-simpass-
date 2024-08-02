@@ -41,7 +41,7 @@
             </a-select>
           </div>
 
-          <div class="group" style="max-width: 170px">
+          <div v-if="popup.showAgent" class="group" style="max-width: 170px">
             <label>대리점</label>
             <a-select
               v-model:value="popup.agent"
@@ -120,7 +120,7 @@
 <script setup>
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { onMounted, onUnmounted, reactive } from 'vue'
 
 import { usePlansFilterPopup } from '../stores/manage-plans-popup-store'
 

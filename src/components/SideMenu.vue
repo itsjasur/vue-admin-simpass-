@@ -46,8 +46,16 @@ const menuItems = [
     icon: 'dashboard'
   },
   {
+    path: '/manage-plans-for-print',
+    icon: 'print_connect'
+  },
+  {
     path: '/applications',
     icon: 'article'
+  },
+  {
+    path: '/applications-for-print',
+    icon: 'print'
   },
   {
     path: '/partner-requests',

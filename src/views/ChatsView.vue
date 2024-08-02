@@ -18,7 +18,7 @@
             :class="['receiver', { isSelected: selectedRoom.room_id === room.room_id }]"
           >
             {{ room.partner_name }}
-            <template v-if="userInfo.agent_cd.length > 1">
+            <template v-if="userInfo?.agent_cd?.length > 1">
               <span class="material-symbols-outlined arrow_icon"> double_arrow </span>
               {{ room.agent_code }}
             </template>
@@ -112,6 +112,7 @@ const chats = ref([])
 
 // SOCKET CONNECTION
 const socket = io('http://127.0.0.1:5000', { transports: ['websocket', 'polling'] })
+// const socket = io('http://158.247.236.202:5000', { transports: ['websocket', 'polling'] })
 
 // adds logic for the action to take on Enter without Shift
 const handleKeyDown = (event) => {
@@ -129,7 +130,7 @@ const scrollToBottom = () => {
 }
 
 function getRooms() {
-  console.log('get rooms called')
+  // console.log('get rooms called')
   socket.emit('get_rooms', {
     searchText: searchText.value,
     userToken: localStorage.getItem('accessToken')
@@ -142,13 +143,17 @@ onMounted(() => {
   chatContainer.value = document.querySelector('.container') //chat container to scroll up or down
 
   socket.on('connected', () => {
-    console.log('Connected to server')
+    // console.log('Connected to server')
     connectionStatus.value = 'Connected'
     getRooms()
   })
 
+  socket.on('connect_error', (error) => {
+    console.error('Connection error:', error)
+  })
+
   socket.on('rooms', (rooms) => {
-    console.log('agent rooms', rooms)
+    // console.log('agent rooms', rooms)
     chatRooms.value = rooms
 
     //clean current chat and selectedRoom if search result does not contain the room
@@ -162,9 +167,16 @@ onMounted(() => {
       selectRoom(chatRooms.value[0])
     }
   })
+
+  socket.on('chats', (data) => {
+    // console.log(data)
+    chats.value = data
+    scrollToBottom()
+  })
+
   socket.on('new_room_added', (newRoom) => {
     console.log('rooms update called')
-    console.log(newRoom)
+    // console.log(newRoom)
     if (!chatRooms.value.find((obj) => obj.room_id === newRoom['room_id'])) {
       chatRooms.value.push(newRoom)
     }
@@ -188,11 +200,6 @@ onMounted(() => {
     }
   })
 
-  socket.on('chats', (data) => {
-    chats.value = data
-    scrollToBottom()
-  })
-
   socket.on('message', (newMessage) => {
     chats.value.push(newMessage)
     scrollToBottom()
@@ -205,6 +212,7 @@ onMounted(() => {
 
 function selectRoom(room) {
   selectedRoom.value = room
+  // console.log(room)
   socket.emit('join_room', {
     userToken: localStorage.getItem('accessToken'),
     roomId: room.room_id
@@ -233,7 +241,7 @@ const removeAttachment = (index) => {
 }
 
 const sendMessage = async () => {
-  console.log(newMessage.value)
+  // console.log(newMessage.value)
   if (newMessage.value.trim() || attachments.value.length > 0) {
     const attachmentPaths = await uploadFiles()
 
@@ -265,7 +273,7 @@ async function uploadFiles() {
         body: formData
       })
 
-      console.log(response.status)
+      // console.log(response.status)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

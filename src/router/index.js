@@ -67,11 +67,22 @@ const router = createRouter({
         {
           path: '/manage-plans',
           name: 'manage-plans',
-          component: ManagePlans,
+          // component: ManagePlans,
+          component: () => import('../views/ManagePlansView.vue'),
           meta: {
             title: '요금제관리',
             requiresAuth: true,
             requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN']
+          }
+        },
+        {
+          path: '/manage-plans-for-print',
+          name: 'manage-plans-for-print',
+          component: () => import('../views/ManagePlansForPrintView.vue'),
+          meta: {
+            title: '요금제관리(출력용)',
+            requiresAuth: true,
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN']
           }
         },
 
@@ -82,7 +93,30 @@ const router = createRouter({
           meta: {
             title: '신청서접수현황',
             requiresAuth: true,
-            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_OPEN_AGENCY']
+            requiredRoles: [
+              'ROLE_SUPER',
+              'ROLE_ADMIN',
+              'ROLE_OPEN_ADMIN',
+              'ROLE_OPEN_AGENCY',
+              'ROLE_OPEN_MANAGER',
+              'ROLE_OPEN_MEMBER'
+            ]
+          }
+        },
+        {
+          path: 'applications-for-print',
+          name: 'applications-for-print',
+          component: () => import('../views/ApplicationsForPrintView.vue'),
+          meta: {
+            title: '신청서출력현황',
+            requiresAuth: true,
+            requiredRoles: [
+              'ROLE_SUPER',
+              'ROLE_ADMIN',
+              'ROLE_OPEN_ADMIN',
+              'ROLE_OPEN_MANAGER',
+              'ROLE_OPEN_MEMBER'
+            ]
           }
         },
 

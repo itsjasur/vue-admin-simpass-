@@ -3,6 +3,8 @@ import { defineStore } from 'pinia'
 export const usePlansFilterPopup = defineStore('plansFilter', {
   state: () => ({
     active: false,
+    showAgent: true,
+
     currentPage: 1,
     rowLimit: 10,
     totalCount: 0,

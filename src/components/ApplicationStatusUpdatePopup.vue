@@ -40,7 +40,12 @@
           </p>
         </div>
 
-        <button @click="fetchData" class="save-button">저장</button>
+        <button @click="updateStatus" class="save-button" :disabled="isStatusUpdating">
+          <span v-if="isStatusUpdating">
+            <LoadingSpinner height="20px" color="#ffffff" />
+          </span>
+          <span v-else> 저장 </span>
+        </button>
       </div>
     </div>
   </div>
@@ -50,6 +55,7 @@
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import LoadingSpinner from '../components/Loader.vue'
 
 const props = defineProps({
   actNo: { type: String, default: null },
@@ -63,18 +69,24 @@ const emits = defineEmits(['closePopup'])
 const newStatus = ref(props.currentStatus)
 const phoneNumber = ref()
 
+const isStatusUpdating = ref(false)
+
 function onValueChanged(event) {
   phoneNumber.value = event.target.value
 }
 
 const isSubmitted = ref(false)
 
-async function fetchData() {
-  isSubmitted.value = true
-
-  if (newStatus.value === 'Y' && props.isNewNumber && phoneNumber.value.length !== 13) return
-
+async function updateStatus() {
   try {
+    isSubmitted.value = true
+    isStatusUpdating.value = true
+
+    // const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+    // await delay(3000)
+
+    if (newStatus.value === 'Y' && props.isNewNumber && phoneNumber.value.length !== 13) return
+
     const response = await fetchWithTokenRefresh('agent/setApplyStatus', {
       method: 'POST',
       body: {
@@ -90,6 +102,8 @@ async function fetchData() {
     emits('closePopup', true)
   } catch (error) {
     useSnackbarStore().show(error.toString())
+  } finally {
+    isStatusUpdating.value = false
   }
 }
 

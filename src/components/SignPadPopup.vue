@@ -260,9 +260,8 @@ const savePads = () => {
   flex-flow: column;
   gap: 20px;
   position: relative;
-  height: 100%;
   max-height: 1000px;
-  height: 100%;
+  /* height: 100%; */
   overflow: auto;
 }
 
@@ -281,12 +280,12 @@ const savePads = () => {
 
 .canvas-container.name {
   width: 100%;
-  height: 300px;
+  height: 200px;
 }
 
 .canvas-container.sign {
   width: 60%;
-  height: 300px;
+  height: 200px;
 }
 
 .overlay-text {

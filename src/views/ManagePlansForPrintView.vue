@@ -10,7 +10,15 @@
         신규등록 +
       </button>
 
-      <button class="filter-button" @click="plansFilterPopup.open()">
+      <button
+        class="filter-button"
+        @click="
+          () => {
+            plansFilterPopup.showAgent = false
+            plansFilterPopup.open()
+          }
+        "
+      >
         <span class="material-symbols-outlined button-icon"> filter_alt </span>
         <span>필터</span>
         <span v-if="plansFilterPopup.activeFiltersCount()" class="badge">{{
@@ -107,11 +115,6 @@
         </div>
 
         <div class="card-row">
-          <span class="left-label">대리점: </span>
-          <span class="right-content">{{ item.agent_nm }}</span>
-        </div>
-
-        <div class="card-row">
           <span class="left-label">서비스 유형: </span>
           <span class="right-content">{{ item.carrier_type_nm }}</span>
         </div>
@@ -150,10 +153,6 @@
       </div>
     </div>
 
-    <button class="download-button" @click="downloadExcel">
-      <span class="material-symbols-outlined button-icon"> download </span>
-      엑셀 다운로드
-    </button>
     <div></div>
     <div></div>
     <div></div>
@@ -164,6 +163,7 @@
     v-if="updateAddPlanPopup"
     @closePopup="closePopup"
     :planInfo="selectedPlanInfo"
+    :showAgent="false"
   />
 </template>
 
@@ -175,73 +175,12 @@ import ManagePlansFilterPopup from '../components/ManagePlansFilterPopup.vue'
 import { usePlansFilterPopup } from '../stores/manage-plans-popup-store'
 import UpdateAddNewPlanPopup from '../components/UpdateAddNewPlanPopup.vue'
 
-import ExcelJS from 'exceljs'
-import { saveAs } from 'file-saver'
-
-const downloadExcel = async () => {
-  const workbook = new ExcelJS.Workbook()
-  const worksheet = workbook.addWorksheet('Sheet1')
-
-  // Add headers (optional)
-  worksheet.addRow([
-    'No.',
-    '상태',
-    '요금제명',
-    '통신망',
-    '통신사',
-    '대리점',
-    '서비스 유형',
-    '가입대상',
-    '기본료',
-    '판매금액',
-    '음성',
-    '문자',
-    '데이터',
-    '영상/기타',
-    'QOS',
-    '우선순위'
-  ])
-
-  // Add data rows
-  dataList.value.forEach((row) => {
-    worksheet.addRow([
-      row.num,
-      row.status_nm,
-      row.usim_plan_nm,
-      row.carrier_nm,
-      row.mvno_nm,
-      row.agent_nm,
-      row.carrier_type_nm,
-      row.carrier_plan_type_nm,
-      row.basic_fee,
-      row.sales_fee,
-      row.voice,
-      row.message,
-      row.cell_data,
-      row.video_etc,
-      row.qos,
-      row.priority
-    ])
-  })
-
-  // generates Excel file buffer
-  const buffer = await workbook.xlsx.writeBuffer()
-
-  // creates a Blob
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  })
-
-  // triggers the download
-  saveAs(blob, 'data.xlsx')
-}
-
 const plansFilterPopup = usePlansFilterPopup()
 
 //update or add plan popup
 const updateAddPlanPopup = ref(false)
 
-//filter and search data
+// filter and search data
 watch(
   () => [
     plansFilterPopup.carrier,
@@ -258,9 +197,9 @@ watch(
   }
 )
 
-//add or update plan
 const selectedPlanInfo = ref(null)
 function openEditOrPopup(selectedPlan) {
+  console.log(selectedPlan)
   selectedPlanInfo.value = selectedPlan
   updateAddPlanPopup.value = true
 }
@@ -292,8 +231,8 @@ const columns = ref([
     title: '상태',
     dataIndex: 'status',
     key: 'status',
-    sorter: (a, b) => (a.status ?? '').localeCompare(b.status ?? ''),
-    width: 100
+    sorter: (a, b) => (a.status ?? '').localeCompare(b.status ?? '')
+    // width: 100
   },
   {
     title: '요금제명',
@@ -315,12 +254,6 @@ const columns = ref([
     sorter: (a, b) => (a.mvno_nm ?? '').localeCompare(b.mvno_nm ?? '')
   },
 
-  {
-    title: '대리점',
-    dataIndex: 'agent_nm',
-    key: 'agent_nm',
-    sorter: (a, b) => (a.agent_nm ?? '').localeCompare(b.agent_nm ?? '')
-  },
   {
     title: '서비스 유형',
     dataIndex: 'carrier_type_nm',
@@ -397,13 +330,12 @@ const dataList = ref([])
 async function fetchData() {
   // console.log('fetch data called')
   try {
-    const response = await fetchWithTokenRefresh('agent/plan', {
+    const response = await fetchWithTokenRefresh('agent/printPlan', {
       method: 'POST',
       body: {
         usim_plan_nm: plansFilterPopup.searchText, //요금제명
         carrier_cd: plansFilterPopup.carrier, //통신사
         mvno_cd: plansFilterPopup.mvno, //브랜드
-        agent_cd: plansFilterPopup.agent, //대리점
         carrier_type: plansFilterPopup.carrierType, //서비스유형
         carrier_plan_type: plansFilterPopup.carrierPlanType, // 가입대상
         status: plansFilterPopup.status, //상태
@@ -421,7 +353,6 @@ async function fetchData() {
 }
 
 onMounted(fetchData)
-
 onUnmounted(plansFilterPopup.clear)
 </script>
 

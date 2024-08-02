@@ -184,7 +184,7 @@
 <script setup>
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { computed, onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
+import { onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { FORMS } from '../assets/constants'
 import { PLANSINFO } from '../assets/constants'
@@ -295,13 +295,23 @@ function generateInitialForms() {
   setDefault()
 
   //EXTRA FIELDS FOR FORMS
-  //adding usim extra forms
+  //adding usim extra forms when type is 신규가입 and when it is not (UPM Umobile) COM
   if (FIXED_FORMS?.usim_act_cd?.value === 'N') {
     availableForms.usim.push('wish_number')
     //wish numbers input with cleave
     let wishArray = Array(selectedMvnoInfo.wishCount).fill(4) //[4,4,4]
     FIXED_FORMS.wish_number.pattern = { numericOnly: true, delimiter: ' / ', blocks: wishArray } //4,4,4
     FIXED_FORMS.wish_number.placeholder = wishArray.map((e) => '1234').join(' / ')
+  }
+
+  //adding transferable number when type is 신규가입 mvno is UPM (umobile)
+  if (
+    FIXED_FORMS?.usim_act_cd?.value === 'N' &&
+    serverData.value?.usim_plan_info?.mvno_cd === 'COM'
+  ) {
+    availableForms.usim.push('phone_number')
+    FIXED_FORMS.phone_number.required = false
+    FIXED_FORMS.phone_number.pattern.prefix = null
   }
 
   if (FIXED_FORMS?.usim_act_cd?.value === 'M')
@@ -464,7 +474,7 @@ const handleCleaveInput = (event, formName) => {
 }
 
 //supported docs checkbox and handler
-const supportedImagesChecked = ref(true)
+const supportedImagesChecked = ref(false)
 // this handles file upload
 const supportedImages = ref([])
 
@@ -533,7 +543,7 @@ const updatePads = ({ name, sign, type }) => {
 
 //i agreee pad
 const agreePadData = ref(null)
-const updateAgreePad = (data) => (agreePadData.value = data)
+const updateAgreePad = ({ data }) => (agreePadData.value = data)
 
 const filledCheckValues = ref({})
 
@@ -630,6 +640,9 @@ async function fetchForms() {
   formData.set('apply_sign', nameImageData.value)
   formData.set('apply_seal', signImageData.value)
 
+  formData.set('partner_sign', partnerNameImageData.value)
+  formData.set('partner_seal', partnerSignImageData.value)
+
   formData.set('deputy_sign', deputyNameImageData.value)
   formData.set('deputy_seal', deputySignImageData.value)
 
@@ -640,7 +653,9 @@ async function fetchForms() {
   formData.set('mvno_cd', serverData.value?.usim_plan_info?.mvno_cd)
   formData.set('usim_plan_id', serverData.value?.usim_plan_info?.id)
 
-  const removables = [
+  formData.set('chk_eq_yn', selfRegisterChecked.value === true ? 'Y' : 'N')
+
+  const dashRemovables = [
     'birthday',
     'deputy_birthday',
     'account_birthday',
@@ -660,7 +675,11 @@ async function fetchForms() {
   ]
   for (var formName of avlFormNames) {
     // console.log(formName)
-    if (removables.includes(formName) && FIXED_FORMS[formName].value) {
+    if (
+      dashRemovables.includes(formName) &&
+      FIXED_FORMS[formName].value !== null &&
+      FIXED_FORMS[formName].value
+    ) {
       FIXED_FORMS[formName].value = FIXED_FORMS?.[formName]?.value?.replaceAll('-', '')
     }
 
@@ -707,9 +726,9 @@ async function fetchForms() {
     }
   }
 
-  // for (const [key, value] of formData.entries()) {
-  //   console.log(key, value)
-  // }
+  for (const [key, value] of formData.entries()) {
+    console.log(key, value)
+  }
 
   try {
     const response = await fetchWithTokenRefresh('agent/actApply', {
@@ -818,7 +837,7 @@ async function fetchForms() {
   justify-content: center;
   align-items: center;
   height: 100%;
-  font-size: 25px;
+  /* font-size: 16px; */
 }
 .submit {
   height: 45px;

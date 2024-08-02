@@ -672,7 +672,7 @@ export const FORMS = reactive({
     maxwidth: '200px',
     error: '카드유효기간을 정확하게 입력하세요.',
     placeholder: '11/29',
-    label: '카드유효기간',
+    label: '카드유효기간 (MM/YY)',
     hasDefault: false,
     required: true,
     errorMessage: null

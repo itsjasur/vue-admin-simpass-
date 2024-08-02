@@ -12,7 +12,15 @@
         <div class="filters">
           <div class="group" style="max-width: 140px">
             <label>통신망</label>
+
+            <input
+              v-if="props.planInfo"
+              v-model="props.planInfo.carrier_nm"
+              :readonly="props.planInfo !== null"
+            />
+
             <a-select
+              v-else
               v-model:value="forms.carrier"
               :style="{ width: '100%' }"
               placeholder=""
@@ -31,7 +39,15 @@
           </div>
           <div class="group" style="max-width: 300px">
             <label>통신사</label>
+
+            <input
+              v-if="props.planInfo"
+              v-model="props.planInfo.mvno_nm"
+              :readonly="props.planInfo !== null"
+            />
+
             <a-select
+              v-else
               v-model:value="forms.mvno"
               :style="{ width: '100%' }"
               placeholder=""
@@ -47,9 +63,17 @@
             <p v-if="isSubmitted && !forms.mvno" class="input-error-message">브랜드 선택하세요.</p>
           </div>
 
-          <div class="group" style="max-width: 170px">
+          <div v-if="props.showAgent" class="group" style="max-width: 170px">
             <label>대리점</label>
+
+            <input
+              v-if="props.planInfo"
+              v-model="props.planInfo.agent_nm"
+              :readonly="props.planInfo !== null"
+            />
+
             <a-select
+              v-else
               v-model:value="forms.agent"
               :style="{ width: '100%' }"
               placeholder=""
@@ -67,10 +91,19 @@
 
           <div class="group" style="max-width: 140px">
             <label>서비스 유형</label>
+
+            <input
+              v-if="props.planInfo"
+              v-model="props.planInfo.carrier_type_nm"
+              :readonly="props.planInfo !== null"
+            />
+
             <a-select
+              v-else
               v-model:value="forms.carrierType"
               :style="{ width: '100%' }"
               placeholder=""
+              :disabled="props.planInfo !== null"
               show-search
               :filter-option="filterOption"
               :options="
@@ -87,11 +120,19 @@
 
           <div class="group" style="max-width: 140px">
             <label>가입대상</label>
+            <input
+              v-if="props.planInfo"
+              v-model="props.planInfo.carrier_plan_type_nm"
+              :readonly="props.planInfo !== null"
+            />
+
             <a-select
+              v-else
               v-model:value="forms.carrierPlanType"
               :style="{ width: '100%' }"
               placeholder=""
               show-search
+              :disabled="props.planInfo !== null"
               :filter-option="filterOption"
               :options="
                 data.carrier_plan_type.map((i) => ({ value: i.cd, label: i.value })) ?? [
@@ -106,7 +147,7 @@
           </div>
           <div class="group" style="max-width: 400px">
             <label>요금제명</label>
-            <input v-model="forms.planName" />
+            <input v-model="forms.planName" :readonly="props.planInfo !== null" />
             <p v-if="isSubmitted && !forms.planName" class="input-error-message">
               요금제명 입력하세요.
             </p>
@@ -205,10 +246,13 @@
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
-import * as cleavePatterns from '../utils/cleavePatterns'
 
 const emit = defineEmits(['closePopup'])
-const props = defineProps({ id: { type: Number, default: null } })
+
+const props = defineProps({
+  planInfo: { type: Object, default: true },
+  showAgent: { type: Boolean, default: true }
+})
 
 const forms = reactive({
   carrier: null,
@@ -255,7 +299,7 @@ async function fetchData() {
     const response = await fetchWithTokenRefresh('agent/plan', {
       method: 'POST',
       body: {
-        id: props.id,
+        id: props?.planInfo?.id ?? null,
         usim_plan_nm: '', //요금제명
         carrier_cd: '', //통신사
         mvno_cd: '', //브랜드
@@ -270,26 +314,6 @@ async function fetchData() {
     if (!response.ok) throw 'Fetch data error'
 
     const decodedResponse = await response.json()
-
-    //if props comes with id, values are set to 1st item in the list
-    if (props.id) {
-      const planInfo = decodedResponse.data.plan_list[0]
-      forms.carrier = planInfo?.carrier_cd ?? ''
-      forms.mvno = planInfo?.mvno_cd ?? ''
-      forms.agent = planInfo?.agent_cd ?? ''
-      forms.carrierType = planInfo?.carrier_type ?? ''
-      forms.carrierPlanType = planInfo?.carrier_plan_type ?? ''
-      forms.status = planInfo?.status ?? ''
-      forms.planName = planInfo?.usim_plan_nm ?? ''
-      forms.basicFee = planInfo?.basic_fee ?? ''
-      forms.salesFee = planInfo?.sales_fee ?? ''
-      forms.message = planInfo?.message ?? ''
-      forms.data = planInfo?.cell_data ?? ''
-      forms.voice = planInfo?.voice ?? ''
-      forms.videEtc = planInfo?.video_etc ?? ''
-      forms.qos = planInfo?.qos ?? ''
-      forms.priority = planInfo?.priority ?? ''
-    }
 
     data.carrier = data.carrier_cd = decodedResponse.data.carrier_cd
     data.mvno_cd = decodedResponse.data.mvno_cd
@@ -310,7 +334,6 @@ async function updateAddPlan() {
   const requiredFields = [
     'carrier',
     'mvno',
-    'agent',
     'carrierType',
     'carrierPlanType',
     'status',
@@ -322,6 +345,8 @@ async function updateAddPlan() {
     'voice'
   ]
 
+  if (props.showAgent) requiredFields.push('agent')
+
   const allReqFilled = requiredFields.every((field) => forms[field] !== null && forms[field] !== '')
   if (!allReqFilled) return
 
@@ -329,11 +354,11 @@ async function updateAddPlan() {
     const response = await fetchWithTokenRefresh('agent/setPlan', {
       method: 'POST',
       body: {
-        id: props?.id ?? null, //sending id=null adds new plan. if id given, updates
+        id: props?.planInfo?.id ?? null, //sending id=null adds new plan. if id given, updates
         usim_plan_nm: forms.planName,
         carrier_cd: forms.carrier,
         mvno_cd: forms.mvno,
-        agent_cd: forms.agent,
+        agent_cd: props.showAgent ? forms.agent : '00', //00 if agent is not required
         basic_fee: rawForms.basicFee,
         sales_fee: rawForms.salesFee,
         voice: forms.voice,
@@ -373,6 +398,25 @@ const filterOption = (input, option) => {
 onMounted(() => {
   document.addEventListener('keydown', keydownHandle)
   fetchData()
+
+  //if props comes with id, values are set to prop.planInfo
+  if (props.planInfo) {
+    forms.carrier = props.planInfo?.carrier_cd ?? ''
+    forms.mvno = props.planInfo?.mvno_cd ?? ''
+    forms.agent = props.planInfo?.agent_cd ?? ''
+    forms.carrierType = props.planInfo?.carrier_type ?? ''
+    forms.carrierPlanType = props.planInfo?.carrier_plan_type ?? ''
+    forms.status = props.planInfo?.status ?? ''
+    forms.planName = props.planInfo?.usim_plan_nm ?? ''
+    forms.basicFee = props.planInfo?.basic_fee ?? ''
+    forms.salesFee = props.planInfo?.sales_fee ?? ''
+    forms.message = props.planInfo?.message ?? ''
+    forms.data = props.planInfo?.cell_data ?? ''
+    forms.voice = props.planInfo?.voice ?? ''
+    forms.videEtc = props.planInfo?.video_etc ?? ''
+    forms.qos = props.planInfo?.qos ?? ''
+    forms.priority = props.planInfo?.priority ?? ''
+  }
 })
 
 onUnmounted(() => {

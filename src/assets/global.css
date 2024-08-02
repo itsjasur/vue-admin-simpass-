@@ -109,6 +109,11 @@ input:focus {
   box-shadow: 0 0 2px var(--main-color);
 }
 
+input[readonly]:hover {
+  border-color: var(--border-color);
+  cursor: not-allowed;
+}
+
 .ant-select input:focus {
   box-shadow: none !important;
 }
