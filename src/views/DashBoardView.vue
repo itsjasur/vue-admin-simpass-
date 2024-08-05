@@ -39,6 +39,9 @@ import Header from '../components/Header.vue'
 import { useSideMenuStore } from '../stores/side-menu'
 import SelectPlanPopup from '@/components/SelectPlanPopup.vue'
 import { useSelectPlansPopup } from '@/stores/select-plans-popup'
+import { useSocketStore } from '@/stores/chat_socket_store'
+
+const socketStore = useSocketStore()
 
 const selectPlansPopup = useSelectPlansPopup()
 
@@ -55,6 +58,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  console.log('dashboard onunmounted ')
 })
 </script>
 

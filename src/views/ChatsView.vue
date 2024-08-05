@@ -23,7 +23,12 @@
               {{ room.agent_code }}
             </div>
 
-            <div class="unread-count-badge">11</div>
+            <div
+              v-if="selectedRoom.room_id !== room?.room_id && room['agent_unread_count'] !== 0"
+              class="unread-count-badge"
+            >
+              {{ room['agent_unread_count'] }}
+            </div>
           </div>
         </template>
       </div>
@@ -99,11 +104,13 @@ import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { nextTick, onMounted, ref } from 'vue'
 import { io } from 'socket.io-client'
+import { useSocketStore } from '@/stores/chat_socket_store'
+
+const socketStore = useSocketStore()
 
 const searchText = ref('')
 const userInfo = ref()
 const chatContainer = ref(null)
-const connectionStatus = ref('Disconnected')
 const newMessage = ref('')
 
 const selectedRoom = ref(null)
@@ -130,27 +137,24 @@ const scrollToBottom = () => {
   })
 }
 
-function getRooms() {
-  console.log('get rooms called')
-  socket.emit('get_rooms', {
-    searchText: searchText.value
-  })
-}
-
 onMounted(() => {
   fetchData()
 
   chatContainer.value = document.querySelector('.container') //chat container to scroll up or down
 
+  nextTick(() => {
+    if (socketStore.isConnected) getRooms()
+  })
+
   socket.on('connected', () => {
     console.log('Connected to server')
-    connectionStatus.value = 'Connected'
+    // connectionStatus.value = 'Connected'
     socket.emit('authenticate', localStorage.getItem('accessToken'))
     // getRooms()
   })
   socket.on('authenticated', () => {
     console.log('Authenticated to server')
-    connectionStatus.value = 'Authenticated'
+    // connectionStatus.value = 'Authenticated'
     getRooms()
   })
 
@@ -161,6 +165,8 @@ onMounted(() => {
   socket.on('rooms', (rooms) => {
     // console.log('agent rooms', rooms)
     chatRooms.value = rooms
+
+    updateTotalCount()
 
     //clean current chat and selectedRoom if search result does not contain the room
     if (!chatRooms.value.find((obj) => obj?.room_id === selectedRoom.value)) {
@@ -206,24 +212,42 @@ onMounted(() => {
     }
   })
 
+  socket.on('room_modified', (modifiedRoom) => {
+    console.log('room_modified called')
+    console.log(modifiedRoom)
+    const index = chatRooms.value.findIndex((room) => room.room_id === modifiedRoom.room_id)
+    if (index !== -1) chatRooms.value[index] = modifiedRoom
+  })
+
   socket.on('message', (newMessage) => {
     chats.value.push(newMessage)
+    resetUnreadCount()
     scrollToBottom()
-  })
-  socket.on('error', (error) => {
-    console.log(error.message)
-    useSnackbarStore().show(error.message.toString())
-    // useAuthenticationStore().logout()
   })
 })
 
+function getRooms() {
+  console.log('get rooms called')
+  socket.emit('get_rooms', {
+    searchText: searchText.value
+  })
+}
+
+function updateTotalCount() {
+  socket.emit('get_total_unread_count')
+}
+
 function selectRoom(room) {
+  resetUnreadCount()
   selectedRoom.value = room
-  // console.log(room)
   socket.emit('join_room', {
     userToken: localStorage.getItem('accessToken'),
     roomId: room.room_id
   })
+}
+
+function resetUnreadCount() {
+  if (selectedRoom.value) socket.emit('reset_unread_count', { roomId: selectedRoom.value.room_id })
 }
 
 //drop to attach files handler
@@ -314,25 +338,20 @@ async function fetchData() {
 .container {
   display: flex;
   flex-flow: row;
-  /* max-width: 1200px; */
   height: 100%;
   width: 100%;
-  /* overflow-y: hidden; */
 }
 
 .chatrooms-section {
   width: 450px;
   height: 100%;
-  /* position: relative; */
   overflow-y: auto;
-  /* margin: 0 10px; */
   box-sizing: border-box;
   background-color: #e8e8e8;
 }
 .search-chatroom {
   position: sticky;
   top: 0;
-  /* padding: 0 20px; */
   align-content: center;
   background-color: #e8e8e8;
 }
@@ -382,10 +401,11 @@ input:focus {
 }
 
 .unread-count-badge {
-  background-color: rgb(244, 159, 94);
-  height: 18px;
-  min-width: 18px;
-  padding: 5px;
+  /* background-color: var(--main-color); */
+  background-color: #e42c2c;
+  height: 24px;
+  min-width: 20px;
+  padding: 0 2px;
   border-radius: 20px;
 
   display: flex;

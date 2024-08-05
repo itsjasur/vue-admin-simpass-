@@ -7,8 +7,10 @@ import SignupView from '../views/SignupView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import Profile from '../views/ProfileView.vue'
 import ManagePlans from '../views/ManagePlansView.vue'
+import Chats from '../views/ChatsView.vue'
 import SelfRequests from '../views/SelfRequestsView.vue'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
+import { useSocketStore } from '@/stores/chat_socket_store'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,8 +38,10 @@ const router = createRouter({
     {
       path: '/',
       name: 'dashboard',
-      // redirect: '/profile', //registration-forms
+      redirect: '/profile',
       component: DashBaordView,
+      // component: () => import('../views/DashBoardView.vue'),
+
       meta: { title: 'Home' },
 
       children: [
@@ -216,6 +220,7 @@ const router = createRouter({
           path: '/chats',
           name: 'chats',
           component: () => import('../views/ChatsView.vue'),
+          // component: Chats,
           meta: {
             title: '채팅',
             requiresAuth: true,
@@ -234,50 +239,6 @@ const router = createRouter({
     }
   ]
 })
-
-// router.beforeEach(async (to, from, next) => {
-//   const authStore = useAuthenticationStore()
-
-//   // checks if the route requires authentication
-//   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
-//     useRouteMemoryStore().save(to.fullPath)
-//     return next('/login')
-//   }
-
-//   try {
-//     const response = await fetchWithTokenRefresh('admin/myInfo', { method: 'GET' })
-//     if (!response.ok) throw 'Fetch profile data error'
-//     const decodedResponse = await response.json()
-//     let info = decodedResponse.data.info
-//     authStore.updateRoles(info.strRoles)
-//   } catch (error) {
-//     return next('/login')
-//   }
-
-//   // checks for role-based access
-//   if (to.meta.requiredRoles && !to.meta.requiredRoles.includes('ALL')) {
-//     //used only to update user roles
-
-//     if (!authStore.containsRole(to.meta.requiredRoles)) {
-//       console.log(authStore.containsRole(to.meta.requiredRoles))
-//       return next('/unauthorized')
-//     }
-//   }
-
-//   // // handles root path redirection to registration-forms or profile
-//   if (to.path === '/') {
-//     const routes = router.getRoutes()
-//     const regForRoute = routes.find((route) => route.path === '/registration-forms')
-
-//     if (regForRoute.meta.requiredRoles && authStore.containsRole(regForRoute.meta.requiredRoles)) {
-//       return next('/registration-forms')
-//     } else {
-//       return next('/profile')
-//     }
-//   }
-
-//   next()
-// })
 
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthenticationStore()
@@ -303,7 +264,7 @@ router.beforeEach(async (to, from, next) => {
     return next()
   }
 
-  // always fetchs user info for authenticated routes
+  // always fetchs user info for authenticated routesx
   try {
     const response = await fetchWithTokenRefresh('admin/myInfo', { method: 'GET' })
     if (!response.ok) throw new Error('Fetch profile data error')

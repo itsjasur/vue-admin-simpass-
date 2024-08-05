@@ -14,6 +14,12 @@
       >
         <span class="material-symbols-outlined"> {{ item.icon }} </span>
         <span class="menu-title">{{ getTitleByRouteNameOrPath(item.path) }}</span>
+
+        <template v-if="item.path === '/chats'">
+          <span class="total-badge-count" v-if="socketStore.totalUnreadCount > 0">{{
+            socketStore.totalUnreadCount
+          }}</span>
+        </template>
       </div>
     </template>
   </div>
@@ -22,15 +28,41 @@
 <script setup>
 import { useSideMenuStore } from '../stores/side-menu'
 import { useRoute, useRouter } from 'vue-router'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useAuthenticationStore } from '@/stores/authentication'
+import { useSocketStore } from '@/stores/chat_socket_store'
+import { io } from 'socket.io-client'
+
+const socketStore = useSocketStore()
 
 const authStore = useAuthenticationStore()
-const userRoles = authStore.userRoles
+// const userRoles = authStore.userRoles
 
 const router = useRouter()
 const route = useRoute()
 const sideMenuStore = useSideMenuStore()
+
+const socket = io('http://127.0.0.1:5000', { transports: ['websocket', 'polling'] })
+// const socket = io('http://158.247.236.202:5000', { transports: ['websocket', 'polling'] })
+onMounted(() => {
+  socket.on('connected', () => {
+    console.log('Connected to server')
+    socket.emit('authenticate', localStorage.getItem('accessToken'))
+  })
+  socket.on('authenticated', () => {
+    console.log('Authenticated to server')
+    socket.emit('get_total_unread_count')
+  })
+
+  socket.on('total_unread_count', (totalCount) => {
+    console.log(totalCount)
+    socketStore.totalUnreadCount = totalCount
+  })
+})
+
+function updateTotalCount() {
+  socket.emit('get_total_unread_count')
+}
 
 const menuItems = [
   {
@@ -105,6 +137,7 @@ function isActive(path) {
 function sideMenuChoose(item) {
   if (!sideMenuStore.isDesktop) sideMenuStore.close()
   router.push(item.path)
+  updateTotalCount()
 }
 
 // gets  the title by path name or path
@@ -153,6 +186,7 @@ a {
 .menu-item {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
   margin: 0 15px;
   border-radius: 5px;
@@ -174,5 +208,17 @@ a {
 
 .menu-item:active {
   background-color: #ffffff57;
+}
+
+.total-badge-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  min-width: 20px;
+  padding: 0 2px;
+  background-color: #c63434;
+  margin: 0;
+  border-radius: 50px;
 }
 </style>
