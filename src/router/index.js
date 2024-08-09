@@ -6,8 +6,6 @@ import LoginView from '../views/LoginView.vue'
 import SignupView from '../views/SignupView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import Profile from '../views/ProfileView.vue'
-import ManagePlans from '../views/ManagePlansView.vue'
-import Chats from '../views/ChatsView.vue'
 import SelfRequests from '../views/SelfRequestsView.vue'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 
@@ -243,7 +241,7 @@ router.beforeEach(async (to, from, next) => {
   const authStore = useAuthenticationStore()
 
   // checks if user is logged in
-  if (to.path !== '/login' && !authStore.isLoggedIn) {
+  if (to.path !== '/login' && to.path !== '/signup' && !authStore.isLoggedIn) {
     useRouteMemoryStore().save(to.fullPath)
     return next('/login')
   }
