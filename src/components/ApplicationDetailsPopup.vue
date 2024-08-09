@@ -172,17 +172,31 @@
       </div>
     </div>
   </div>
+
+  <GlobalPopupWithOverlay ref="imageViewerRef">
+    <ImageViewPopup :images="images" @closePopup="closeImageViewPopup" />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
 import { usePageLoadingStore } from '@/stores/page-loading-store'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { onMounted, onUnmounted, ref } from 'vue'
-import { useImagesHolderStore } from '@/stores/image-holder-store'
+import { onMounted, ref } from 'vue'
+import GlobalPopupWithOverlay from './GlobalPopupWithOverlay.vue'
+import ImageViewPopup from './ImageViewPopup.vue'
 
 const emits = defineEmits(['closePopup'])
 const props = defineProps({ actNo: { type: String, default: null } })
+
+const images = ref([])
+const imageViewerRef = ref()
+function openImageViewPopup() {
+  imageViewerRef.value.showPopup()
+}
+function closeImageViewPopup() {
+  imageViewerRef.value.closePopup()
+}
 
 const applicationDetails = ref({})
 
@@ -212,9 +226,9 @@ async function openDocsPopup() {
     })
     if (!response.ok) throw 'Fetch forms data error'
     const decodedResponse = await response.json()
-    // console.log(decodedResponse.data)
 
-    useImagesHolderStore().open(decodedResponse?.data?.apply_attach_list ?? [])
+    images.value = decodedResponse?.data?.apply_attach_list ?? []
+    openImageViewPopup()
   } catch (error) {
     useSnackbarStore().show(error.toString())
   } finally {
@@ -222,37 +236,23 @@ async function openDocsPopup() {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('keydown', keydownHandle)
-  fetchData()
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', keydownHandle)
-})
-
-function keydownHandle(event) {
-  if (event.key === 'Escape') emits('closePopup')
-}
+onMounted(fetchData)
 </script>
 
 <style scoped>
 .overlay {
-  box-sizing: border-box;
-  position: fixed;
-  top: 0;
-  left: 0;
-  /* width: 100vw; */
-  /* height: 100vh; */
   width: 100%;
   height: 100%;
-
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #000000c7;
   padding: 20px;
-  z-index: 2000;
+  box-sizing: border-box;
+}
+@media (max-width: 600px) {
+  .overlay {
+    padding: 0px;
+  }
 }
 
 .popup-content {

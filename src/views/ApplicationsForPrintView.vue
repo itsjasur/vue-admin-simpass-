@@ -143,11 +143,15 @@
     <div></div>
   </div>
 
-  <ApplicationDetailsPopup
+  <!-- <ApplicationDetailsPopup
     v-if="applicationDetailsPopup"
     :actNo="actNo"
     @closePopup="applicationDetailsPopup = false"
-  />
+  /> -->
+
+  <GlobalPopupWithOverlay ref="applicationDetailsPopupRef">
+    <ApplicationDetailsPopup :actNo="actNo" @closePopup="closeDetailsPopup" />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
@@ -160,9 +164,9 @@ import ApplicationDetailsPopup from '../components/ApplicationDetailsPopup.vue'
 import { usePageLoadingStore } from '@/stores/page-loading-store'
 import { usePrintableStore } from '../stores/printable-store'
 import { useMvnoSelectStore } from '@/stores/mvno_select_store'
+import GlobalPopupWithOverlay from '../components/GlobalPopupWithOverlay.vue'
 
 // Reactive variables
-
 // const types = ref([{ value: 'apply-date', label: '출력일자' }])
 
 //mvnos
@@ -180,32 +184,20 @@ watch(
 )
 
 //applicationDetailspoup
-const applicationDetailsPopup = ref(false)
-
-// updateApplicationStatusPopup popup and popup props
-const updateApplicationStatusPopup = ref(false)
+const applicationDetailsPopupRef = ref()
+function openDetailsPopup(item) {
+  actNo.value = item?.act_no ?? null
+  applicationDetailsPopupRef.value.showPopup()
+}
+function closeDetailsPopup() {
+  actNo.value = null
+  applicationDetailsPopupRef.value.closePopup()
+}
 
 const propsStatuses = ref([])
 const currentApplicationStatus = ref(null)
 const isNewNumber = ref(true)
 const actNo = ref(null)
-
-function openStatusUpdatePopup(item) {
-  isNewNumber.value = item?.usim_act_cd === 'N'
-  currentApplicationStatus.value = item?.usim_act_status
-  actNo.value = item?.act_no ?? null
-  updateApplicationStatusPopup.value = true
-}
-
-function openDetailsPopup(item) {
-  actNo.value = item?.act_no ?? null
-  applicationDetailsPopup.value = true
-}
-
-function closeStatusUpdatePopup(result) {
-  if (result) fetchData()
-  updateApplicationStatusPopup.value = false
-}
 
 //from date set to 7 days ago default when initialized
 const toDate = ref(formatDate(new Date()))

@@ -16,49 +16,84 @@
         <RouterView />
       </div>
     </div>
+    <template v-if="!sideMenuStore.isDesktop">
+      <div
+        v-if="sideMenuStore.isOpen"
+        @click="sideMenuStore.close()"
+        class="m-dashboard-side-menu-overlay"
+      ></div>
+      <div :class="['m-dashboard-side-menu', { closed: !sideMenuStore.isOpen }]">
+        <SideMenu />
+      </div>
+    </template>
   </div>
-
-  <template v-if="!sideMenuStore.isDesktop">
-    <div
-      v-if="sideMenuStore.isOpen"
-      @click="sideMenuStore.close()"
-      class="m-dashboard-side-menu-overlay"
-    ></div>
-    <div :class="['m-dashboard-side-menu', { closed: !sideMenuStore.isOpen }]">
-      <SideMenu />
-    </div>
-  </template>
 
   <SelectPlanPopup v-if="selectPlansPopup.active" />
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import SideMenu from '../components/SideMenu.vue'
 import Header from '../components/Header.vue'
 import { useSideMenuStore } from '../stores/side-menu'
 import SelectPlanPopup from '@/components/SelectPlanPopup.vue'
 import { useSelectPlansPopup } from '@/stores/select-plans-popup'
-import { useSocketStore } from '@/stores/chat_socket_store'
-
-const socketStore = useSocketStore()
+import { useTotalUnreadCountStore } from '@/stores/total-unread-count-store'
+import { io } from 'socket.io-client'
 
 const selectPlansPopup = useSelectPlansPopup()
-
 const sideMenuStore = useSideMenuStore()
+
+// SOCKET CONNECTION
+const socket = io(import.meta.env.VITE_CHAT_SERVER_URL, { transports: ['websocket', 'polling'] })
 
 const handleResize = () => {
   sideMenuStore.updateIsDesktop()
 }
 
+const chatRooms = ref([])
+
 onMounted(() => {
   sideMenuStore.updateIsDesktop()
   window.addEventListener('resize', handleResize)
+
+  socket.on('connected', () => {
+    // console.log('Connected to server')
+    socket.emit('authenticate', {
+      userToken: localStorage.getItem('accessToken'),
+      fcmToken: localStorage.getItem('fcmToken')
+    })
+  })
+  socket.on('authenticated', () => {
+    // console.log('Authenticated to server')
+    socket.emit('get_rooms', { searchText: '' })
+  })
+
+  socket.on('rooms', (rooms) => {
+    chatRooms.value = rooms
+    updateTotalCount()
+  })
+
+  socket.on('room_modified', (modifiedRoom) => {
+    const index = chatRooms.value.findIndex((room) => room.room_id === modifiedRoom.room_id)
+    if (index !== -1) {
+      chatRooms.value[index] = modifiedRoom
+      updateTotalCount()
+    }
+  })
 })
+
+function updateTotalCount() {
+  var totalCount = 0
+  chatRooms.value.forEach((chatRoom) => {
+    totalCount = totalCount + chatRoom.agent_unread_count
+  })
+  useTotalUnreadCountStore().update(totalCount)
+}
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
-  console.log('dashboard onunmounted ')
+  // console.log('dashboard onunmounted ')
 })
 </script>
 
@@ -66,11 +101,11 @@ onUnmounted(() => {
 .dashboard-container {
   display: flex;
   flex-flow: row;
-  height: 100vh;
-  width: 100vw;
-  z-index: 1000;
-  /* background-color: #ffc0cb76; */
-  overflow-x: hidden;
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  background-color: #ffc0cb76;
+  overflow-y: hidden;
 }
 
 .dashboard-side-menu {
@@ -99,15 +134,14 @@ onUnmounted(() => {
   height: 65px;
   width: 100%;
   box-shadow: 0 2px 4px #00000010;
-  /* z-index: 1002; */
+  z-index: 1002;
 }
 
 .scrollable-view {
   display: flex;
   flex-flow: column;
   height: 100%;
-  min-width: 100%;
-  width: 100vw;
+  position: relative;
   overflow-y: auto;
 }
 
@@ -125,8 +159,8 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background-color: #00000047;
   z-index: 1100;
 }
@@ -136,11 +170,11 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  height: 100vh;
+  height: 100%;
   width: 300px;
-  z-index: 1101;
   transition: width 0.3s ease;
   overflow: hidden;
+  z-index: 1101;
 }
 
 .m-dashboard-side-menu.closed {

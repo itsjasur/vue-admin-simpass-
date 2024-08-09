@@ -90,22 +90,27 @@
     </div>
 
     <!-- checks and enables sign container -->
-    <a-checkbox class="checkbox" v-model:checked="registererSignChecked"
+    <a-checkbox
+      v-if="useDeviceTypeStore().isDeviceMobile()"
+      class="checkbox"
+      v-model:checked="signAfterPrint"
       >신청서 프린트 인쇄후 서명/사인 자필</a-checkbox
     >
 
-    <!-- partner sign container -->
-    <div v-if="!registererSignChecked">
+    <template v-if="useDeviceTypeStore().isDeviceMobile()">
       <SignImageRowContainer
-        type="self"
-        :placeholder="registrer"
-        @updated="updatePads"
+        :overlayText="registrer"
         title="가입자서명"
+        @updateSignSeal="
+          (sign, seal) => {
+            signData = sign
+            sealData = seal
+          }
+        "
+        :errorMessage="!signData && !sealData && submitted ? '판매자서명을 하지 않았습니다.' : null"
       />
-      <p v-if="!nameImageData && !signImageData && submitted" class="input-error-message">
-        판매자서명을 하지 않았습니다.
-      </p>
-    </div>
+      <button @click="submit">서명/사인 저장</button>
+    </template>
 
     <button class="submit" @click="submit" :disabled="isLoading">
       <LoadingSpinner v-if="isLoading" height="20px" color="#ffffff" />
@@ -124,6 +129,7 @@ import SignImageRowContainer from '../components/SignImageRowContainer.vue'
 import { usePrintablePopup } from '../stores/printable-popup'
 import LoadingSpinner from '../components/Loader.vue'
 import { useRouter } from 'vue-router'
+import { useDeviceTypeStore } from '@/stores/device-type-store'
 
 const router = useRouter()
 
@@ -140,14 +146,10 @@ const usimNumber = ref('')
 const submitted = ref(false)
 
 //sign checker
-const registererSignChecked = ref(false)
-const nameImageData = ref(null)
-const signImageData = ref(null)
+const signAfterPrint = ref(!useDeviceTypeStore().isDeviceMobile())
 
-const updatePads = ({ name, sign, type }) => {
-  nameImageData.value = name
-  signImageData.value = sign
-}
+const signData = ref(null)
+const sealData = ref(null)
 
 //cleave value change callback
 function onValueChanged(event) {
@@ -222,14 +224,19 @@ const isLoading = ref(false)
 
 async function submit() {
   submitted.value = true
+
+  if (!signData.value || !sealData.value) {
+    return useSnackbarStore().show('서명/사인 하지 않았습니다')
+  }
+
   //adding files
   for (const file of fileObjects.value) {
     formData.set('attach_files[]', file)
   }
 
   //adding sign images data
-  formData.set('apply_sign', nameImageData.value)
-  formData.set('apply_seal', signImageData.value)
+  formData.set('apply_sign', signData.value)
+  formData.set('apply_seal', sealData.value)
 
   formData.set('name', registrer.value)
   formData.set('birthday', registrerBirthday.value)
@@ -245,10 +252,6 @@ async function submit() {
     address.value,
     usimNumber.value
   ]
-
-  //form signs
-  if (!registererSignChecked.value)
-    checklist.push([nameImageData.value, signImageData.value].every(Boolean))
 
   if (checklist.every(Boolean)) {
     try {

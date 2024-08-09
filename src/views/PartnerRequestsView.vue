@@ -4,7 +4,7 @@
     <div class="search-part">
       <div class="group" style="width: 250px">
         <label>판매점명</label>
-        <input v-model="searchText" />
+        <input v-model="searchText" placeholder="판매점명" />
       </div>
 
       <div class="group" style="min-width: 150px">
@@ -68,7 +68,7 @@
             </template>
 
             <template v-if="column.dataIndex === 'details'">
-              <button @click="selectPartner(record.partner_cd)" class="reg-details-button">
+              <button @click="openPopup(record.partner_cd)" class="reg-details-button">
                 가입정보
               </button>
             </template>
@@ -143,7 +143,7 @@
 
         <div class="card-row">
           <span class="left-label">상세정보: </span>
-          <button @click="selectPartner(item.partner_cd)" class="right-content reg-details-button">
+          <button @click="openPopup(item.partner_cd)" class="right-content reg-details-button">
             가입정보
           </button>
         </div>
@@ -153,12 +153,6 @@
     <div></div>
     <div></div>
     <div></div>
-
-    <PartnerDetails
-      v-if="partnerDetailsPopup"
-      @closePopup="partnerDetailsPopup = false"
-      :partnerCd="selectedPartnerCd"
-    />
 
     <PartnerStatusUpdatePopup
       v-if="statusUpdatePOpup"
@@ -170,19 +164,20 @@
       popupFor="partner-requests"
     />
   </div>
+
+  <GlobalPopupWithOverlay ref="partnerDetailsPopupRef">
+    <PartnerDetails @closePopup="closePopup" :partnerCd="selectedPartnerCd" />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-
 import PartnerDetails from '../components/PartnerDetailsPopup.vue'
-import { useImagesHolderStore } from '@/stores/image-holder-store'
 import PartnerStatusUpdatePopup from '../components/PartnerStatusUpdatePopup.vue'
+import GlobalPopupWithOverlay from '../components/GlobalPopupWithOverlay.vue'
 
-const partnerDetailsPopup = ref(false)
-const selectedPartnerCd = ref()
 const selectedAgentCd = ref()
 
 const selectedStatus = ref('')
@@ -196,18 +191,21 @@ const rowLimit = ref(10)
 
 //pagination change
 function onPagChange(curPage, perPage) {
-  // console.log(curPage, perPage)
   currentPage.value = curPage
   rowLimit.value = perPage
   fetchData()
 }
 
-function selectPartner(partnerCd) {
+const selectedPartnerCd = ref()
+const partnerDetailsPopupRef = ref()
+function openPopup(partnerCd) {
   selectedPartnerCd.value = partnerCd
-  partnerDetailsPopup.value = true
+  partnerDetailsPopupRef.value.showPopup()
 }
-
-//status update popup
+function closePopup() {
+  selectedPartnerCd.value = null
+  partnerDetailsPopupRef.value.closePopup()
+}
 
 const currentStatus = ref(null)
 const statusUpdatePOpup = ref(false)

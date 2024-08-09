@@ -107,12 +107,13 @@
     <div></div>
     <div></div>
   </div>
-  <AddNewUserPopup
-    v-if="addUpdatePopup"
-    :isNew="selectedUsername === null"
-    :username="selectedUsername"
-    @closePopup="closePopup"
-  />
+  <GlobalPopupWithOverlay ref="addUpdatePopupRef">
+    <AddNewUserPopup
+      :isNew="selectedUsername === null"
+      :username="selectedUsername"
+      @closePopup="closePopup"
+    />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
@@ -121,23 +122,23 @@ import { formatDate } from '../utils/helpers'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import AddNewUserPopup from '../components/UpdateAddNewUserPopup.vue'
+import GlobalPopupWithOverlay from '../components/GlobalPopupWithOverlay.vue'
 
 const totalCount = ref(0)
 const currentPage = ref(1)
 const rowLimit = ref(10)
 
 //add or update user
-const addUpdatePopup = ref(false)
 const selectedUsername = ref(null)
-const userId = ref(null)
 
+const addUpdatePopupRef = ref(false)
 function openPopup(userName) {
-  addUpdatePopup.value = true
   selectedUsername.value = userName ?? null
+  addUpdatePopupRef.value.showPopup()
 }
 
 function closePopup(result, needsRefresh) {
-  addUpdatePopup.value = false
+  addUpdatePopupRef.value.closePopup()
   if (needsRefresh) currentPage.value = 1
   if (result) fetchData()
 }

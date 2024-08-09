@@ -219,11 +219,9 @@
     @closePopup="closeStatusUpdatePopup"
   />
 
-  <ApplicationDetailsPopup
-    v-if="applicationDetailsPopup"
-    :actNo="actNo"
-    @closePopup="applicationDetailsPopup = false"
-  />
+  <GlobalPopupWithOverlay ref="applicationDetailsPopupRef">
+    <ApplicationDetailsPopup :actNo="actNo" @closePopup="closeDetailsPopup" />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
@@ -238,6 +236,7 @@ import { usePageLoadingStore } from '@/stores/page-loading-store'
 import { usePrintableStore } from '../stores/printable-store'
 import { useMvnoSelectStore } from '@/stores/mvno_select_store'
 import { useAuthenticationStore } from '@/stores/authentication'
+import GlobalPopupWithOverlay from '../components/GlobalPopupWithOverlay.vue'
 
 const userAuth = useAuthenticationStore()
 
@@ -260,6 +259,17 @@ const totalCount = ref(0)
 const currentPage = ref(1)
 const rowLimit = ref(10)
 
+//applicationDetailspoup
+const applicationDetailsPopupRef = ref()
+function openDetailsPopup(item) {
+  actNo.value = item?.act_no ?? null
+  applicationDetailsPopupRef.value.showPopup()
+}
+function closeDetailsPopup() {
+  actNo.value = null
+  applicationDetailsPopupRef.value.closePopup()
+}
+
 //updating current page value if any of the below changes
 watch(selectedStatus, (newValue, oldValue) => {
   if (newValue !== oldValue) currentPage.value = 1
@@ -274,9 +284,6 @@ watch(
   }
 )
 
-//applicationDetailspoup
-const applicationDetailsPopup = ref(false)
-
 // updateApplicationStatusPopup popup and popup props
 const updateApplicationStatusPopup = ref(false)
 
@@ -290,11 +297,6 @@ function openStatusUpdatePopup(item) {
   currentApplicationStatus.value = item?.usim_act_status
   actNo.value = item?.act_no ?? null
   updateApplicationStatusPopup.value = true
-}
-
-function openDetailsPopup(item) {
-  actNo.value = item?.act_no ?? null
-  applicationDetailsPopup.value = true
 }
 
 function closeStatusUpdatePopup(result) {

@@ -3,7 +3,7 @@
     <!-- filter and search part -->
     <div class="filter-part">
       <button
-        @click="updateAddPlanPopup = true"
+        @click="openEditOrPopup(null)"
         class="add-new-button"
         style="width: auto; min-width: 150px"
       >
@@ -150,21 +150,16 @@
       </div>
     </div>
 
-    <button class="download-button" @click="downloadExcel">
-      <span class="material-symbols-outlined button-icon"> download </span>
-      엑셀 다운로드
-    </button>
     <div></div>
     <div></div>
     <div></div>
   </div>
 
   <ManagePlansFilterPopup v-if="plansFilterPopup.active" />
-  <UpdateAddNewPlanPopup
-    v-if="updateAddPlanPopup"
-    @closePopup="closePopup"
-    :planInfo="selectedPlanInfo"
-  />
+
+  <GlobalPopupWithOverlay ref="updateAddPlanPopupRef">
+    <UpdateAddNewPlanPopup @closePopup="closePopup" :planInfo="selectedPlanInfo" />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
@@ -174,73 +169,9 @@ import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import ManagePlansFilterPopup from '../components/ManagePlansFilterPopup.vue'
 import { usePlansFilterPopup } from '../stores/manage-plans-popup-store'
 import UpdateAddNewPlanPopup from '../components/UpdateAddNewPlanPopup.vue'
-
-import ExcelJS from 'exceljs'
-import { saveAs } from 'file-saver'
-
-const downloadExcel = async () => {
-  const workbook = new ExcelJS.Workbook()
-  const worksheet = workbook.addWorksheet('Sheet1')
-
-  // Add headers (optional)
-  worksheet.addRow([
-    'No.',
-    '상태',
-    '요금제명',
-    '통신망',
-    '통신사',
-    '대리점',
-    '서비스 유형',
-    '가입대상',
-    '기본료',
-    '판매금액',
-    '음성',
-    '문자',
-    '데이터',
-    '영상/기타',
-    'QOS',
-    '우선순위'
-  ])
-
-  // Add data rows
-  dataList.value.forEach((row) => {
-    worksheet.addRow([
-      row.num,
-      row.status_nm,
-      row.usim_plan_nm,
-      row.carrier_nm,
-      row.mvno_nm,
-      row.agent_nm,
-      row.carrier_type_nm,
-      row.carrier_plan_type_nm,
-      row.basic_fee,
-      row.sales_fee,
-      row.voice,
-      row.message,
-      row.cell_data,
-      row.video_etc,
-      row.qos,
-      row.priority
-    ])
-  })
-
-  // generates Excel file buffer
-  const buffer = await workbook.xlsx.writeBuffer()
-
-  // creates a Blob
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  })
-
-  // triggers the download
-  saveAs(blob, 'data.xlsx')
-}
+import GlobalPopupWithOverlay from '../components/GlobalPopupWithOverlay.vue'
 
 const plansFilterPopup = usePlansFilterPopup()
-
-//update or add plan popup
-const updateAddPlanPopup = ref(false)
-
 //filter and search data
 watch(
   () => [
@@ -258,16 +189,17 @@ watch(
   }
 )
 
-//add or update plan
+//update or add plan popup
 const selectedPlanInfo = ref(null)
+const updateAddPlanPopupRef = ref(false)
+
 function openEditOrPopup(selectedPlan) {
   selectedPlanInfo.value = selectedPlan
-  updateAddPlanPopup.value = true
+  updateAddPlanPopupRef.value.showPopup()
 }
-
 function closePopup(result, needsRefresh) {
   selectedPlanInfo.value = null
-  updateAddPlanPopup.value = false
+  updateAddPlanPopupRef.value.closePopup()
   if (needsRefresh) plansFilterPopup.currentPage = 1
   if (result) fetchData()
 }
@@ -548,17 +480,6 @@ onUnmounted(plansFilterPopup.clear)
   color: var(--main-color);
   cursor: pointer;
   user-select: none;
-}
-
-.download-button {
-  margin-left: 20px;
-  width: auto;
-  background-color: #828282;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  align-self: flex-start;
-  gap: 5px;
 }
 
 @media (max-width: 600px) {

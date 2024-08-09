@@ -16,8 +16,8 @@
         <span class="menu-title">{{ getTitleByRouteNameOrPath(item.path) }}</span>
 
         <template v-if="item.path === '/chats'">
-          <span class="total-badge-count" v-if="socketStore.totalUnreadCount > 0">{{
-            socketStore.totalUnreadCount
+          <span class="total-badge-count" v-if="countStore.totalUnreadCount > 0">{{
+            countStore.totalUnreadCount
           }}</span>
         </template>
       </div>
@@ -28,41 +28,17 @@
 <script setup>
 import { useSideMenuStore } from '../stores/side-menu'
 import { useRoute, useRouter } from 'vue-router'
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useAuthenticationStore } from '@/stores/authentication'
-import { useSocketStore } from '@/stores/chat_socket_store'
-import { io } from 'socket.io-client'
+import { useTotalUnreadCountStore } from '@/stores/total-unread-count-store'
 
-const socketStore = useSocketStore()
+const countStore = useTotalUnreadCountStore()
 
 const authStore = useAuthenticationStore()
-// const userRoles = authStore.userRoles
 
 const router = useRouter()
 const route = useRoute()
 const sideMenuStore = useSideMenuStore()
-
-const socket = io('http://127.0.0.1:5000', { transports: ['websocket', 'polling'] })
-// const socket = io('http://158.247.236.202:5000', { transports: ['websocket', 'polling'] })
-onMounted(() => {
-  socket.on('connected', () => {
-    console.log('Connected to server')
-    socket.emit('authenticate', localStorage.getItem('accessToken'))
-  })
-  socket.on('authenticated', () => {
-    console.log('Authenticated to server')
-    socket.emit('get_total_unread_count')
-  })
-
-  socket.on('total_unread_count', (totalCount) => {
-    console.log(totalCount)
-    socketStore.totalUnreadCount = totalCount
-  })
-})
-
-function updateTotalCount() {
-  socket.emit('get_total_unread_count')
-}
 
 const menuItems = [
   {
@@ -137,7 +113,6 @@ function isActive(path) {
 function sideMenuChoose(item) {
   if (!sideMenuStore.isDesktop) sideMenuStore.close()
   router.push(item.path)
-  updateTotalCount()
 }
 
 // gets  the title by path name or path

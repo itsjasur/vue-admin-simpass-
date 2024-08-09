@@ -104,6 +104,10 @@ async function login(event) {
     } else {
       router.push('/')
     }
+
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission()
+    }
   } catch (err) {
     useSnackbarStore().show(err.toString())
   }

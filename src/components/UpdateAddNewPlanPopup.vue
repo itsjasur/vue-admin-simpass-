@@ -245,7 +245,7 @@
 <script setup>
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
 const emit = defineEmits(['closePopup'])
 
@@ -315,7 +315,7 @@ async function fetchData() {
 
     const decodedResponse = await response.json()
 
-    data.carrier = data.carrier_cd = decodedResponse.data.carrier_cd
+    data.carrier_cd = decodedResponse.data.carrier_cd
     data.mvno_cd = decodedResponse.data.mvno_cd
     data.agent_cd = decodedResponse.data.agent_cd
     data.carrier_type = decodedResponse.data.carrier_type
@@ -395,10 +395,9 @@ const filterOption = (input, option) => {
   )
 }
 
-onMounted(() => {
-  document.addEventListener('keydown', keydownHandle)
-  fetchData()
-
+onMounted(async () => {
+  console.log('updateaddnew plan mounted')
+  await fetchData()
   //if props comes with id, values are set to prop.planInfo
   if (props.planInfo) {
     forms.carrier = props.planInfo?.carrier_cd ?? ''
@@ -418,33 +417,16 @@ onMounted(() => {
     forms.priority = props.planInfo?.priority ?? ''
   }
 })
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', keydownHandle)
-})
-
-function keydownHandle(event) {
-  if (event.key === 'Escape') emit('closePopup', false)
-}
 </script>
 
 <style scoped>
 .overlay {
-  box-sizing: border-box;
-  position: fixed;
-  top: 0;
-  left: 0;
-  /* width: 100vw; */
-  /* height: 100vh; */
   width: 100%;
   height: 100%;
-
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #000000c7;
-  padding: 20px;
-  z-index: 2000;
+  z-index: 9999;
 }
 
 .popup-content {

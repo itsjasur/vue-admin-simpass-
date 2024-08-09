@@ -230,9 +230,6 @@ function validateForms() {
 
 async function registerOrUpdateUser() {
   isSubmitted.value = true
-
-  // console.log('roles length', selectedRoles.value.size)
-
   //not all forms validated
   if (!validateForms()) return
 
@@ -351,36 +348,15 @@ function checkSelfRoles() {
 
 onMounted(() => {
   if (props.username) fetchMemberDetails()
-  document.addEventListener('keydown', keydownHandle)
   checkSelfRoles()
 })
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', keydownHandle)
-})
-
-function keydownHandle(event) {
-  if (event.key === 'Escape') emit('closePopup')
-}
 </script>
 
 <style scoped>
 .overlay {
-  box-sizing: border-box;
-  position: fixed;
-  top: 0;
-  left: 0;
-  /* width: 100vw; */
-  /* height: 100vh; */
-  width: 100%;
-  height: 100%;
-
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #000000b2;
-  padding: 20px;
-  z-index: 2000;
 }
 
 .popup-content {

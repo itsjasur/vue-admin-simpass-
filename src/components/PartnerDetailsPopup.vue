@@ -123,28 +123,38 @@
       </div>
     </div>
   </div>
+
+  <GlobalPopupWithOverlay ref="imageViewerRef">
+    <ImageViewPopup :images="images" @closePopup="closeImageViewPopup" />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
 import { usePageLoadingStore } from '@/stores/page-loading-store'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
-import { useImagesHolderStore } from '@/stores/image-holder-store'
-import { useInternalMessage } from 'ant-design-vue/es/message/useMessage'
+import { onMounted, ref } from 'vue'
+import GlobalPopupWithOverlay from './GlobalPopupWithOverlay.vue'
+import ImageViewPopup from './ImageViewPopup.vue'
 
 const emits = defineEmits(['closePopup'])
 const props = defineProps({ partnerCd: { type: String, default: null } })
 
-const partnerDetails = ref({})
+const images = ref([])
+const imageViewerRef = ref()
+function openImageViewPopup() {
+  imageViewerRef.value.showPopup()
+}
+function closeImageViewPopup() {
+  imageViewerRef.value.closePopup()
+}
 
+const partnerDetails = ref({})
 async function fetchData() {
   try {
     const response = await fetchWithTokenRefresh('agent/partnerDetail', {
       method: 'POST',
-      body: {
-        partner_cd: props.partnerCd
-      }
+      body: { partner_cd: props.partnerCd }
     })
 
     if (!response.ok) throw 'Partner detail error'
@@ -164,9 +174,14 @@ async function fetchImageByName(fileName) {
     })
 
     if (!response.ok) throw 'Partner detail error'
+
     const decodedResponse = await response.json()
-    useImagesHolderStore().close()
-    useImagesHolderStore().open([decodedResponse.data.image])
+    console.log(decodedResponse.data)
+
+    if (!decodedResponse?.data) throw decodedResponse?.message ?? 'No image'
+    if (!decodedResponse?.data?.image) throw 'No image'
+    images.value = [decodedResponse.data.image]
+    openImageViewPopup()
   } catch (error) {
     useSnackbarStore().show(error.toString())
   } finally {
@@ -174,37 +189,16 @@ async function fetchImageByName(fileName) {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('keydown', keydownHandle)
-  fetchData()
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', keydownHandle)
-})
-
-function keydownHandle(event) {
-  if (event.key === 'Escape') emits('closePopup')
-}
+onMounted(fetchData)
 </script>
 
 <style scoped>
 .overlay {
-  box-sizing: border-box;
-  position: fixed;
-  top: 0;
-  left: 0;
-  /* width: 100vw; */
-  /* height: 100vh; */
   width: 100%;
   height: 100%;
-
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #000000c7;
-  padding: 20px;
-  z-index: 2000;
 }
 
 .popup-content {

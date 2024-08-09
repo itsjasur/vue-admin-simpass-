@@ -10,7 +10,6 @@ import ManagePlans from '../views/ManagePlansView.vue'
 import Chats from '../views/ChatsView.vue'
 import SelfRequests from '../views/SelfRequestsView.vue'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { useSocketStore } from '@/stores/chat_socket_store'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

@@ -1,126 +1,182 @@
 <template>
-  <div class="sign-container">
-    <!-- partner sign container -->
-    <p class="sign-title">{{ props.title }}</p>
-    <div v-if="!signData && !sealData" @click="isDrawPadOpen = true" class="singImagesBox">
-      <span class="inner-icon material-symbols-outlined"> stylus_note </span>
-    </div>
-    <div v-else class="singImagesBox">
-      <span @click="deletePads()" class="delete-icon material-symbols-outlined"> delete </span>
-      <div class="images-row">
-        <img class="image" :src="signData" alt="오류 이미지" @error="deletePads" />
-        <img class="image" :src="sealData" alt="오류 이미지" />
+  <div class="sign_seal_container">
+    <p class="sign_title">{{ props.title }}</p>
+    <div class="group">
+      <div class="group_title">서명</div>
+      <div class="image_container sign">
+        <span
+          v-if="!signData"
+          class="edit_icon material-symbols-outlined"
+          @click="showPopup('sign')"
+        >
+          stylus_note
+        </span>
+        <span v-else class="delete_icon material-symbols-outlined" @click="deletePad('sign')">
+          delete
+        </span>
+        <img
+          v-if="signData"
+          class="data_image"
+          :src="signData"
+          alt="서명 오류"
+          @error="signData = null"
+        />
       </div>
     </div>
-    <p v-if="props.errorMessage" class="input-error-message">{{ props.errorMessage }}</p>
+    <div class="group">
+      <div class="group_title">사인</div>
+      <div class="image_container seal">
+        <span
+          v-if="!sealData"
+          class="edit_icon material-symbols-outlined"
+          @click="showPopup('seal')"
+        >
+          stylus_note
+        </span>
+        <span v-else class="delete_icon material-symbols-outlined" @click="deletePad('seal')">
+          delete
+        </span>
+
+        <img
+          v-if="sealData"
+          class="data_image"
+          :src="sealData"
+          alt="서명 오류"
+          @error="sealData = null"
+        />
+      </div>
+    </div>
+    <div class="input-error-message" v-if="errorMessage">{{ errorMessage }}</div>
   </div>
 
-  <SignPadPopup
-    v-if="isDrawPadOpen"
-    :type="props.type"
-    :userName="props.placeholder"
-    @savePads="savePads"
-    @closePopup="isDrawPadOpen = false"
-  />
+  <GlobalPopupWithOverlay ref="popupRef">
+    <SignPadPopupContent
+      @closePopup="closePopup"
+      @savePad="savePadData"
+      :popupFor="popupFor"
+      :overlayText="popupFor === 'sign' ? props.overlayText : ''"
+    />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted } from 'vue'
-import SignPadPopup from '../components/SignPadPopup.vue'
-
-import { useNameSignDataStore } from '../stores/name-sign-data-store'
-
-const signStore = useNameSignDataStore()
+import { nextTick, onMounted, ref } from 'vue'
+import GlobalPopupWithOverlay from './GlobalPopupWithOverlay.vue'
+import SignPadPopupContent from './SignPadPopupContent.vue'
 
 const props = defineProps({
   errorMessage: { type: String, default: null },
   title: { type: String, default: 'Sign title' },
-  type: { type: String, default: 'self' },
-  placeholder: { type: String, default: '' }
+  overlayText: { type: String, default: '' },
+  signImageData: { type: String, default: null },
+  sealImageData: { type: String, default: null }
 })
 
-const emit = defineEmits(['updated']) // emits with a data object
+const popupRef = ref(null)
 
-const isDrawPadOpen = ref(false)
-const signData = ref(signStore.signData)
-const sealData = ref(signStore.sealData)
+const signData = ref(props.signImageData)
+const sealData = ref(props.sealImageData)
 
-const deletePads = () => {
-  signData.value = null
-  sealData.value = null
-  emit('updated', { signData: null, sealData: null, type: props.type }) // emits cleared data
+var popupFor = null
+const showPopup = (pfor) => {
+  popupFor = pfor
+  console.log('show popup clicked')
+  popupRef.value.showPopup()
 }
 
-const savePads = (name, sign) => {
-  signData.value = name
-  sealData.value = sign
-  emit('updated', { name, sign, type: props.type }) // emits saved data
+const closePopup = () => {
+  console.log('close popup clicked')
+  popupRef.value.closePopup()
 }
 
-watch(
-  () => [signStore.signData, signStore.sealData],
-  () => {
-    signData.value = signStore.signData
-    sealData.value = signStore.sealData
-  }
-)
-onUnmounted(signStore.clear)
+const emits = defineEmits(['updateSignSeal'])
+
+function savePadData(data) {
+  if (popupFor === 'sign') signData.value = data
+  else sealData.value = data
+  emits('updateSignSeal', signData.value, sealData.value)
+}
+
+function deletePad(pfor) {
+  console.log(pfor)
+  if (pfor === 'sign') signData.value = null
+  else sealData.value = null
+  emits('updateSignSeal', signData.value, sealData.value)
+}
 </script>
 
 <style scoped>
-.sign-title {
-  line-height: 1;
+.sign_title {
+  width: 100%;
   padding: 0;
   margin: 0;
-  margin-bottom: 7px;
+  margin-bottom: 5px;
+  line-height: 1;
+  font-weight: 600;
 }
 
-.singImagesBox {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  max-width: 400px;
-  width: 100%;
-  height: 100px;
+.sign_seal_container {
+  display: flex;
+  flex-flow: wrap;
+  gap: 10px;
+}
+
+.group_title {
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.image_container {
   border-radius: 5px;
   border: 1px dashed var(--main-color);
-  cursor: pointer;
-  position: relative;
-
-  background-color: #fff;
-}
-.singImagesBox .images-row {
-  display: flex;
-  flex-flow: row;
-  height: 100%;
-  width: 100%;
-  gap: 5px;
   box-sizing: border-box;
-  padding: 5px;
+  height: 100px;
+  background-color: #ffffff;
+  position: relative;
+  display: flex;
+  justify-content: center;
   align-items: center;
 }
-.singImagesBox .image {
-  width: 100%;
-  height: 100%;
-  min-width: 100px;
-  max-height: 100px; /* Set a maximum height limit if needed */
-  object-fit: contain;
-  background-color: #fbfbfb;
-}
-.delete-icon {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  color: #ff3535 !important;
-  cursor: pointer !important;
-  background-color: #ffffff;
-  padding: 2px;
-  border-radius: 20px;
+
+.image_container.no_data {
+  border-color: #ff3535;
 }
 
-.sign-title {
-  /* font-size: 16; */
-  font-weight: 500;
-  margin-bottom: 10px;
+.image_container.sign {
+  width: 300px;
+}
+.image_container.seal {
+  width: 200px;
+}
+
+.delete_icon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: #ff3535 !important;
+  cursor: pointer !important;
+  background-color: #e4e4e4;
+  padding: 2px;
+  border-radius: 20px;
+  font-size: 22px;
+}
+
+.edit_icon {
+  color: var(--main-color);
+  cursor: pointer;
+  font-size: 24px;
+  padding: 10px;
+  border-radius: 50px;
+}
+
+.data_image {
+  height: 100%;
+  width: 100%;
+  /* object-fit: contain; */
+}
+
+.input-error-message {
+  margin-top: -5px;
+  width: 100%;
 }
 </style>

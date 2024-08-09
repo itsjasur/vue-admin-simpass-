@@ -77,7 +77,7 @@
               </button>
             </template>
             <template v-if="column.dataIndex === 'details'">
-              <button @click="seePartnerDetails(record.partner_cd)" class="reg-details-button">
+              <button @click="openPopup(record.partner_cd)" class="reg-details-button">
                 가입정보
               </button>
             </template>
@@ -155,10 +155,7 @@
         </div>
         <div class="card-row">
           <span class="left-label">상세정보: </span>
-          <button
-            @click="seePartnerDetails(item.partner_cd)"
-            class="right-content reg-details-button"
-          >
+          <button @click="openPopup(item.partner_cd)" class="right-content reg-details-button">
             가입정보
           </button>
         </div>
@@ -169,11 +166,9 @@
     <div></div>
     <div></div>
 
-    <PartnerDetails
-      v-if="partnerDetailsPopup"
-      @closePopup="partnerDetailsPopup = false"
-      :partnerCd="selectedPartnerCd"
-    />
+    <GlobalPopupWithOverlay ref="partnerDetailsPopupRef">
+      <PartnerDetails @closePopup="closePopup" :partnerCd="selectedPartnerCd" />
+    </GlobalPopupWithOverlay>
 
     <PartnerStatusUpdatePopup
       v-if="statusUpdatePOpup"
@@ -193,16 +188,15 @@
 import { ref, onMounted } from 'vue'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-
 import PartnerDetails from '../components/PartnerDetailsPopup.vue'
 import PartnerStatusUpdatePopup from '../components/PartnerStatusUpdatePopup.vue'
 import PrintablePdfPopup from '../components/PrintablePdfPopup.vue'
 import { usePrintablePdfPopup } from '@/stores/printable-pdf-popup'
+import GlobalPopupWithOverlay from '../components/GlobalPopupWithOverlay.vue'
+import { usePageLoadingStore } from '@/stores/page-loading-store'
 
 const printablePdfPopup = usePrintablePdfPopup()
 
-const partnerDetailsPopup = ref(false)
-const selectedPartnerCd = ref()
 const selectedAgentCd = ref()
 
 const selectedStatus = ref('')
@@ -221,10 +215,15 @@ function onPagChange(curPage, perPage) {
   fetchData()
 }
 
-//see details
-function seePartnerDetails(partnerCd) {
+const selectedPartnerCd = ref()
+const partnerDetailsPopupRef = ref()
+function openPopup(partnerCd) {
   selectedPartnerCd.value = partnerCd
-  partnerDetailsPopup.value = true
+  partnerDetailsPopupRef.value.showPopup()
+}
+function closePopup() {
+  selectedPartnerCd.value = null
+  partnerDetailsPopupRef.value.closePopup()
 }
 
 //status update popup
@@ -241,11 +240,12 @@ function closeStatusUpdatePopup(result) {
   if (result) fetchData()
 }
 
-async function fetchContractPDFAndPrint(agentCd, partnerCd) {
+async function fetchContractPDFAndPrint(agentCd) {
+  usePageLoadingStore().start()
   try {
-    const response = await fetchWithTokenRefresh('agent/viewContract', {
+    const response = await fetchWithTokenRefresh('agent/contractForms', {
       method: 'POST',
-      body: { agent_cd: agentCd, partner_cd: partnerCd }
+      body: { agent_cd: agentCd }
     })
 
     if (!response.ok) throw 'Fetch contract PDF data error'
@@ -258,6 +258,8 @@ async function fetchContractPDFAndPrint(agentCd, partnerCd) {
     printablePdfPopup.open(url)
   } catch (error) {
     useSnackbarStore().show(error.toString())
+  } finally {
+    usePageLoadingStore().stop()
   }
 }
 

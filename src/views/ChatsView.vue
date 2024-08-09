@@ -17,17 +17,17 @@
             @click="selectRoom(room)"
             :class="['chatroom', { isSelected: selectedRoom?.room_id === room?.room_id }]"
           >
-            <div v-if="userInfo?.agent_cd?.length > 1" class="chatroom-name">
-              <span> {{ room.partner_name }}</span>
+            <span> {{ room.partner_name }}</span>
+            <!-- <div v-if="userInfo?.agent_cd?.length > 1" class="chatroom-name">
               <span class="material-symbols-outlined arrow_icon"> double_arrow </span>
               {{ room.agent_code }}
-            </div>
+            </div> -->
 
             <div
-              v-if="selectedRoom.room_id !== room?.room_id && room['agent_unread_count'] !== 0"
+              v-if="selectedRoom?.room_id !== room?.room_id && room?.agent_unread_count !== 0"
               class="unread-count-badge"
             >
-              {{ room['agent_unread_count'] }}
+              {{ room.agent_unread_count }}
             </div>
           </div>
         </template>
@@ -102,11 +102,9 @@
 <script setup>
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { nextTick, onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import { io } from 'socket.io-client'
-import { useSocketStore } from '@/stores/chat_socket_store'
-
-const socketStore = useSocketStore()
+import { useTotalUnreadCountStore } from '@/stores/total-unread-count-store'
 
 const searchText = ref('')
 const userInfo = ref()
@@ -118,10 +116,6 @@ const selectedRoom = ref(null)
 const chatRooms = ref([])
 const chats = ref([])
 
-// SOCKET CONNECTION
-const socket = io('http://127.0.0.1:5000', { transports: ['websocket', 'polling'] })
-// const socket = io('http://158.247.236.202:5000', { transports: ['websocket', 'polling'] })
-
 // adds logic for the action to take on Enter without Shift
 const handleKeyDown = (event) => {
   if (event.key === 'Enter' && !event.shiftKey) {
@@ -129,32 +123,24 @@ const handleKeyDown = (event) => {
     sendMessage()
   }
 }
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (chatContainer.value) {
-      chatContainer.value.scrollTop = chatContainer.value.scrollHeight
-    }
-  })
-}
+
+// SOCKET CONNECTION
+const socket = io(import.meta.env.VITE_CHAT_SERVER_URL, { transports: ['websocket', 'polling'] })
 
 onMounted(() => {
   fetchData()
 
   chatContainer.value = document.querySelector('.container') //chat container to scroll up or down
 
-  nextTick(() => {
-    if (socketStore.isConnected) getRooms()
-  })
-
   socket.on('connected', () => {
-    console.log('Connected to server')
-    // connectionStatus.value = 'Connected'
-    socket.emit('authenticate', localStorage.getItem('accessToken'))
-    // getRooms()
+    // console.log('Connected to server')
+    socket.emit('authenticate', {
+      userToken: localStorage.getItem('accessToken'),
+      fcmToken: localStorage.getItem('fcmToken')
+    })
   })
   socket.on('authenticated', () => {
-    console.log('Authenticated to server')
-    // connectionStatus.value = 'Authenticated'
+    // console.log('Authenticated to server')
     getRooms()
   })
 
@@ -166,8 +152,6 @@ onMounted(() => {
     // console.log('agent rooms', rooms)
     chatRooms.value = rooms
 
-    updateTotalCount()
-
     //clean current chat and selectedRoom if search result does not contain the room
     if (!chatRooms.value.find((obj) => obj?.room_id === selectedRoom.value)) {
       chats.value = []
@@ -178,6 +162,8 @@ onMounted(() => {
     if (chatRooms.value.length > 0 && selectedRoom.value === null) {
       selectRoom(chatRooms.value[0])
     }
+
+    updateTotalCount()
   })
 
   socket.on('chats', (data) => {
@@ -186,8 +172,14 @@ onMounted(() => {
     scrollToBottom()
   })
 
+  socket.on('message', (newMessage) => {
+    chats.value.push(newMessage)
+    resetUnreadCount()
+    scrollToBottom()
+  })
+
   socket.on('new_room_added', (newRoom) => {
-    console.log('rooms update called')
+    // console.log('rooms update called')
     // console.log(newRoom)
     if (!chatRooms.value.find((obj) => obj.room_id === newRoom['room_id'])) {
       chatRooms.value.push(newRoom)
@@ -199,7 +191,7 @@ onMounted(() => {
   })
 
   socket.on('room_removed', (removedRoomId) => {
-    console.log('removed room called', removedRoomId)
+    // console.log('removed room called', removedRoomId)
     const indexToRemove = chatRooms.value.findIndex((obj) => obj.room_id === removedRoomId)
     if (indexToRemove !== -1) {
       chatRooms.value.splice(indexToRemove, 1)
@@ -213,41 +205,50 @@ onMounted(() => {
   })
 
   socket.on('room_modified', (modifiedRoom) => {
-    console.log('room_modified called')
+    // console.log('room_modified called')
     console.log(modifiedRoom)
     const index = chatRooms.value.findIndex((room) => room.room_id === modifiedRoom.room_id)
-    if (index !== -1) chatRooms.value[index] = modifiedRoom
-  })
-
-  socket.on('message', (newMessage) => {
-    chats.value.push(newMessage)
-    resetUnreadCount()
-    scrollToBottom()
+    if (index !== -1) {
+      chatRooms.value[index] = modifiedRoom
+      updateTotalCount()
+    }
   })
 })
 
-function getRooms() {
-  console.log('get rooms called')
-  socket.emit('get_rooms', {
-    searchText: searchText.value
+function updateTotalCount() {
+  var totalCount = 0
+  chatRooms.value.forEach((chatRoom) => {
+    totalCount = totalCount + chatRoom.agent_unread_count
+  })
+  useTotalUnreadCountStore().update(totalCount)
+  // console.log('total count', totalCount)
+}
+
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (chatContainer.value) {
+      chatContainer.value.scrollTop = chatContainer.value.scrollHeight
+    }
   })
 }
 
-function updateTotalCount() {
-  socket.emit('get_total_unread_count')
+function getRooms() {
+  // console.log('get rooms called')
+  socket.emit('get_rooms', { searchText: searchText.value })
 }
 
 function selectRoom(room) {
-  resetUnreadCount()
   selectedRoom.value = room
   socket.emit('join_room', {
     userToken: localStorage.getItem('accessToken'),
     roomId: room.room_id
   })
+  resetUnreadCount()
 }
 
 function resetUnreadCount() {
-  if (selectedRoom.value) socket.emit('reset_unread_count', { roomId: selectedRoom.value.room_id })
+  if (selectedRoom.value)
+    socket.emit('reset_room_unread_count', { roomId: selectedRoom.value.room_id })
 }
 
 //drop to attach files handler

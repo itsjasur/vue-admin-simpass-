@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.png" />
+
+    <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" /> -->
+
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
@@ -22,5 +25,18 @@
     <div id="app"></div>
 
     <script type="module" src="/src/main.js"></script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('/firebase-messaging-sw.js')
+          .then(function (registration) {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope)
+          })
+          .catch(function (err) {
+            console.log('ServiceWorker registration failed: ', err)
+          })
+      }
+    </script>
   </body>
 </html>

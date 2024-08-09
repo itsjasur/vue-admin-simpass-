@@ -1,5 +1,5 @@
 <template>
-  <div v-if="snackbarStore.active" class="snackbar" :class="snackbarStore.type">
+  <div v-if="snackbarStore.active" class="snackbar" :class="[snackbarStore.type]">
     <div class="snackbar-content">
       {{ snackbarStore.message }}
     </div>
@@ -16,7 +16,7 @@ const snackbarStore = useSnackbarStore()
 <style scoped>
 .snackbar {
   position: fixed;
-  top: 20px;
+  top: 30px;
   left: 50%;
   transform: translateX(-50%); /* this takes the snackbar width into account*/
   background-color: #212121;
@@ -24,26 +24,27 @@ const snackbarStore = useSnackbarStore()
   padding: 10px 15px;
   border-radius: 4px;
   display: flex;
-  font-size: 14px;
-  max-width: 80%; /* mobile default */
-  min-width: 40%;
   align-items: center;
+
+  width: 80%;
+  max-width: 400px;
+  min-width: 200px;
+
   justify-content: space-between;
-  z-index: 1200;
+  z-index: 5000;
+  box-shadow: 0 0 20px #00000042;
+  /* font-weight: 600; */
+}
+
+.snackbar.warning {
+  background-color: #f1a20d;
 }
 
 .snackbar-content {
+  font-size: 15px;
   flex-grow: 1;
   text-align: center;
   white-space: pre-line;
-}
-
-/* Desktop styles */
-@media (min-width: 600px) {
-  .snackbar {
-    max-width: 400px;
-    min-width: 200px;
-  }
 }
 
 .close-icon {

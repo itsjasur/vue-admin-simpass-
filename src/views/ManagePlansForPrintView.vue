@@ -3,7 +3,7 @@
     <!-- filter and search part -->
     <div class="filter-part">
       <button
-        @click="updateAddPlanPopup = true"
+        @click="openEditOrPopup(null)"
         class="add-new-button"
         style="width: auto; min-width: 150px"
       >
@@ -159,12 +159,14 @@
   </div>
 
   <ManagePlansFilterPopup v-if="plansFilterPopup.active" />
-  <UpdateAddNewPlanPopup
-    v-if="updateAddPlanPopup"
-    @closePopup="closePopup"
-    :planInfo="selectedPlanInfo"
-    :showAgent="false"
-  />
+
+  <GlobalPopupWithOverlay ref="updateAddPlanPopupRef">
+    <UpdateAddNewPlanPopup
+      @closePopup="closePopup"
+      :planInfo="selectedPlanInfo"
+      :showAgent="false"
+    />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
@@ -174,6 +176,7 @@ import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import ManagePlansFilterPopup from '../components/ManagePlansFilterPopup.vue'
 import { usePlansFilterPopup } from '../stores/manage-plans-popup-store'
 import UpdateAddNewPlanPopup from '../components/UpdateAddNewPlanPopup.vue'
+import GlobalPopupWithOverlay from '../components/GlobalPopupWithOverlay.vue'
 
 const plansFilterPopup = usePlansFilterPopup()
 
@@ -197,16 +200,17 @@ watch(
   }
 )
 
+//update or add plan popup
 const selectedPlanInfo = ref(null)
-function openEditOrPopup(selectedPlan) {
-  console.log(selectedPlan)
-  selectedPlanInfo.value = selectedPlan
-  updateAddPlanPopup.value = true
-}
+const updateAddPlanPopupRef = ref(false)
 
+function openEditOrPopup(selectedPlan) {
+  selectedPlanInfo.value = selectedPlan
+  updateAddPlanPopupRef.value.showPopup()
+}
 function closePopup(result, needsRefresh) {
   selectedPlanInfo.value = null
-  updateAddPlanPopup.value = false
+  updateAddPlanPopupRef.value.closePopup()
   if (needsRefresh) plansFilterPopup.currentPage = 1
   if (result) fetchData()
 }

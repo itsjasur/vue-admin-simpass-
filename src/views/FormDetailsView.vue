@@ -109,16 +109,23 @@
     </div>
 
     <!-- checks and enables sign container -->
-    <a-checkbox class="checkbox" v-model:checked="signAfterPrintChecked"
+    <a-checkbox
+      v-if="useDeviceTypeStore().isDeviceMobile()"
+      class="checkbox"
+      v-model:checked="signAfterPrintChecked"
       >신청서 프린트 인쇄후 서명/사인 자필</a-checkbox
     >
 
     <div class="sing-name-pads" v-if="!signAfterPrintChecked">
       <!-- form sign pad -->
       <SignImageRowContainer
-        type="forms"
-        :placeholder="FIXED_FORMS.name?.value"
-        @updated="updatePads"
+        :overlayText="FIXED_FORMS.name?.value"
+        @updateSignSeal="
+          (signData, sealData) => {
+            nameImageData = signData
+            signImageData = sealData
+          }
+        "
         title="가입자서명"
         :errorMessage="
           !nameImageData && !signImageData && formSubmitted ? '가입자서명을 하지 않았습니다.' : null
@@ -127,9 +134,13 @@
       <!-- payment pad-->
       <SignImageRowContainer
         v-if="serverData?.usim_plan_info?.carrier_type === 'PO' && !selfRegisterChecked"
-        type="payment"
-        :placeholder="FIXED_FORMS.account_name?.value"
-        @updated="updatePads"
+        :overlayText="FIXED_FORMS.account_name?.value"
+        @updateSignSeal="
+          (signData, sealData) => {
+            paymentNameImageData = signData
+            paymentSignImageData = sealData
+          }
+        "
         title="자동이체 서명"
         :errorMessage="
           !paymentNameImageData && !paymentSignImageData && formSubmitted
@@ -140,9 +151,13 @@
       <!-- deputy sign pad -->
       <SignImageRowContainer
         v-if="availableForms.deputy.length > 0"
-        type="deputy"
-        :placeholder="FIXED_FORMS.deputy_name?.value"
-        @updated="updatePads"
+        :overlayText="FIXED_FORMS.deputy_name?.value"
+        @updateSignSeal="
+          (signData, sealData) => {
+            deputyNameImageData = signData
+            deputySignImageData = sealData
+          }
+        "
         title="법정대리인 서명"
         :errorMessage="
           !deputyNameImageData && !deputySignImageData && formSubmitted
@@ -153,8 +168,12 @@
       <!-- partner sign pad -->
       <SignImageRowContainer
         v-if="serverData?.chk_partner_sign === 'N' && serverData?.usim_plan_info?.mvno_cd === 'UPM'"
-        type="partner"
-        @updated="updatePads"
+        @updateSignSeal="
+          (signData, sealData) => {
+            partnerNameImageData = signData
+            partnerSignImageData = sealData
+          }
+        "
         title="판매자 서명"
         :errorMessage="
           !partnerNameImageData && !partnerSignImageData && formSubmitted
@@ -163,11 +182,14 @@
         "
       />
 
-      <!-- i agree pad -->
-      <AgreePadPopupContainer
+      <AgreePadContainer
         v-if="serverData?.usim_plan_info?.mvno_cd === 'UPM'"
-        @updated="updateAgreePad"
         title="동의합니다"
+        @updateAgreePadData="
+          (padData) => {
+            agreePadData = padData
+          }
+        "
         :errorMessage="!agreePadData && formSubmitted ? '가입약관에 동의하지 않았습니다.' : null"
       />
     </div>
@@ -190,11 +212,12 @@ import { FORMS } from '../assets/constants'
 import { PLANSINFO } from '../assets/constants'
 import _ from 'lodash'
 import SignImageRowContainer from '../components/SignImageRowContainer.vue'
-import AgreePadPopupContainer from '../components/AgreePadPopupContainer.vue'
 import { useSearchaddressStore } from '../stores/select-address-popup'
 import LoadingSpinner from '../components/Loader.vue'
 import { usePrintablePopup } from '../stores/printable-popup'
 import { useSelectPlansPopup } from '../stores/select-plans-popup'
+import { useDeviceTypeStore } from '@/stores/device-type-store'
+import AgreePadContainer from '../components/AgreePadContainer.vue'
 
 //address poup
 const selectAddressPopup = useSearchaddressStore()
@@ -501,8 +524,9 @@ const deleteDocImages = (index) => {
   createImageUrls()
 }
 
-//will sign after print
-const signAfterPrintChecked = ref(false)
+//will sign after print, if device is not mobile, make signAfterPrintChecked true
+const signAfterPrintChecked = ref(!useDeviceTypeStore().isDeviceMobile())
+
 //signs image data
 const nameImageData = ref(null)
 const signImageData = ref(null)
@@ -517,33 +541,8 @@ const deputySignImageData = ref(null)
 const partnerNameImageData = ref(null)
 const partnerSignImageData = ref(null)
 
-//draw popup
-const updatePads = ({ name, sign, type }) => {
-  switch (type) {
-    case 'forms':
-      nameImageData.value = name
-      signImageData.value = sign
-      break
-    case 'deputy':
-      deputyNameImageData.value = name
-      deputySignImageData.value = sign
-      break
-    case 'payment':
-      paymentNameImageData.value = name
-      paymentSignImageData.value = sign
-      break
-    case 'partner':
-      partnerNameImageData.value = name
-      partnerSignImageData.value = sign
-      break
-    default:
-      useSnackbarStore().show('Invalid pad type')
-  }
-}
-
 //i agreee pad
 const agreePadData = ref(null)
-const updateAgreePad = ({ data }) => (agreePadData.value = data)
 
 const filledCheckValues = ref({})
 
@@ -726,9 +725,9 @@ async function fetchForms() {
     }
   }
 
-  for (const [key, value] of formData.entries()) {
-    console.log(key, value)
-  }
+  // for (const [key, value] of formData.entries()) {
+  //   console.log(key, value)
+  // }
 
   try {
     const response = await fetchWithTokenRefresh('agent/actApply', {
@@ -888,8 +887,7 @@ async function fetchForms() {
   }
 
   .group {
-    width: auto;
-    /* max-width: 100% !important; */
+    /* width: auto; */
   }
 
   .info-note {

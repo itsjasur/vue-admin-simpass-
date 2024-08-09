@@ -57,12 +57,9 @@
 </template>
 
 <script setup>
-import { usePageLoadingStore } from '@/stores/page-loading-store'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
-import { useImagesHolderStore } from '@/stores/image-holder-store'
-import { useInternalMessage } from 'ant-design-vue/es/message/useMessage'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 const emits = defineEmits(['closePopup'])
 const props = defineProps({ id: { type: Number, default: null } })

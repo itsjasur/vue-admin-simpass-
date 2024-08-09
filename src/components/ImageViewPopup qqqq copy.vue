@@ -1,19 +1,17 @@
 <template>
-  <div class="overlay">
+  <div v-if="popup.active" class="overlay">
     <div class="popup-content">
-      <div class="fixed-header">
+      <div class="innerHeader">
         <h3 class="title">증빙서류</h3>
-        <span @click="$emit('closePopup')" class="material-symbols-outlined close-button">
-          cancel
-        </span>
+        <span @click="popup.close()" class="material-symbols-outlined close-button"> cancel </span>
       </div>
 
       <div v-if="imageUrls.length > 0" class="scrollable-content">
         <img
-          v-for="(imageUrl, index) in props.images"
+          v-for="(image, index) in imageUrls"
           :key="index"
           class="image"
-          :src="imageUrl"
+          :src="image"
           alt=""
           loading="lazy"
         />
@@ -24,15 +22,17 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watchEffect } from 'vue'
+import { useImagesHolderStore } from '@/stores/image-holder-store'
 
-const emits = defineEmits(['closePopup'])
-const props = defineProps({ images: { type: Array, default: [] } })
+const popup = useImagesHolderStore()
 
 const imageUrls = ref([])
+
 function base64ToBlob(base64Data) {
   let contentType = 'application/octet-stream' // Default content type
   let raw = base64Data
+
   // checking if the base64 string includes the data URL prefix
   if (base64Data?.startsWith('data:')) {
     const parts = base64Data.split(';base64,')
@@ -55,26 +55,46 @@ function blobToURL(blob) {
   return URL.createObjectURL(blob)
 }
 
-onMounted(() => {
-  imageUrls.value = props.images?.map((image) => blobToURL(base64ToBlob(image)))
+// watchs for changes in popup.active and mounts
+watchEffect(() => {
+  if (popup.active) {
+    imageUrls.value = popup.images?.map((image) => blobToURL(base64ToBlob(image)))
+  }
 })
+
+onMounted(() => {
+  document.addEventListener('keydown', keydownHandle)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', keydownHandle)
+})
+
+function keydownHandle(event) {
+  if (event.key === 'Escape') popup.close()
+}
 </script>
 <style scoped>
 .overlay {
+  display: flex;
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  z-index: 1100;
+  background-color: #000000c2;
   padding: 20px;
-  box-sizing: border-box;
 }
 
 .popup-content {
   background-color: white;
   border-radius: 8px;
   height: 100%;
-  width: 800px;
+  width: 1000px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;

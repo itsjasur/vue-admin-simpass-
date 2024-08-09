@@ -20,12 +20,12 @@
   <Snackbar />
   <Warning />
   <PrintablePopup />
-  <ImageViewPopup />
   <SearchAddressPopup />
+  <!-- <ImageViewPopup /> -->
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import Snackbar from './components/Snackbar.vue'
 import Warning from './components/Warning.vue'
 import { useRouter } from 'vue-router'
@@ -33,9 +33,15 @@ import { useAuthenticationStore } from './stores/authentication'
 import { useRouteMemoryStore } from './stores/router-memory-store'
 import { useSideMenuStore } from './stores/side-menu'
 import PrintablePopup from './components/PrintablePopup.vue'
-import ImageViewPopup from './components/ImageViewPopup.vue'
+// import ImageViewPopup from './components/ImageViewPopup.vue'
 import Loading from './components/Loading.vue'
 import SearchAddressPopup from './components/SearchAddressPopup.vue'
+
+// import { messaging, getToken, onMessage } from './firebase'
+// import { FIREBASEVAPIDKEY } from '../sensitive'
+
+import sound from '@/assets/sound.mp3'
+import logo from '@/assets/logo.png'
 
 const router = useRouter()
 const authStore = useAuthenticationStore()
@@ -59,9 +65,46 @@ const handleResize = () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('resize', handleResize)
-  handleResize() //
+  handleResize()
+
+  // try {
+  //   var currentToken = await getToken(messaging, { vapidKey: FIREBASEVAPIDKEY })
+  //   localStorage.setItem('fcmToken', currentToken)
+  //   console.log(currentToken)
+  // } catch (e) {
+  //   console.log(e)
+  // }
+
+  // onMessage(messaging, (payload) => {
+  //   console.log('Message received. ', payload)
+
+  //   const audio = new Audio(sound)
+  //   audio.play()
+
+  //   // checks if the browser supports notifications
+  //   if ('Notification' in window) {
+  //     // requests permission if not already granted
+  //     if (Notification.permission !== 'granted') {
+  //       Notification.requestPermission()
+  //     } else {
+  //       // creates and shows the notification
+
+  //       const notification = new Notification(payload.notification.title, {
+  //         body: payload.notification.body,
+  //         icon: logo
+  //       })
+
+  //       //  click event to the notification
+  //       notification.onclick = function () {
+  //         window.focus()
+  //         notification.close()
+  //         //action to go to the chat
+  //       }
+  //     }
+  //   }
+  // })
 })
 
 onUnmounted(() => {
@@ -74,5 +117,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: var(--main-background-color);
+  height: 100%;
+  z-index: 1;
 }
 </style>
