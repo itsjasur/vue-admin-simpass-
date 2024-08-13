@@ -19,7 +19,7 @@
         class="canvas_container"
         :style="{ maxWidth: props.popupFor === 'sign' ? '700px' : '500px' }"
       >
-        <span class="overlay-text" :style="nameStyle">{{ overlayText }}</span>
+        <!-- <span class="overlay-text" :style="nameStyle">{{ overlayText }}</span> -->
         <canvas ref="signatureCanvas" class="signature_pad"></canvas>
       </div>
     </div>

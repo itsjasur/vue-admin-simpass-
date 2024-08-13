@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useSnackbarStore } from '@/stores/snackbar'
 import SignaturePad from 'signature_pad'
 
@@ -104,6 +104,8 @@ const save = async () => {
   height: 100%;
   background-color: #fff;
   position: relative;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .signpad_main_content {

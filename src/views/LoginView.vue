@@ -1,5 +1,5 @@
 <template>
-  <div class="main">
+  <div class="login_main">
     <div class="login-container">
       <div class="title-container">
         <div class="title">로그인</div>
@@ -117,13 +117,14 @@ async function login(event) {
 </script>
 
 <style scoped>
-.main {
-  height: 100%;
+.login_main {
+  height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  padding: 20px;
   box-sizing: border-box;
 }
 

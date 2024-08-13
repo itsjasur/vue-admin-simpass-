@@ -33,12 +33,11 @@ import { useAuthenticationStore } from './stores/authentication'
 import { useRouteMemoryStore } from './stores/router-memory-store'
 import { useSideMenuStore } from './stores/side-menu'
 import PrintablePopup from './components/PrintablePopup.vue'
-// import ImageViewPopup from './components/ImageViewPopup.vue'
 import Loading from './components/Loading.vue'
 import SearchAddressPopup from './components/SearchAddressPopup.vue'
 
-// import { messaging, getToken, onMessage } from './firebase'
-// import { FIREBASEVAPIDKEY } from '../sensitive'
+import { messaging, getToken, onMessage } from './firebase'
+import { FIREBASEVAPIDKEY } from '../sensitive'
 
 import sound from '@/assets/sound.mp3'
 import logo from '@/assets/logo.png'
@@ -69,42 +68,42 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize)
   handleResize()
 
-  // try {
-  //   var currentToken = await getToken(messaging, { vapidKey: FIREBASEVAPIDKEY })
-  //   localStorage.setItem('fcmToken', currentToken)
-  //   console.log(currentToken)
-  // } catch (e) {
-  //   console.log(e)
-  // }
+  try {
+    var currentToken = await getToken(messaging, { vapidKey: FIREBASEVAPIDKEY })
+    localStorage.setItem('fcmToken', currentToken)
+    console.log(currentToken)
+  } catch (e) {
+    console.log(e)
+  }
 
-  // onMessage(messaging, (payload) => {
-  //   console.log('Message received. ', payload)
+  onMessage(messaging, (payload) => {
+    console.log('Message received. ', payload)
 
-  //   const audio = new Audio(sound)
-  //   audio.play()
+    const audio = new Audio(sound)
+    audio.play()
 
-  //   // checks if the browser supports notifications
-  //   if ('Notification' in window) {
-  //     // requests permission if not already granted
-  //     if (Notification.permission !== 'granted') {
-  //       Notification.requestPermission()
-  //     } else {
-  //       // creates and shows the notification
+    // checks if the browser supports notifications
+    if ('Notification' in window) {
+      // requests permission if not already granted
+      if (Notification.permission !== 'granted') {
+        Notification.requestPermission()
+      } else {
+        // creates and shows the notification
 
-  //       const notification = new Notification(payload.notification.title, {
-  //         body: payload.notification.body,
-  //         icon: logo
-  //       })
+        const notification = new Notification(payload.notification.title, {
+          body: payload.notification.body,
+          icon: logo
+        })
 
-  //       //  click event to the notification
-  //       notification.onclick = function () {
-  //         window.focus()
-  //         notification.close()
-  //         //action to go to the chat
-  //       }
-  //     }
-  //   }
-  // })
+        //  click event to the notification
+        notification.onclick = function () {
+          window.focus()
+          notification.close()
+          //action to go to the chat
+        }
+      }
+    }
+  })
 })
 
 onUnmounted(() => {

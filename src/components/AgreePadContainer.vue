@@ -3,9 +3,19 @@
     <p class="sign_title">{{ props.title }}</p>
     <div class="group">
       <div class="image_container sign">
-        <span v-if="!agreePadData" class="edit_icon material-symbols-outlined" @click="showPopup()"> stylus_note </span>
-        <span v-else class="delete_icon material-symbols-outlined" @click="deletePad('sign')"> delete </span>
-        <img v-if="agreePadData" class="data_image" :src="agreePadData" alt="서명 오류" @error="agreePadData = null" />
+        <span v-if="!agreePadData" class="edit_icon material-symbols-outlined" @click="showPopup()">
+          stylus_note
+        </span>
+        <span v-else class="delete_icon material-symbols-outlined" @click="deletePad('sign')">
+          delete
+        </span>
+        <img
+          v-if="agreePadData"
+          class="data_image"
+          :src="agreePadData"
+          alt="서명 오류"
+          @error="agreePadData = null"
+        />
       </div>
     </div>
 
@@ -24,7 +34,7 @@ import AgreePadPopupContent from './AgreePadPopupContent.vue'
 
 const props = defineProps({
   errorMessage: { type: String, default: null },
-  title: { type: String, default: 'Sign title' },
+  title: { type: String, default: 'Sign title' }
 })
 const emits = defineEmits(['updateAgreePadData'])
 
@@ -42,12 +52,12 @@ const closePopup = () => {
 
 function savePadData(data) {
   agreePadData.value = data
-  emits('updateAgreePadData', agreePadData)
+  emits('updateAgreePadData', agreePadData.value)
 }
 
 function deletePad(pfor) {
   agreePadData.value = null
-  emits('updateAgreePadData', agreePadData)
+  emits('updateAgreePadData', agreePadData.value)
 }
 </script>
 

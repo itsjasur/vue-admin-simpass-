@@ -240,12 +240,12 @@ function closeStatusUpdatePopup(result) {
   if (result) fetchData()
 }
 
-async function fetchContractPDFAndPrint(agentCd) {
+async function fetchContractPDFAndPrint(agentCd, partnerCd) {
   usePageLoadingStore().start()
   try {
-    const response = await fetchWithTokenRefresh('agent/contractForms', {
+    const response = await fetchWithTokenRefresh('agent/viewContract', {
       method: 'POST',
-      body: { agent_cd: agentCd }
+      body: { agent_cd: agentCd, partner_cd: partnerCd }
     })
 
     if (!response.ok) throw 'Fetch contract PDF data error'

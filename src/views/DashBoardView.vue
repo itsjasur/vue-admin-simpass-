@@ -128,6 +128,7 @@ onUnmounted(() => {
   flex-direction: column;
   background-color: var(--main-background-color);
   z-index: 1003;
+  overflow-x: hidden;
 }
 
 .dashboard-view-content-header {
@@ -141,6 +142,7 @@ onUnmounted(() => {
   display: flex;
   flex-flow: column;
   height: 100%;
+  min-width: 100%;
   position: relative;
   overflow-y: auto;
 }

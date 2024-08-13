@@ -344,6 +344,8 @@ async function fetchData() {
 }
 
 .chatrooms-section {
+  display: flex;
+  flex-flow: column;
   width: 450px;
   height: 100%;
   overflow-y: auto;
@@ -440,10 +442,8 @@ input:focus {
   height: 100%;
   width: 100%;
   position: relative;
-
   display: flex;
   flex-flow: column;
-
   justify-content: space-between;
 }
 
