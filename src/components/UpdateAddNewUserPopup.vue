@@ -47,13 +47,13 @@
 
           <div class="group">
             <label>휴대전화</label>
-            <input
+
+            <CleaveInput
               v-model="forms.phoneNumber"
-              placeholder=""
-              @input="validateForms"
-              name="phoneNumber"
-              v-cleave="{ ...cleavePatterns.phoneNumberPattern, onValueChanged }"
+              :options="cleavePatterns.phoneNumberPattern"
+              @rawValue="validateForms"
             />
+
             <p v-if="isSubmitted && errors.phoneNumber" class="input-error-message">
               {{ errors.phoneNumber }}
             </p>
@@ -180,11 +180,6 @@ async function fetchMemberDetails() {
   } catch (error) {
     useSnackbarStore().show(error.toString())
   }
-}
-
-//cleave value change callback
-function onValueChanged(event) {
-  if (event.target.name === 'phoneNumber') forms.phoneNumber = event.target.value
 }
 
 const forms = reactive({

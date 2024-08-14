@@ -32,16 +32,13 @@
 
       <div class="group">
         <label>휴대전화</label>
-        <input
-          @input="validateForms"
+
+        <CleaveInput
           v-model="forms.phoneNumber"
-          v-cleave="{
-            phone: true,
-            phoneRegionCode: 'KR',
-            delimiter: '-',
-            onValueChanged: (event) => (forms.phoneNumber = event.target.value)
-          }"
+          :options="cleavePatterns.phoneNumberPattern"
+          @rawValue="validateForms"
         />
+
         <p v-if="isSubmitted && errors.phoneNumber" class="input-error-message">
           {{ errors.phoneNumber }}
         </p>
@@ -110,13 +107,11 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { useAuthenticationStore } from '../stores/authentication'
 import { useSnackbarStore } from '../stores/snackbar'
-import LoadingSpinner from '../components/Loader.vue'
-import { useRouteMemoryStore } from '@/stores/router-memory-store'
 import { useRouter } from 'vue-router'
 import { COUNTRIES } from '../assets/constants'
 import * as VALIDATOR from '../utils/validators'
+import * as cleavePatterns from '../utils/cleavePatterns'
 
 const forms = reactive({
   username: null,

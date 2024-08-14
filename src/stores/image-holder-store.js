@@ -2,19 +2,19 @@ import { defineStore } from 'pinia'
 
 export const useImagesHolderStore = defineStore('imagesHolderStore', {
   state: () => ({
-    active: false,
+    // active: false,
     images: []
   }),
 
   actions: {
-    open(imagesList) {
+    save(imagesList) {
       this.images = imagesList
-      this.active = true
+      // this.active = true
     },
 
-    close() {
+    clear() {
       this.images = []
-      this.active = false
+      // this.active = false
     }
   }
 })

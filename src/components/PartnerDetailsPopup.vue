@@ -22,9 +22,10 @@
 
           <div class="group" style="width: 150px">
             <label>대표자 생년월일</label>
-            <input
+
+            <CleaveInput
               :value="partnerDetails.birthday"
-              v-cleave="{ date: true, delimiter: '-', datePattern: ['Y', 'm', 'd'] }"
+              :options="cleavePatterns.birthdayPatternFull"
               readonly
             />
           </div>
@@ -36,10 +37,11 @@
 
           <div class="group" style="width: 150px">
             <label>연락처</label>
-            <input
+
+            <CleaveInput
               :value="partnerDetails.phone_number"
+              :options="cleavePatterns.phoneNumberPattern"
               readonly
-              v-cleave="{ phone: true, phoneRegionCode: 'KR', delimiter: '-' }"
             />
           </div>
 
@@ -55,19 +57,21 @@
 
           <div class="group" style="width: 150px">
             <label>매장번호</label>
-            <input
+
+            <CleaveInput
               :value="partnerDetails.store_contact"
+              :options="cleavePatterns.phoneNumberPattern"
               readonly
-              v-cleave="{ phone: true, phoneRegionCode: 'KR', delimiter: '-' }"
             />
           </div>
 
           <div class="group" style="width: 150px">
             <label>팩스번호</label>
-            <input
+
+            <CleaveInput
               :value="partnerDetails.store_fax"
+              :options="cleavePatterns.phoneNumberPattern"
               readonly
-              v-cleave="{ phone: true, phoneRegionCode: 'KR', delimiter: '-' }"
             />
           </div>
 
@@ -125,7 +129,7 @@
   </div>
 
   <GlobalPopupWithOverlay ref="imageViewerRef">
-    <ImageViewPopup :images="images" @closePopup="closeImageViewPopup" />
+    <ImageViewPopup @closePopup="closeImageViewPopup" />
   </GlobalPopupWithOverlay>
 </template>
 
@@ -136,16 +140,18 @@ import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { onMounted, ref } from 'vue'
 import GlobalPopupWithOverlay from './GlobalPopupWithOverlay.vue'
 import ImageViewPopup from './ImageViewPopup.vue'
+import { useImagesHolderStore } from '@/stores/image-holder-store'
+import * as cleavePatterns from '../utils/cleavePatterns'
 
 const emits = defineEmits(['closePopup'])
 const props = defineProps({ partnerCd: { type: String, default: null } })
 
-const images = ref([])
 const imageViewerRef = ref()
 function openImageViewPopup() {
   imageViewerRef.value.showPopup()
 }
 function closeImageViewPopup() {
+  useImagesHolderStore().clear()
   imageViewerRef.value.closePopup()
 }
 
@@ -180,7 +186,7 @@ async function fetchImageByName(fileName) {
 
     if (!decodedResponse?.data) throw decodedResponse?.message ?? 'No image'
     if (!decodedResponse?.data?.image) throw 'No image'
-    images.value = [decodedResponse.data.image]
+    useImagesHolderStore().save([decodedResponse.data.image])
     openImageViewPopup()
   } catch (error) {
     useSnackbarStore().show(error.toString())

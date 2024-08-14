@@ -10,7 +10,7 @@
 
       <div v-if="imageUrls.length > 0" class="scrollable-content">
         <img
-          v-for="(imageUrl, index) in props.images"
+          v-for="(imageUrl, index) in imageUrls"
           :key="index"
           class="image"
           :src="imageUrl"
@@ -24,10 +24,10 @@
 </template>
 
 <script setup>
+import { useImagesHolderStore } from '@/stores/image-holder-store'
 import { onMounted, ref } from 'vue'
 
 const emits = defineEmits(['closePopup'])
-const props = defineProps({ images: { type: Array, default: [] } })
 
 const imageUrls = ref([])
 function base64ToBlob(base64Data) {
@@ -56,7 +56,7 @@ function blobToURL(blob) {
 }
 
 onMounted(() => {
-  imageUrls.value = props.images?.map((image) => blobToURL(base64ToBlob(image)))
+  imageUrls.value = useImagesHolderStore().images?.map((image) => blobToURL(base64ToBlob(image)))
 })
 </script>
 <style scoped>

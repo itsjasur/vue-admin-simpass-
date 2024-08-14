@@ -174,11 +174,13 @@
           </div>
           <div class="group" style="max-width: 150px">
             <label>기본료</label>
-            <input
-              v-model="forms.basicFee"
-              name="basicFee"
-              v-cleave="{ numeral: true, onValueChanged }"
+
+            <CleaveInput
+              :value="forms.basicFee"
+              :options="{ numeral: true }"
+              @rawValue="rawForms.basicFee = $event"
             />
+
             <p v-if="isSubmitted && !forms.basicFee" class="input-error-message">
               기본료 입력하세요.
             </p>
@@ -186,11 +188,13 @@
 
           <div class="group" style="max-width: 150px">
             <label>판매금액</label>
-            <input
-              v-model="forms.salesFee"
-              name="salesFee"
-              v-cleave="{ numeral: true, onValueChanged }"
+
+            <CleaveInput
+              :value="forms.salesFee"
+              :options="{ numeral: true }"
+              @rawValue="rawForms.salesFee = $event"
             />
+
             <p v-if="isSubmitted && !forms.salesFee" class="input-error-message">
               판매금액 입력하세요.
             </p>
@@ -226,10 +230,11 @@
 
           <div class="group" style="max-width: 150px">
             <label>우선순위</label>
-            <input
-              v-model="forms.priority"
-              name="priority"
-              v-cleave="{ numeral: true, onValueChanged }"
+
+            <CleaveInput
+              :value="forms.priority"
+              :options="{ numeral: true }"
+              @rawValue="rawForms.priority = $event"
             />
           </div>
 
@@ -245,7 +250,7 @@
 <script setup>
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { onMounted, reactive, ref } from 'vue'
+import { onBeforeMount, onMounted, reactive, ref } from 'vue'
 
 const emit = defineEmits(['closePopup'])
 
@@ -288,11 +293,6 @@ const data = reactive({
 })
 
 const isSubmitted = ref(false)
-
-function onValueChanged(event) {
-  forms[event.target.name] = event.target.value
-  rawForms[event.target.name] = event.target.rawValue
-}
 
 async function fetchData() {
   try {
@@ -395,11 +395,9 @@ const filterOption = (input, option) => {
   )
 }
 
-onMounted(async () => {
-  console.log('updateaddnew plan mounted')
-  await fetchData()
-  //if props comes with id, values are set to prop.planInfo
+onBeforeMount(async () => {
   if (props.planInfo) {
+    fetchData()
     forms.carrier = props.planInfo?.carrier_cd ?? ''
     forms.mvno = props.planInfo?.mvno_cd ?? ''
     forms.agent = props.planInfo?.agent_cd ?? ''

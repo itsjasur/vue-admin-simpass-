@@ -18,12 +18,12 @@
 
       <div class="group" style="min-width: 180px">
         <label>출력일자 (From)</label>
-        <input v-model="fromDate" v-cleave="cleavePatterns.datePattern" />
+        <CleaveInput v-model="fromDate" :options="cleavePatterns.datePattern" />
       </div>
 
       <div class="group" style="min-width: 180px">
         <label>출력일자 (To)</label>
-        <input v-model="toDate" v-cleave="cleavePatterns.datePattern" />
+        <CleaveInput v-model="toDate" :options="cleavePatterns.datePattern" />
       </div>
 
       <button @click="fetchData" style="min-width: 100px; width: auto">조희</button>

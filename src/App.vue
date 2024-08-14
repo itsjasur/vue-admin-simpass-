@@ -21,7 +21,6 @@
   <Warning />
   <PrintablePopup />
   <SearchAddressPopup />
-  <!-- <ImageViewPopup /> -->
 </template>
 
 <script setup>
@@ -40,7 +39,7 @@ import { messaging, getToken, onMessage } from './firebase'
 import { FIREBASEVAPIDKEY } from '../sensitive'
 
 import sound from '@/assets/sound.mp3'
-import logo from '@/assets/logo.png'
+// import logo from '@/assets/logo.png'
 
 const router = useRouter()
 const authStore = useAuthenticationStore()
@@ -91,8 +90,8 @@ onMounted(async () => {
         // creates and shows the notification
 
         const notification = new Notification(payload.notification.title, {
-          body: payload.notification.body,
-          icon: logo
+          body: payload.notification.body
+          // icon: logo
         })
 
         //  click event to the notification

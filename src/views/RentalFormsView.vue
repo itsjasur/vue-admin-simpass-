@@ -14,12 +14,14 @@
 
       <div class="group" style="max-width: 200px">
         <label>생년월일</label>
-        <input
-          v-model="registrerBirthday"
+
+        <CleaveInput
+          :value="registrerBirthday"
           placeholder="91-01-31"
-          name="birthday"
-          v-cleave="{ ...cleavePatterns.birthdayPattern, onValueChanged }"
+          :options="cleavePatterns.birthdayPattern"
+          @update:modelValue="validateDate($event)"
         />
+
         <p v-if="!registrerBirthday && submitted" class="input-error-message">
           생년월일 입력하세요.
         </p>
@@ -27,12 +29,12 @@
 
       <div class="group" style="max-width: 200px">
         <label>개통번호외 연락번호</label>
-        <input
+        <CleaveInput
           v-model="registrerPhoneNumber"
           placeholder="010-0000-0000"
-          name="phoneNumber"
-          v-cleave="{ ...cleavePatterns.phoneNumberPattern, onValueChanged }"
+          :options="cleavePatterns.phoneNumberPattern"
         />
+
         <p v-if="!registrerPhoneNumber && submitted" class="input-error-message">
           연락처 입력하세요.
         </p>
@@ -152,26 +154,19 @@ const signData = ref(null)
 const sealData = ref(null)
 
 //cleave value change callback
-function onValueChanged(event) {
-  if (event.target.name === 'phoneNumber') registrerPhoneNumber.value = event.target.value
+function validateDate(formattedValue) {
+  const today = new Date()
+  const currYear = today.getFullYear() % 100
+  if (formattedValue.length === 8) {
+    const [yy, mm, dd] = formattedValue.split('-')
+    if (yy > currYear) formattedValue = '19' + formattedValue
+    else formattedValue = '20' + formattedValue
 
-  if (event.target.name === 'birthday') {
-    const today = new Date()
-    const currYear = today.getFullYear() % 100
-
-    let formattedValue = event.target.value
-    if (event.target.rawValue.length === 6) {
-      const [yy, mm, dd] = formattedValue.split('-')
-      if (yy > currYear) formattedValue = '19' + formattedValue
-      else formattedValue = '20' + formattedValue
-
-      const date = new Date(formattedValue)
-      const year = date.getFullYear().toString().slice(-2)
-      const month = (date.getMonth() + 1).toString().padStart(2, '0')
-      const day = date.getDate().toString().padStart(2, '0')
-
-      registrerBirthday.value = `${year}-${month}-${day}`
-    }
+    const date = new Date(formattedValue)
+    const year = date.getFullYear().toString().slice(-2)
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+    registrerBirthday.value = `${year}-${month}-${day}`
   }
 }
 

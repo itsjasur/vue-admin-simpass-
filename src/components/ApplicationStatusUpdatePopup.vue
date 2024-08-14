@@ -25,16 +25,12 @@
 
         <div v-if="newStatus === 'Y' && props.isNewNumber" class="group">
           <label>휴대전화</label>
-          <input
-            v-model="phoneNumber"
-            v-cleave="{
-              phone: true,
-              phoneRegionCode: 'KR',
-              delimiter: '-',
-              prefix: '010',
-              onValueChanged
-            }"
+
+          <CleaveInput
+            @rawValue="phoneNumber = $event"
+            :options="{ phone: true, phoneRegionCode: 'KR', delimiter: '-', prefix: '010' }"
           />
+
           <p v-if="isSubmitted && phoneNumber.length !== 13" class="input-error-message">
             휴대전화 입력하세요.
           </p>
@@ -70,10 +66,6 @@ const newStatus = ref(props.currentStatus)
 const phoneNumber = ref()
 
 const isStatusUpdating = ref(false)
-
-function onValueChanged(event) {
-  phoneNumber.value = event.target.value
-}
 
 const isSubmitted = ref(false)
 
