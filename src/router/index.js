@@ -73,7 +73,7 @@ const router = createRouter({
           meta: {
             title: '요금제관리',
             requiresAuth: true,
-            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN']
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_AGENCY_ADMIN']
           }
         },
         {
@@ -100,7 +100,8 @@ const router = createRouter({
               'ROLE_OPEN_ADMIN',
               'ROLE_OPEN_AGENCY',
               'ROLE_OPEN_MANAGER',
-              'ROLE_OPEN_MEMBER'
+              'ROLE_OPEN_MEMBER',
+              'ROLE_AGENCY_ADMIN'
             ]
           }
         },
@@ -128,7 +129,7 @@ const router = createRouter({
           meta: {
             title: '판매점가입현황',
             requiresAuth: true,
-            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN']
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_AGENCY_ADMIN']
           }
         },
 
@@ -141,7 +142,7 @@ const router = createRouter({
           meta: {
             title: '판매점거래현황',
             requiresAuth: true,
-            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN']
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_AGENCY_ADMIN']
           }
         },
 

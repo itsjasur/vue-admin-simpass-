@@ -395,9 +395,9 @@ const filterOption = (input, option) => {
   )
 }
 
-onBeforeMount(async () => {
+onBeforeMount(() => {
+  fetchData()
   if (props.planInfo) {
-    fetchData()
     forms.carrier = props.planInfo?.carrier_cd ?? ''
     forms.mvno = props.planInfo?.mvno_cd ?? ''
     forms.agent = props.planInfo?.agent_cd ?? ''
