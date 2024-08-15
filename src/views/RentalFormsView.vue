@@ -111,7 +111,7 @@
         "
         :errorMessage="!signData && !sealData && submitted ? '판매자서명을 하지 않았습니다.' : null"
       />
-      <button @click="submit">서명/사인 저장</button>
+      <!-- <button @click="submit">서명/사인 저장</button> -->
     </template>
 
     <button class="submit" @click="submit" :disabled="isLoading">
@@ -150,8 +150,8 @@ const submitted = ref(false)
 //sign checker
 const signAfterPrint = ref(!useDeviceTypeStore().isDeviceMobile())
 
-const signData = ref(null)
-const sealData = ref(null)
+const signData = ref()
+const sealData = ref()
 
 //cleave value change callback
 function validateDate(formattedValue) {
@@ -220,7 +220,7 @@ const isLoading = ref(false)
 async function submit() {
   submitted.value = true
 
-  if (!signData.value || !sealData.value) {
+  if (useDeviceTypeStore().isDeviceMobile() && (!signData.value || !sealData.value)) {
     return useSnackbarStore().show('서명/사인 하지 않았습니다')
   }
 
@@ -247,6 +247,10 @@ async function submit() {
     address.value,
     usimNumber.value
   ]
+
+  // for (const [key, value] of formData.entries()) {
+  //   console.log(key, value, typeof variable)
+  // }
 
   if (checklist.every(Boolean)) {
     try {

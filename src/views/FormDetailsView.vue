@@ -186,8 +186,7 @@
         title="동의합니다"
         @updateAgreePadData="
           (padData) => {
-            console.log(padData)
-            // agreePadData = padData
+            agreePadData = padData
           }
         "
         :errorMessage="!agreePadData && formSubmitted ? '가입약관에 동의하지 않았습니다.' : null"
@@ -524,21 +523,21 @@ const deleteDocImages = (index) => {
 const signAfterPrintChecked = ref(!useDeviceTypeStore().isDeviceMobile())
 
 //signs image data
-const nameImageData = ref(null)
-const signImageData = ref(null)
+const nameImageData = ref()
+const signImageData = ref()
 
-const paymentNameImageData = ref(null)
-const paymentSignImageData = ref(null)
+const paymentNameImageData = ref()
+const paymentSignImageData = ref()
 
-const deputyNameImageData = ref(null)
-const deputySignImageData = ref(null)
+const deputyNameImageData = ref()
+const deputySignImageData = ref()
 
 //shows if partner has no sign in profile
-const partnerNameImageData = ref(null)
-const partnerSignImageData = ref(null)
+const partnerNameImageData = ref()
+const partnerSignImageData = ref()
 
 //i agreee pad
-const agreePadData = ref(null)
+const agreePadData = ref()
 
 const filledCheckValues = ref({})
 

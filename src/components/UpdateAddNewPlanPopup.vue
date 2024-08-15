@@ -176,7 +176,7 @@
             <label>기본료</label>
 
             <CleaveInput
-              :value="forms.basicFee"
+              v-model="forms.basicFee"
               :options="{ numeral: true }"
               @rawValue="rawForms.basicFee = $event"
             />
@@ -190,7 +190,7 @@
             <label>판매금액</label>
 
             <CleaveInput
-              :value="forms.salesFee"
+              v-model="forms.salesFee"
               :options="{ numeral: true }"
               @rawValue="rawForms.salesFee = $event"
             />
@@ -232,7 +232,7 @@
             <label>우선순위</label>
 
             <CleaveInput
-              :value="forms.priority"
+              v-model="forms.priority"
               :options="{ numeral: true }"
               @rawValue="rawForms.priority = $event"
             />
