@@ -40,12 +40,12 @@ import SelectPlanPopup from '@/components/SelectPlanPopup.vue'
 import { useSelectPlansPopup } from '@/stores/select-plans-popup'
 import { useTotalUnreadCountStore } from '@/stores/total-unread-count-store'
 import { io } from 'socket.io-client'
-import { useWebSocketStore } from '@/stores/webscoket-store'
 
 const selectPlansPopup = useSelectPlansPopup()
 const sideMenuStore = useSideMenuStore()
 
-const webSocketStore = useWebSocketStore()
+// SOCKET CONNECTION
+const socket = io(import.meta.env.VITE_CHAT_SERVER_URL, { transports: ['websocket', 'polling'] })
 
 const handleResize = () => {
   sideMenuStore.updateIsDesktop()
@@ -56,14 +56,44 @@ const chatRooms = ref([])
 onMounted(() => {
   sideMenuStore.updateIsDesktop()
   window.addEventListener('resize', handleResize)
-  console.log('dashboard mounted')
 
-  if (!webSocketStore.socket) webSocketStore.connect()
+  socket.on('connected', () => {
+    // console.log('Connected to server')
+    socket.emit('authenticate', {
+      userToken: localStorage.getItem('accessToken'),
+      fcmToken: localStorage.getItem('fcmToken')
+    })
+  })
+  socket.on('authenticated', () => {
+    // console.log('Authenticated to server')
+    socket.emit('get_rooms', { searchText: '' })
+  })
+
+  socket.on('rooms', (rooms) => {
+    chatRooms.value = rooms
+    updateTotalCount()
+  })
+
+  socket.on('room_modified', (modifiedRoom) => {
+    const index = chatRooms.value.findIndex((room) => room.room_id === modifiedRoom.room_id)
+    if (index !== -1) {
+      chatRooms.value[index] = modifiedRoom
+      updateTotalCount()
+    }
+  })
 })
+
+function updateTotalCount() {
+  var totalCount = 0
+  chatRooms.value.forEach((chatRoom) => {
+    totalCount = totalCount + chatRoom.agent_unread_count
+  })
+  useTotalUnreadCountStore().update(totalCount)
+}
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
-  webSocketStore.disconnect() // disconnects from WebSocket
+  // console.log('dashboard onunmounted ')
 })
 </script>
 

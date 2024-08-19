@@ -687,6 +687,11 @@ async function fetchForms() {
     } else if (formName === 'country') {
       formData.set('country_cd', FIXED_FORMS[formName].value)
       //
+    } else if (formName === 'address') {
+      formData.set(
+        'address',
+        FIXED_FORMS[formName].value + ' ' + FIXED_FORMS['addressdetail'].value
+      )
     } else if (formName === 'usim_model_list') {
       formData.set('usim_model_no', FIXED_FORMS[formName].value)
       //
@@ -720,9 +725,9 @@ async function fetchForms() {
     }
   }
 
-  // for (const [key, value] of formData.entries()) {
-  //   console.log(key, value)
-  // }
+  for (const [key, value] of formData.entries()) {
+    console.log(key, value)
+  }
 
   try {
     const response = await fetchWithTokenRefresh('agent/actApply', {

@@ -16,9 +16,8 @@
         <span class="menu-title">{{ getTitleByRouteNameOrPath(item.path) }}</span>
 
         <template v-if="item.path === '/chats'">
-          <span>{{ webSocketStore.isConnected }}</span>
-          <span class="total-badge-count" v-if="webSocketStore.totalUnreadCount > 0">{{
-            webSocketStore.totalUnreadCount
+          <span class="total-badge-count" v-if="countStore.totalUnreadCount > 0">{{
+            countStore.totalUnreadCount
           }}</span>
         </template>
       </div>
@@ -31,9 +30,9 @@ import { useSideMenuStore } from '../stores/side-menu'
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useAuthenticationStore } from '@/stores/authentication'
-import { useWebSocketStore } from '@/stores/webscoket-store'
+import { useTotalUnreadCountStore } from '@/stores/total-unread-count-store'
 
-const webSocketStore = useWebSocketStore()
+const countStore = useTotalUnreadCountStore()
 
 const authStore = useAuthenticationStore()
 

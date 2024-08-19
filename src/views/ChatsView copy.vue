@@ -6,16 +6,16 @@
           type="text"
           id="username"
           name="username"
-          @input="webSocketStore.getChatRooms(searchText)"
+          @input="getRooms"
           placeholder="Search"
           v-model="searchText"
         />
       </div>
       <div class="reveivers-list">
-        <template v-for="(room, index) in webSocketStore.chatRooms" :key="index">
+        <template v-for="(room, index) in chatRooms" :key="index">
           <div
             @click="selectRoom(room)"
-            :class="['chatroom', { isSelected: webSocketStore.selectedRoomId === room?.room_id }]"
+            :class="['chatroom', { isSelected: selectedRoom?.room_id === room?.room_id }]"
           >
             <span> {{ room.partner_name }}</span>
             <!-- <div v-if="userInfo?.agent_cd?.length > 1" class="chatroom-name">
@@ -23,7 +23,10 @@
               {{ room.agent_code }}
             </div> -->
 
-            <div v-if="room?.agent_unread_count !== 0" class="unread-count-badge">
+            <div
+              v-if="selectedRoom?.room_id !== room?.room_id && room?.agent_unread_count !== 0"
+              class="unread-count-badge"
+            >
               {{ room.agent_unread_count }}
             </div>
           </div>
@@ -32,7 +35,7 @@
     </div>
     <div class="chats-container-section" @drop.prevent="onDrop" @dragover.prevent>
       <div class="chats-list" ref="chatContainer">
-        <template v-for="(chat, index) in webSocketStore.chats" :key="index">
+        <template v-for="(chat, index) in chats" :key="index">
           <template v-if="chat.attachment_paths.length > 0">
             <template v-for="(attachmentPath, pathIndex) in chat.attachment_paths" :key="pathIndex">
               <img
@@ -56,12 +59,12 @@
         </template>
       </div>
 
-      <div v-if="webSocketStore.selectedRoomId" class="bottom-actions">
+      <div v-if="selectedRoom" class="bottom-actions">
         <div v-if="attachments.length > 0" class="attachments-row">
           <div v-for="(file, index) in attachments" :key="index" class="attached-images">
             <img :src="file.url" :alt="'image index: ' + index" />
             <div class="overlay">
-              <div @click="attachments.splice(index, 1)" class="delete-icon">&#10005;</div>
+              <div @click="removeAttachment(index)" class="delete-icon">&#10005;</div>
             </div>
           </div>
         </div>
@@ -80,7 +83,7 @@
             <span class="material-symbols-outlined"> add_photo_alternate </span>
           </label>
 
-          <span @click="sendNewMessage" class="send-message-icon material-symbols-outlined">
+          <span @click="sendMessage" class="send-message-icon material-symbols-outlined">
             send
           </span>
           <a-textarea
@@ -100,73 +103,152 @@
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { nextTick, onMounted, ref, watch } from 'vue'
-import { useWebSocketStore } from '@/stores/webscoket-store'
+import { io } from 'socket.io-client'
+import { useTotalUnreadCountStore } from '@/stores/total-unread-count-store'
 
-const webSocketStore = useWebSocketStore()
-
-const chatContainer = ref(null)
-const userInfo = ref()
 const searchText = ref('')
+const userInfo = ref()
+const chatContainer = ref(null)
 const newMessage = ref('')
+
+const selectedRoom = ref(null)
+
+const chatRooms = ref([])
+const chats = ref([])
 
 // adds logic for the action to take on Enter without Shift
 const handleKeyDown = (event) => {
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault()
-    sendNewMessage()
+    sendMessage()
   }
 }
 
-const checkConnection = () => {
-  if (!webSocketStore.isConnected) {
-    setTimeout(checkConnection, 100) // checks every 100ms
-  } else {
-    webSocketStore.getChatRooms(searchText.value)
-  }
-}
-
-watch(
-  () => webSocketStore.chats,
-  (newv, oldv) => {
-    console.log('chats changed')
-    scrollToBottom()
-  },
-  { deep: true }
-)
+// SOCKET CONNECTION
+const socket = io(import.meta.env.VITE_CHAT_SERVER_URL, { transports: ['websocket', 'polling'] })
 
 onMounted(() => {
-  console.log('chats mounted')
-  chatContainer.value = document.querySelector('.container') //chat container to scroll up or down
   fetchData()
 
-  if (!webSocketStore.socket) webSocketStore.connect()
-  checkConnection()
+  chatContainer.value = document.querySelector('.container') //chat container to scroll up or down
+
+  socket.on('connected', () => {
+    // console.log('Connected to server')
+    socket.emit('authenticate', {
+      userToken: localStorage.getItem('accessToken'),
+      fcmToken: localStorage.getItem('fcmToken')
+    })
+  })
+  socket.on('authenticated', () => {
+    // console.log('Authenticated to server')
+    getRooms()
+  })
+
+  socket.on('connect_error', (error) => {
+    console.error('Connection error:', error)
+  })
+
+  socket.on('rooms', (rooms) => {
+    // console.log('agent rooms', rooms)
+    chatRooms.value = rooms
+
+    //clean current chat and selectedRoom if search result does not contain the room
+    if (!chatRooms.value.find((obj) => obj?.room_id === selectedRoom.value)) {
+      chats.value = []
+      selectedRoom.value = null
+    }
+
+    //initiatal opening chatroom
+    if (chatRooms.value.length > 0 && selectedRoom.value === null) {
+      selectRoom(chatRooms.value[0])
+    }
+
+    updateTotalCount()
+  })
+
+  socket.on('chats', (data) => {
+    // console.log(data)
+    chats.value = data
+    scrollToBottom()
+  })
+
+  socket.on('message', (newMessage) => {
+    chats.value.push(newMessage)
+    resetUnreadCount()
+    scrollToBottom()
+  })
+
+  socket.on('new_room_added', (newRoom) => {
+    // console.log('rooms update called')
+    // console.log(newRoom)
+    if (!chatRooms.value.find((obj) => obj.room_id === newRoom['room_id'])) {
+      chatRooms.value.push(newRoom)
+    }
+    //initiatal opening chatroom
+    if (chatRooms.value.length > 0 && selectedRoom.value === null) {
+      selectRoom(chatRooms.value[0])
+    }
+  })
+
+  socket.on('room_removed', (removedRoomId) => {
+    // console.log('removed room called', removedRoomId)
+    const indexToRemove = chatRooms.value.findIndex((obj) => obj.room_id === removedRoomId)
+    if (indexToRemove !== -1) {
+      chatRooms.value.splice(indexToRemove, 1)
+    }
+
+    //clean if the removed item is open
+    if (selectedRoom.value && selectedRoom.value.room_id === removedRoomId) {
+      chats.value = []
+      selectedRoom.value = null
+    }
+  })
+
+  socket.on('room_modified', (modifiedRoom) => {
+    // console.log('room_modified called')
+    console.log(modifiedRoom)
+    const index = chatRooms.value.findIndex((room) => room.room_id === modifiedRoom.room_id)
+    if (index !== -1) {
+      chatRooms.value[index] = modifiedRoom
+      updateTotalCount()
+    }
+  })
 })
+
+function updateTotalCount() {
+  var totalCount = 0
+  chatRooms.value.forEach((chatRoom) => {
+    totalCount = totalCount + chatRoom.agent_unread_count
+  })
+  useTotalUnreadCountStore().update(totalCount)
+  // console.log('total count', totalCount)
+}
 
 const scrollToBottom = () => {
   nextTick(() => {
     if (chatContainer.value) {
       chatContainer.value.scrollTop = chatContainer.value.scrollHeight
-      webSocketStore.resetRoomUnreadCount()
     }
   })
 }
 
-function selectRoom(room) {
-  if (room?.room_id) {
-    webSocketStore.selectedRoomId = room?.room_id
-    webSocketStore.joinRoom()
-  }
+function getRooms() {
+  // console.log('get rooms called')
+  socket.emit('get_rooms', { searchText: searchText.value })
 }
 
-async function sendNewMessage() {
-  const attachmentPaths = await uploadFiles()
-  if (newMessage.value.trim() || attachments.value.length > 0) {
-    webSocketStore.sendMessage(newMessage.value, attachmentPaths)
+function selectRoom(room) {
+  selectedRoom.value = room
+  socket.emit('join_room', {
+    userToken: localStorage.getItem('accessToken'),
+    roomId: room.room_id
+  })
+  resetUnreadCount()
+}
 
-    newMessage.value = ''
-    attachments.value = []
-  }
+function resetUnreadCount() {
+  if (selectedRoom.value)
+    socket.emit('reset_room_unread_count', { roomId: selectedRoom.value.room_id })
 }
 
 //drop to attach files handler
@@ -184,6 +266,29 @@ const handleFileUpload = (event) => {
   const imageFiles = files.filter((file) => file.type.startsWith('image/'))
   const urls = imageFiles.map((file) => ({ url: URL.createObjectURL(file), file }))
   attachments.value.push(...urls)
+}
+
+const removeAttachment = (index) => {
+  attachments.value.splice(index, 1)
+}
+
+const sendMessage = async () => {
+  // console.log(newMessage.value)
+  if (newMessage.value.trim() || attachments.value.length > 0) {
+    const attachmentPaths = await uploadFiles()
+
+    const newMessageToSend = {
+      userToken: localStorage.getItem('accessToken'),
+      text: newMessage.value,
+      attachmentPaths: attachmentPaths,
+      roomId: selectedRoom.value.room_id,
+      agentCd: selectedRoom.value.agent_code,
+      partnerCd: selectedRoom.value.partner_code
+    }
+    socket.emit('new_message', newMessageToSend)
+    //clears input field text
+    newMessage.value = ''
+  }
 }
 
 async function uploadFiles() {
@@ -219,7 +324,6 @@ async function uploadFiles() {
 }
 
 async function fetchData() {
-  console.log('chats fetch called')
   try {
     const response = await fetchWithTokenRefresh('agent/userInfo', { method: 'GET' })
     if (!response.ok) throw 'Fetch data error'

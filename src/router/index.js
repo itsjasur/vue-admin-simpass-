@@ -262,7 +262,7 @@ router.beforeEach(async (to, from, next) => {
     return next()
   }
 
-  // always fetchs user info for authenticated routesx
+  // always fetchs user info for authenticated routes
   try {
     const response = await fetchWithTokenRefresh('admin/myInfo', { method: 'GET' })
     if (!response.ok) throw new Error('Fetch profile data error')

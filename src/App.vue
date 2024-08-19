@@ -34,11 +34,10 @@ import { useSideMenuStore } from './stores/side-menu'
 import PrintablePopup from './components/PrintablePopup.vue'
 import Loading from './components/Loading.vue'
 import SearchAddressPopup from './components/SearchAddressPopup.vue'
-
 import { messaging, getToken, onMessage } from './firebase'
 import { FIREBASEVAPIDKEY } from '../sensitive'
-
 import sound from '@/assets/sound.mp3'
+
 // import logo from '@/assets/logo.png'
 
 const router = useRouter()
