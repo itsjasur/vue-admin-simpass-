@@ -161,7 +161,9 @@ function selectRoom(room) {
 
 async function sendNewMessage() {
   const attachmentPaths = await uploadFiles()
-  if (newMessage.value.trim() || attachments.value.length > 0) {
+  console.log(attachmentPaths)
+
+  if (newMessage.value.trim() || attachmentPaths.length > 0) {
     webSocketStore.sendMessage(newMessage.value, attachmentPaths)
 
     newMessage.value = ''
@@ -195,7 +197,7 @@ async function uploadFiles() {
     formData.set('filename', 'filename')
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/upload', {
+      const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'upload', {
         method: 'POST',
         body: formData
       })

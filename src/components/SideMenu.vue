@@ -16,7 +16,7 @@
         <span class="menu-title">{{ getTitleByRouteNameOrPath(item.path) }}</span>
 
         <template v-if="item.path === '/chats'">
-          <span>{{ webSocketStore.isConnected }}</span>
+          <!-- <span>{{ webSocketStore.isConnected }}</span> -->
           <span class="total-badge-count" v-if="webSocketStore.totalUnreadCount > 0">{{
             webSocketStore.totalUnreadCount
           }}</span>

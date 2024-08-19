@@ -7,14 +7,17 @@ export const useWebSocketStore = defineStore('webSocket', {
     totalUnreadCount: 0,
     selectedRoomId: null,
     chatRooms: [],
-    chats: [],
-    reconnectInterval: null
+    reconnectInterval: null,
+    chats: []
   }),
 
   actions: {
     connect() {
       const accessToken = localStorage.getItem('accessToken')
-      this.socket = new WebSocket(`ws://localhost:8000/ws/${accessToken}`)
+      // this.socket = new WebSocket(`ws://localhost:8000/ws/${accessToken}`)
+      // this.socket = new WebSocket(`wss://chat.baroform.com/ws/${accessToken}`)
+      // this.socket = new WebSocket(`https://chat.baroform.com/ws/${accessToken}`)
+      this.socket = new WebSocket(import.meta.env.VITE_CHAT_SERVER_URL + `ws/${accessToken}`)
 
       this.socket.onopen = () => {
         console.log('Socket connected')
@@ -59,12 +62,13 @@ export const useWebSocketStore = defineStore('webSocket', {
         }
 
         if (data?.type === 'chats') {
-          if (this.selectedRoomId) this.chats = data?.chats
-          //   console.log(data.chats)
+          if (this.selectedRoomId) {
+            this.chats = data?.chats
+          }
         }
 
         if (data?.type === 'new_chat') {
-          if (this.selectedRoomId) this.chats.push(data?.new_chat)
+          if (this.selectedRoomId === data?.new_chat.room_id) this.chats.push(data?.new_chat)
           //   console.log(data.new_chat)
         }
       }
