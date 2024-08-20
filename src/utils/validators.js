@@ -63,9 +63,9 @@ export function validatePass(value) {
     return '비밀번호는 8자 이상 '
   }
 
-  const regex = /^(?=.*?[A-Z])(?=.*?[0-9]){2}(?=.*?[!@#$&~*%^?]).{8,}$/
+  const regex = /^(?=.*?[a-zA-Z])(?=.*?[0-9]){2}(?=.*?[!@#$&~*%^?]).{8,}$/
   if (!regex.test(value)) {
-    return '비밀번호는 8자 이상, 대문자 1자, 숫자 2자 및 특수 대소문자 1자를 조합'
+    return '비밀번호는 8자 이상, 대/소문자 1자, 숫자 2자 및 특수 대소문자 1자를 조합'
   }
 
   return null

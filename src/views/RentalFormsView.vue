@@ -99,20 +99,18 @@
       >신청서 프린트 인쇄후 서명/사인 자필</a-checkbox
     >
 
-    <template v-if="useDeviceTypeStore().isDeviceMobile()">
-      <SignImageRowContainer
-        :overlayText="registrer"
-        title="가입자서명"
-        @updateSignSeal="
-          (sign, seal) => {
-            signData = sign
-            sealData = seal
-          }
-        "
-        :errorMessage="!signData && !sealData && submitted ? '판매자서명을 하지 않았습니다.' : null"
-      />
-      <!-- <button @click="submit">서명/사인 저장</button> -->
-    </template>
+    <SignImageRowContainer
+      :overlayText="registrer"
+      title="가입자서명"
+      @updateSignSeal="
+        (sign, seal) => {
+          signData = sign
+          sealData = seal
+        }
+      "
+      :errorMessage="!signData && !sealData && submitted ? '판매자서명을 하지 않았습니다.' : null"
+    />
+    <!-- <button @click="submit">서명/사인 저장</button> -->
 
     <button class="submit" @click="submit" :disabled="isLoading">
       <LoadingSpinner v-if="isLoading" height="20px" color="#ffffff" />
@@ -220,7 +218,7 @@ const isLoading = ref(false)
 async function submit() {
   submitted.value = true
 
-  if (useDeviceTypeStore().isDeviceMobile() && (!signData.value || !sealData.value)) {
+  if (!signData.value || !sealData.value) {
     return useSnackbarStore().show('서명/사인 하지 않았습니다')
   }
 

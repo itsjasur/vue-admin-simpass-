@@ -63,14 +63,6 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize)
   handleResize()
 
-  // try {
-  //   var currentToken = await getToken(messaging, { vapidKey: FIREBASEVAPIDKEY })
-  //   localStorage.setItem('fcmToken', currentToken)
-  //   console.log(currentToken)
-  // } catch (e) {
-  //   console.log(e)
-  // }
-
   onMessage(messaging, (payload) => {
     console.log('Message received. ', payload)
 

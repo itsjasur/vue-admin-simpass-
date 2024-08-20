@@ -146,11 +146,11 @@ async function changePassword() {
   isSubmitted.value = true
 
   if (!oldPassword.value || !newPassword.value) {
-    snackbar.show('이전 비밀번호와 새 비밀번호를 입력하세요.')
+    useSnackbarStore().show('이전 비밀번호와 새 비밀번호를 입력하세요.')
     return
   }
   if (newPassword.value !== newPasswordCheck.value) {
-    snackbar.show('비밀번호가 일치하지 않습니다.')
+    useSnackbarStore().show('비밀번호가 일치하지 않습니다.')
     return
   }
 
@@ -168,9 +168,12 @@ async function changePassword() {
     })
 
     const decodedResponse = await response.json()
-    snackbar.show(decodedResponse?.message ?? 'Password change error')
+
+    console.log(decodedResponse.body)
+
+    useSnackbarStore().show(decodedResponse?.message ?? 'Password change error')
   } catch (error) {
-    snackbar.show(error.toString())
+    useSnackbarStore().show(error.toString())
   } finally {
     isLoading.value = false
   }
