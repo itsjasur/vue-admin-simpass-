@@ -2,7 +2,7 @@
   <div class="overlay">
     <div class="popup-content">
       <div class="fixed-header">
-        <h3 class="title">증빙서류</h3>
+        <h3 class="title">증빙서료</h3>
         <span @click="$emit('closePopup')" class="material-symbols-outlined close-button">
           cancel
         </span>
@@ -18,7 +18,7 @@
           loading="lazy"
         />
       </div>
-      <div class="empty-content" v-else>증빙서류 없습니다.</div>
+      <div class="empty-content" v-else>증빙서료 없습니다.</div>
     </div>
   </div>
 </template>

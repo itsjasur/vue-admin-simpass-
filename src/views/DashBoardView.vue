@@ -38,20 +38,22 @@ import Header from '../components/Header.vue'
 import { useSideMenuStore } from '../stores/side-menu'
 import SelectPlanPopup from '@/components/SelectPlanPopup.vue'
 import { useSelectPlansPopup } from '@/stores/select-plans-popup'
-import { useTotalUnreadCountStore } from '@/stores/total-unread-count-store'
-import { io } from 'socket.io-client'
 import { useWebSocketStore } from '@/stores/webscoket-store'
 
 const selectPlansPopup = useSelectPlansPopup()
 const sideMenuStore = useSideMenuStore()
-
 const webSocketStore = useWebSocketStore()
 
 const handleResize = () => {
   sideMenuStore.updateIsDesktop()
 }
 
-const chatRooms = ref([])
+const checkConnection = () => {
+  if (!webSocketStore.isConnected) {
+    setTimeout(checkConnection, 100) // checks every 100ms
+  } else {
+  }
+}
 
 onMounted(() => {
   sideMenuStore.updateIsDesktop()
@@ -59,6 +61,7 @@ onMounted(() => {
   console.log('dashboard mounted')
 
   if (!webSocketStore.socket) webSocketStore.connect()
+  checkConnection()
 })
 
 onUnmounted(() => {

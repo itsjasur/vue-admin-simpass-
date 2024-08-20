@@ -628,19 +628,15 @@ async function fetchForms() {
     formData.set('attach_files[]', file) //adding files
   }
 
-  formData.set('bill_sign', paymentNameImageData.value)
-  formData.set('bill_seal', paymentSignImageData.value)
-
-  formData.set('apply_sign', nameImageData.value)
-  formData.set('apply_seal', signImageData.value)
-
-  formData.set('partner_sign', partnerNameImageData.value)
-  formData.set('partner_seal', partnerSignImageData.value)
-
-  formData.set('deputy_sign', deputyNameImageData.value)
-  formData.set('deputy_seal', deputySignImageData.value)
-
-  formData.set('agree_sign', agreePadData.value)
+  formData.set('bill_sign', paymentNameImageData?.value ?? '')
+  formData.set('bill_seal', paymentSignImageData?.value ?? '')
+  formData.set('apply_sign', nameImageData?.value ?? '')
+  formData.set('apply_seal', signImageData?.value ?? '')
+  formData.set('partner_sign', partnerNameImageData?.value ?? '')
+  formData.set('partner_seal', partnerSignImageData?.value ?? '')
+  formData.set('deputy_sign', deputyNameImageData?.value ?? '')
+  formData.set('deputy_seal', deputySignImageData?.value ?? '')
+  formData.set('agree_sign', agreePadData?.value ?? '')
 
   formData.set('carrier_type', serverData.value?.usim_plan_info?.carrier_type)
   formData.set('carrier_cd', serverData.value?.usim_plan_info?.carrier_cd)

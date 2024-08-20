@@ -131,7 +131,7 @@
           </div>
 
           <div class="group" style="width: 400px">
-            <label>주소(주소 + 상세부소)</label>
+            <label>주소(주소 + 상세주소)</label>
             <input :value="applicationDetails.address" readonly />
           </div>
 

@@ -84,10 +84,14 @@
             <span v-if="column.dataIndex === 'mvno_cd'">
               {{ record.mvno_cd_nm }}
             </span>
+            <span v-if="column.dataIndex === 'chatting'">
+              <div @click="openChat(record)" class="chat_buttton">
+                <span class="material-symbols-outlined chat-icon"> chat </span>
+              </div>
+            </span>
 
             <template v-if="column.dataIndex === 'usim_act_status_nm'">
               <!-- status can't be changed if act_status is Y -->
-
               <span
                 v-if="
                   userAuth.containsRole([
@@ -237,7 +241,12 @@ import { usePrintableStore } from '../stores/printable-store'
 import { useMvnoSelectStore } from '@/stores/mvno_select_store'
 import { useAuthenticationStore } from '@/stores/authentication'
 import GlobalPopupWithOverlay from '../components/GlobalPopupWithOverlay.vue'
+import { useWebSocketStore } from '@/stores/webscoket-store'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
+
+const webSocketStore = useWebSocketStore()
 const userAuth = useAuthenticationStore()
 
 // Reactive variables
@@ -330,6 +339,12 @@ const columns = ref([
     sorter: (a, b) => (a.partner_nm ?? '').localeCompare(b.partner_nm ?? '')
   },
   {
+    title: '채팅',
+    dataIndex: 'chatting',
+    key: 'chatting',
+    width: 1
+  },
+  {
     title: '상태',
     dataIndex: 'usim_act_status_nm',
     key: 'usim_act_status_nm',
@@ -383,6 +398,17 @@ const columns = ref([
     sorter: (a, b) => (a.act_date ?? '').localeCompare(b.act_date ?? '')
   }
 ])
+
+// opens chat with this user
+function openChat(record) {
+  console.log(record)
+  if (record?.partner_cd) {
+    webSocketStore.selectedRoomId = null
+    webSocketStore.joinRoom(record.partner_cd, record.partner_nm)
+  }
+
+  router.push('chats')
+}
 
 const dataList = ref([])
 
@@ -518,6 +544,22 @@ onMounted(fetchData)
 
   max-height: 30px;
   min-height: unset;
+}
+
+.chat_buttton {
+  min-width: 50px;
+  background-color: var(--main-color);
+  border-radius: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.chat_buttton:hover {
+  cursor: pointer;
+  filter: brightness(0.6);
 }
 
 .status-A {

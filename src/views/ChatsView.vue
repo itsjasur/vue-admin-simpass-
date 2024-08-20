@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="chatrooms-section">
+    <div class="chatrooms_section">
       <div class="search-chatroom">
         <input
           type="text"
@@ -11,226 +11,86 @@
           v-model="searchText"
         />
       </div>
-      <div class="reveivers-list">
+
+      <div class="chatrooms">
         <template v-for="(room, index) in webSocketStore.chatRooms" :key="index">
           <div
             @click="selectRoom(room)"
             :class="['chatroom', { isSelected: webSocketStore.selectedRoomId === room?.room_id }]"
           >
             <span> {{ room.partner_name }}</span>
-            <!-- <div v-if="userInfo?.agent_cd?.length > 1" class="chatroom-name">
-              <span class="material-symbols-outlined arrow_icon"> double_arrow </span>
-              {{ room.agent_code }}
-            </div> -->
 
-            <div v-if="room?.agent_unread_count !== 0" class="unread-count-badge">
+            <div v-if="room?.agent_unread_count !== 0" class="unread_count_badge">
               {{ room.agent_unread_count }}
             </div>
           </div>
         </template>
       </div>
     </div>
-    <div class="chats-container-section" @drop.prevent="onDrop" @dragover.prevent>
-      <div class="chats-list" ref="chatContainer">
-        <template v-for="(chat, index) in webSocketStore.chats" :key="index">
-          <template v-if="chat.attachment_paths.length > 0">
-            <template v-for="(attachmentPath, pathIndex) in chat.attachment_paths" :key="pathIndex">
-              <img
-                v-if="attachmentPath"
-                :src="attachmentPath"
-                @load="scrollToBottom"
-                alt=""
-                :class="[
-                  'attachment-img',
-                  { ismyattachment: userInfo?.agent_cd?.includes(chat.sender) }
-                ]"
-              />
-            </template>
-          </template>
 
-          <template v-if="chat.text">
-            <div :class="['chat-bubble', { ismychat: userInfo?.agent_cd?.includes(chat.sender) }]">
-              {{ chat.text }}
-            </div>
-          </template>
-        </template>
-      </div>
-
-      <div v-if="webSocketStore.selectedRoomId" class="bottom-actions">
-        <div v-if="attachments.length > 0" class="attachments-row">
-          <div v-for="(file, index) in attachments" :key="index" class="attached-images">
-            <img :src="file.url" :alt="'image index: ' + index" />
-            <div class="overlay">
-              <div @click="attachments.splice(index, 1)" class="delete-icon">&#10005;</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="input-row">
-          <input
-            id="file-input"
-            @change="handleFileUpload"
-            type="file"
-            class="file-input"
-            accept="image/*"
-            multiple
-            style="display: none"
-          />
-          <label for="file-input" class="attach-images-icon">
-            <span class="material-symbols-outlined"> add_photo_alternate </span>
-          </label>
-
-          <span @click="sendNewMessage" class="send-message-icon material-symbols-outlined">
-            send
-          </span>
-          <a-textarea
-            size="large"
-            @keydown="handleKeyDown"
-            v-model:value="newMessage"
-            type="text"
-            :auto-size="{ minRows: 1, maxRows: 5 }"
-          />
-        </div>
-      </div>
+    <div class="chats_section">
+      <ChatsComponent />
     </div>
   </div>
+
+  <template v-if="!sideMenuHanlder.isDesktop">
+    <GlobalPopupWithOverlay ref="chatPopupRef">
+      <div class="mobile_chats_popup">
+        <div class="fixed-header">
+          <span @click="closeChatsPopup" class="material-symbols-outlined close-button">
+            cancel
+          </span>
+        </div>
+        <ChatsComponent />
+      </div>
+    </GlobalPopupWithOverlay>
+  </template>
 </template>
 
 <script setup>
-import { useSnackbarStore } from '@/stores/snackbar'
-import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { nextTick, onMounted, ref, watch } from 'vue'
 import { useWebSocketStore } from '@/stores/webscoket-store'
+import { onMounted, ref } from 'vue'
+import ChatsComponent from '@/components/ChatsComponent.vue'
+import GlobalPopupWithOverlay from '../components/GlobalPopupWithOverlay.vue'
+import { useSideMenuStore } from '@/stores/side-menu'
 
-const webSocketStore = useWebSocketStore()
+const sideMenuHanlder = useSideMenuStore()
 
-const chatContainer = ref(null)
-const userInfo = ref()
-const searchText = ref('')
-const newMessage = ref('')
-
-// adds logic for the action to take on Enter without Shift
-const handleKeyDown = (event) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault()
-    sendNewMessage()
-  }
-}
-
-const checkConnection = () => {
-  if (!webSocketStore.isConnected) {
-    setTimeout(checkConnection, 100) // checks every 100ms
-  } else {
-    webSocketStore.getChatRooms(searchText.value)
-  }
-}
-
-watch(
-  () => webSocketStore.chats,
-  (newv, oldv) => {
-    console.log('chats changed')
-    scrollToBottom()
-  },
-  { deep: true }
-)
-
-onMounted(() => {
-  console.log('chats mounted')
-  chatContainer.value = document.querySelector('.container') //chat container to scroll up or down
-  fetchData()
-
-  if (!webSocketStore.socket) webSocketStore.connect()
-  checkConnection()
-})
-
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (chatContainer.value) {
-      chatContainer.value.scrollTop = chatContainer.value.scrollHeight
-      webSocketStore.resetRoomUnreadCount()
-    }
-  })
-}
+const chatPopupRef = ref()
 
 function selectRoom(room) {
   if (room?.room_id) {
     webSocketStore.selectedRoomId = room?.room_id
     webSocketStore.joinRoom()
   }
-}
-
-async function sendNewMessage() {
-  const attachmentPaths = await uploadFiles()
-  console.log(attachmentPaths)
-
-  if (newMessage.value.trim() || attachmentPaths.length > 0) {
-    webSocketStore.sendMessage(newMessage.value, attachmentPaths)
-
-    newMessage.value = ''
-    attachments.value = []
+  //opens chats popup if not desktop
+  if (!sideMenuHanlder.isDesktop) {
+    chatPopupRef.value.showPopup()
   }
 }
 
-//drop to attach files handler
-const attachments = ref([])
-const onDrop = (event) => {
-  event.preventDefault()
-  const files = Array.from(event.dataTransfer.files)
-  const imageFiles = files.filter((file) => file.type.startsWith('image/')) // Filter out non-image files
-  const urls = imageFiles.map((file) => ({ url: URL.createObjectURL(file), file }))
-  attachments.value.push(...urls)
-}
-//this handles attach icon click image uploads
-const handleFileUpload = (event) => {
-  const files = Array.from(event.target.files)
-  const imageFiles = files.filter((file) => file.type.startsWith('image/'))
-  const urls = imageFiles.map((file) => ({ url: URL.createObjectURL(file), file }))
-  attachments.value.push(...urls)
-}
-
-async function uploadFiles() {
-  const uploadedFilesPaths = []
-
-  for (const { file } of attachments.value) {
-    const formData = new FormData()
-    formData.set('file', file)
-    formData.set('filename', 'filename')
-
-    try {
-      const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'upload', {
-        method: 'POST',
-        body: formData
-      })
-
-      // console.log(response.status)
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
-      uploadedFilesPaths.push(result.path)
-
-      attachments.value = []
-    } catch (error) {
-      console.error('Error uploading file:', error)
-    }
-  }
-
-  return uploadedFilesPaths
-}
-
-async function fetchData() {
-  console.log('chats fetch called')
-  try {
-    const response = await fetchWithTokenRefresh('agent/userInfo', { method: 'GET' })
-    if (!response.ok) throw 'Fetch data error'
-    const decodedResponse = await response.json()
-    userInfo.value = decodedResponse.data.info
-  } catch (error) {
-    useSnackbarStore().show(error.toString())
+function closeChatsPopup() {
+  if (!sideMenuHanlder.isDesktop) {
+    webSocketStore.selectedRoomId = null
+    chatPopupRef.value.closePopup()
   }
 }
+
+const webSocketStore = useWebSocketStore()
+const searchText = ref('')
+
+const checkConnection = () => {
+  if (!webSocketStore.isConnected) {
+    setTimeout(checkConnection, 100) // checks every 100ms
+  } else {
+    webSocketStore.getChatRooms('')
+  }
+}
+
+onMounted(() => {
+  console.log('chats mounted')
+  checkConnection()
+})
 </script>
 
 <style scoped>
@@ -239,69 +99,60 @@ async function fetchData() {
   flex-flow: row;
   height: 100%;
   width: 100%;
+
+  display: flex;
+  flex-flow: row;
+  /* background-color: pink; */
 }
 
-.chatrooms-section {
+.chatrooms_section {
   display: flex;
   flex-flow: column;
-  width: 450px;
+  width: 350px;
   height: 100%;
   overflow-y: auto;
   box-sizing: border-box;
-  background-color: #e8e8e8;
+  position: relative;
 }
+
 .search-chatroom {
-  position: sticky;
-  top: 0;
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  right: 20px;
+  box-sizing: border-box;
   align-content: center;
+  padding: 0;
+}
+
+.chatrooms {
+  padding: 0 20px;
+  padding-top: 60px;
+  overflow-y: auto;
+}
+
+.chatroom {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 5px;
+  font-weight: 600;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 4px;
+}
+
+.chatroom:hover {
+  cursor: pointer;
   background-color: #e8e8e8;
 }
 
-.search-chatroom input,
-input:focus {
-  border: none;
-  outline: none;
-  background-color: transparent;
-  box-shadow: none;
-  border-bottom: 1px solid #ccc;
-  height: 50px;
-  padding-left: 15px;
+.chatroom.isSelected {
+  background-color: #dedede;
 }
 
-.reveivers-list {
-  box-sizing: border-box;
-  margin-top: 10px;
-  margin-bottom: 60px;
-  display: flex;
-  flex-flow: column;
-  width: 100%;
-  gap: 10px;
-  overflow-y: auto;
-  padding: 0 10px;
-}
-.chatroom {
-  padding: 10px;
-  box-sizing: border-box;
-  border-radius: 4px;
-  font-weight: 600;
-  width: 100%;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.chatroom-name {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.unread-count-badge {
+.unread_count_badge {
   /* background-color: var(--main-color); */
   background-color: #e42c2c;
   height: 24px;
@@ -319,156 +170,39 @@ input:focus {
   font-size: 14px;
 }
 
-.chatroom .arrow_icon {
-  font-size: 22px;
-}
-
-.chatroom.isSelected {
-  /* border: 1.5px solid var(--main-color); */
+.chats_section {
+  flex: 1;
   background-color: #fff;
 }
 
-.chatroom:hover {
-  cursor: pointer;
-  background-color: #fff;
-  filter: brightness(0.8);
-}
-
-.chats-container-section {
-  /* background-color: var(--main-background-color); */
-  background-color: #fff;
-  height: 100%;
-  width: 100%;
-  position: relative;
-  display: flex;
-  flex-flow: column;
-  justify-content: space-between;
-}
-
-.chats-list {
+.mobile_chats_popup {
   width: 100%;
   /* height: 100%; */
-  padding: 20px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-}
-
-.chat-bubble {
-  background-color: #787878;
-  color: #fff;
-  border-radius: 20px;
-  /* line-height: 1; */
-  word-wrap: break-word;
-  word-break: break-word; /*  prevents overflow of long words */
-  white-space: pre-wrap; /*  preserves line breaks */
-
-  align-self: flex-start;
-  max-width: 60%;
-  padding: 10px;
-}
-.ismychat {
-  background-color: #19a619;
-  align-self: flex-end;
-  text-align: end;
-  padding: 10px;
-}
-.attachment-img {
-  max-height: 200px;
-  max-width: 50%;
-  /* object-fit: cover; */
-  align-self: flex-start;
-  border-radius: 10px;
-}
-.ismyattachment {
-  align-self: flex-end;
-}
-
-.bottom-actions {
-  /* position: sticky; */
-  margin: 0 20px;
-  margin-bottom: 30px;
-}
-.attachments-row {
-  display: flex;
-  flex-flow: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  box-sizing: border-box;
-  background-color: #00000024;
-  border-radius: 8px;
-}
-
-.attached-images {
-  height: 80px;
-  width: 80px;
-  /* object-fit: cover; */
+  /* display: flex; */
+  /* flex-flow: column; */
+  /* box-sizing: border-box; */
   position: relative;
-  border-radius: 8px;
 }
-.attached-images img {
-  border-radius: 8px;
-  width: 100%;
-  height: 100%;
-}
-.overlay {
-  position: absolute;
+
+.fixed-header {
+  z-index: 1;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 8px;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.delete-icon {
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-}
-.attached-images:hover .overlay {
-  opacity: 1;
+  right: 0;
+  min-height: 50px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
-.input-row {
-  position: relative;
-}
-.input-row .ant-input {
-  padding-left: 50px;
-  padding-right: 50px;
-  border-radius: 8px;
-  font-size: 16px;
-}
+@media (max-width: 600px) {
+  .chatrooms_section {
+    width: 100%;
+  }
 
-.input-row .attach-images-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  z-index: 1;
-}
-.input-row .send-message-icon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  z-index: 1;
-}
-
-.input-row .material-symbols-outlined {
-  color: #fff;
-  padding: 7px;
-  background-color: #19a619;
-  border-radius: 30px;
-  font-size: 20px;
+  .chats_section {
+    display: none;
+  }
 }
 </style>
