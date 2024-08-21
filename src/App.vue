@@ -19,7 +19,6 @@
   <Loading />
   <Snackbar />
   <Warning />
-  <PrintablePopup />
   <SearchAddressPopup />
 </template>
 
@@ -31,7 +30,6 @@ import { useRouter } from 'vue-router'
 import { useAuthenticationStore } from './stores/authentication'
 import { useRouteMemoryStore } from './stores/router-memory-store'
 import { useSideMenuStore } from './stores/side-menu'
-import PrintablePopup from './components/PrintablePopup.vue'
 import Loading from './components/Loading.vue'
 import SearchAddressPopup from './components/SearchAddressPopup.vue'
 import { messaging, getToken, onMessage } from './firebase'
@@ -62,6 +60,14 @@ const handleResize = () => {
 onMounted(async () => {
   window.addEventListener('resize', handleResize)
   handleResize()
+
+  // try {
+  //   var currentToken = await getToken(messaging, { vapidKey: FIREBASEVAPIDKEY })
+  //   localStorage.setItem('fcmToken', currentToken)
+  //   console.log(currentToken)
+  // } catch (e) {
+  //   console.log(e)
+  // }
 
   onMessage(messaging, (payload) => {
     console.log('Message received. ', payload)

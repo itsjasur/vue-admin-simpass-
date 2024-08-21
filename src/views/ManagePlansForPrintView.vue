@@ -268,7 +268,6 @@ const columns = ref([
     title: '가입대상',
     dataIndex: 'carrier_plan_type_nm',
     key: 'carrier_plan_type_nm',
-
     sorter: (a, b) => (a.carrier_plan_type_nm ?? '').localeCompare(b.carrier_plan_type_nm ?? '')
   },
 

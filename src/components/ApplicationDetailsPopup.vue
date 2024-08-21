@@ -178,7 +178,7 @@
   </div>
 
   <GlobalPopupWithOverlay ref="imageViewerRef">
-    <ImageViewPopup @closePopup="closeImageViewPopup" />
+    <ImageViewPopup @closePopup="closeImageViewPopup" :canPrint="true" />
   </GlobalPopupWithOverlay>
 </template>
 

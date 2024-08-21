@@ -200,6 +200,15 @@
   </div>
 
   <div v-else class="plan-not-found">요금제를 찾을 수 없습니다</div>
+
+  <GlobalPopupWithOverlay ref="imageViewerRef">
+    <ImageViewPopup
+      @closePopup="closeImageViewPopup"
+      :imageUrls="imageBlobUrls"
+      :baseFilename="FIXED_FORMS.name?.value"
+      :canPrint="canPrintImages"
+    />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
@@ -213,26 +222,29 @@ import _ from 'lodash'
 import SignImageRowContainer from '../components/SignImageRowContainer.vue'
 import { useSearchaddressStore } from '../stores/select-address-popup'
 import LoadingSpinner from '../components/Loader.vue'
-import { usePrintablePopup } from '../stores/printable-popup'
 import { useSelectPlansPopup } from '../stores/select-plans-popup'
 import { useDeviceTypeStore } from '@/stores/device-type-store'
 import AgreePadContainer from '../components/AgreePadContainer.vue'
+import ImageViewPopup from '../components/ImageViewPopup.vue'
+import { base64ToBlobUrl } from '@/utils/helpers'
+
+const imageViewerRef = ref()
+const imageBlobUrls = ref([])
+const canPrintImages = ref(false)
+function openImageViewPopup(base64Images) {
+  imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
+  imageViewerRef.value.showPopup()
+}
+function closeImageViewPopup() {
+  imageViewerRef.value.closePopup()
+  // router.push('/')
+}
 
 //address poup
 const selectAddressPopup = useSearchaddressStore()
 
 const route = useRoute()
 const router = useRouter()
-
-const printablePopup = usePrintablePopup()
-
-//watches printable active status and then redirects to home
-watch(
-  () => printablePopup.active,
-  (newV, oldV) => {
-    if (newV === false && oldV === true) router.push('/')
-  }
-)
 
 //need to make deep copy in order to reset when page reloads
 const FIXED_FORMS = reactive(_.cloneDeep(FORMS))
@@ -253,7 +265,7 @@ onUnmounted(() => {
 })
 
 //this watches route id (if plan id changed)
-watch(() => route.params.id, fetchData)
+watch(() => route?.params?.id, fetchData)
 
 // 1 first fetched data onMounted()
 const serverData = ref(null)
@@ -265,7 +277,7 @@ async function fetchData() {
   try {
     const response = await fetchWithTokenRefresh('agent/applyInit', {
       method: 'POST',
-      body: { usim_plan_id: route.params.id }
+      body: { usim_plan_id: route?.params?.id }
     })
     if (!response.ok) throw 'Fetch data error'
 
@@ -735,9 +747,12 @@ async function fetchForms() {
     console.log(decodedResponse)
     const base64Images = decodedResponse?.data?.apply_forms_list ?? []
 
-    if (base64Images?.length > 0)
-      printablePopup.open(base64Images, serverData.value?.chk_agent_role_info === 'Y')
-    else throw decodedResponse?.message ?? 'Could not fetch image data'
+    if (base64Images?.length > 0) {
+      canPrintImages.value = serverData.value?.chk_agent_role_info === 'Y'
+      openImageViewPopup(base64Images)
+    } else {
+      throw decodedResponse?.message ?? 'Could not fetch image data'
+    }
   } catch (error) {
     useSnackbarStore().show(error.toString())
   }

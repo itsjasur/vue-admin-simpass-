@@ -117,6 +117,15 @@
       <span v-else> 접수하기</span>
     </button>
   </div>
+
+  <GlobalPopupWithOverlay ref="imageViewerRef">
+    <ImageViewPopup
+      @closePopup="closeImageViewPopup"
+      :imageUrls="imageBlobUrls"
+      :baseFilename="registrer"
+      :canPrint="true"
+    />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
@@ -126,15 +135,26 @@ import { useSearchaddressStore } from '../stores/select-address-popup'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '../utils/tokenUtils'
 import SignImageRowContainer from '../components/SignImageRowContainer.vue'
-import { usePrintablePopup } from '../stores/printable-popup'
 import LoadingSpinner from '../components/Loader.vue'
 import { useRouter } from 'vue-router'
 import { useDeviceTypeStore } from '@/stores/device-type-store'
+import { base64ToBlobUrl } from '@/utils/helpers'
+import ImageViewPopup from '../components/ImageViewPopup.vue'
+
+const imageViewerRef = ref()
+const imageBlobUrls = ref([])
+function openImageViewPopup(base64Images) {
+  imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
+  imageViewerRef.value.showPopup()
+}
+
+function closeImageViewPopup() {
+  imageViewerRef.value.closePopup()
+  // router.push('/')
+}
 
 const router = useRouter()
-
 const addressPopup = useSearchaddressStore()
-const printablePopup = usePrintablePopup()
 
 const registrer = ref('')
 const registrerBirthday = ref('')
@@ -173,13 +193,6 @@ watch(
   () => {
     address.value = addressPopup.address
     addressDetails.value = addressPopup.buildingName
-  }
-)
-
-watch(
-  () => printablePopup.active,
-  (newV, oldV) => {
-    if (newV === false && oldV === true) router.push('/')
   }
 )
 
@@ -261,9 +274,8 @@ async function submit() {
       const decodedResponse = await response.json()
 
       const base64Images = decodedResponse?.data?.apply_forms_list ?? []
-      if (base64Images?.length > 0) usePrintablePopup().open(base64Images)
-
-      useSnackbarStore().show(decodedResponse?.message ?? 'Update error')
+      openImageViewPopup(base64Images)
+      useSnackbarStore().show(decodedResponse?.message ?? 'File fetch error')
     } catch (error) {
       useSnackbarStore().show(error.toString())
     } finally {

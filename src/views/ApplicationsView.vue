@@ -226,6 +226,10 @@
   <GlobalPopupWithOverlay ref="applicationDetailsPopupRef">
     <ApplicationDetailsPopup :actNo="actNo" @closePopup="closeDetailsPopup" />
   </GlobalPopupWithOverlay>
+
+  <GlobalPopupWithOverlay ref="imageViewerRef">
+    <ImageViewPopup @closePopup="closeImageViewPopup" :imageUrls="imageBlobUrls" :canPrint="true" />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
@@ -237,17 +241,28 @@ import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import ApplicationStatusUpdatePopup from '../components/ApplicationStatusUpdatePopup.vue'
 import ApplicationDetailsPopup from '../components/ApplicationDetailsPopup.vue'
 import { usePageLoadingStore } from '@/stores/page-loading-store'
-import { usePrintableStore } from '../stores/printable-store'
 import { useMvnoSelectStore } from '@/stores/mvno_select_store'
 import { useAuthenticationStore } from '@/stores/authentication'
-import GlobalPopupWithOverlay from '../components/GlobalPopupWithOverlay.vue'
 import { useWebSocketStore } from '@/stores/webscoket-store'
 import { useRouter } from 'vue-router'
+import ImageViewPopup from '../components/ImageViewPopup.vue'
+import LoadingSpinner from '../components/Loader.vue'
 
 const router = useRouter()
 
 const webSocketStore = useWebSocketStore()
 const userAuth = useAuthenticationStore()
+
+const imageViewerRef = ref()
+const imageBlobUrls = ref([])
+function openImageViewPopup(base64Images) {
+  imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
+  imageViewerRef.value.showPopup()
+}
+
+function closeImageViewPopup() {
+  imageViewerRef.value.closePopup()
+}
 
 // Reactive variables
 const searchType = ref('status')
@@ -456,7 +471,7 @@ async function fetchForms(actNo) {
     })
     if (!response.ok) throw 'Fetch forms data error'
     const decodedResponse = await response.json()
-    usePrintableStore().open(decodedResponse?.data?.apply_forms_list ?? [])
+    openImageViewPopup(decodedResponse?.data?.apply_forms_list ?? [])
   } catch (error) {
     useSnackbarStore().show(error.toString())
   } finally {

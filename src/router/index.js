@@ -200,7 +200,6 @@ const router = createRouter({
           path: '/form-details/:id',
           name: 'form-details',
           component: () => import('../views/FormDetailsView.vue'),
-          props: true,
           meta: {
             title: '신청서접수현황',
             requiresAuth: true,
