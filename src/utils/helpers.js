@@ -62,7 +62,6 @@ export function base64ToBlobUrl(base64Data) {
   const byteArray = new Uint8Array(byteNumbers)
   const blob = new Blob([byteArray], { type: contentType })
   const url = URL.createObjectURL(blob)
-
   return url
 }
 

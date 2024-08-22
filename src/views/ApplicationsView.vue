@@ -235,7 +235,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as cleavePatterns from '../utils/cleavePatterns'
-import { formatDate } from '../utils/helpers'
+import { base64ToBlobUrl, formatDate } from '../utils/helpers'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import ApplicationStatusUpdatePopup from '../components/ApplicationStatusUpdatePopup.vue'
@@ -246,7 +246,6 @@ import { useAuthenticationStore } from '@/stores/authentication'
 import { useWebSocketStore } from '@/stores/webscoket-store'
 import { useRouter } from 'vue-router'
 import ImageViewPopup from '../components/ImageViewPopup.vue'
-import LoadingSpinner from '../components/Loader.vue'
 
 const router = useRouter()
 

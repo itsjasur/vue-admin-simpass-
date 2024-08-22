@@ -16,22 +16,20 @@
     </div>
 
     <!-- FORMS -->
-
-    <template v-for="(part, index) of displayingForms" :key="index">
-      <template v-if="part.forms.length > 0">
+    <template v-for="(typeFormNames, index) of availableForms" :key="index">
+      <template v-if="typeFormNames.length > 0">
         <div class="partition">
-          <div v-if="part.type === 'payment'" class="title">
+          <div v-if="index === 'usim'" class="title">요금제 정보</div>
+          <div v-if="index === 'customer'" class="title">고객 정보</div>
+          <div v-if="index === 'deputy'" class="title">법정대리인</div>
+          <div v-if="index === 'payment'" class="title">
             <span> 자동이체 </span>
             <a-checkbox class="checkbox left-margin" v-model:checked="selfRegisterChecked"
               >가입자와 동일</a-checkbox
             >
           </div>
 
-          <div v-else :class="part.type === 'empty' ? 'empty_title' : 'title'">
-            {{ part.title }}
-          </div>
-
-          <template v-for="(formName, formIndex) of part.forms" :key="formIndex">
+          <template v-for="(formName, index) in typeFormNames" :key="index">
             <div class="group" :style="{ maxWidth: FIXED_FORMS[formName].maxwidth }">
               <label>{{ FIXED_FORMS[formName].label }}</label>
 
@@ -151,7 +149,7 @@
       />
       <!-- deputy sign pad -->
       <SignImageRowContainer
-        v-if="FIXED_FORMS?.cust_type_cd?.value === 'COL'"
+        v-if="availableForms.deputy.length > 0"
         :overlayText="FIXED_FORMS.deputy_name?.value"
         @updateSignSeal="
           (signData, sealData) => {
@@ -219,9 +217,7 @@ import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { FORMS } from '../assets/constants'
-
-import { PLANSINFO, displayingForms, generateDisplayingForms } from '../assets/plans_forms'
-
+import { PLANSINFO } from '../assets/constants'
 import _ from 'lodash'
 import SignImageRowContainer from '../components/SignImageRowContainer.vue'
 import { useSearchaddressStore } from '../stores/select-address-popup'
@@ -231,12 +227,6 @@ import { useDeviceTypeStore } from '@/stores/device-type-store'
 import AgreePadContainer from '../components/AgreePadContainer.vue'
 import ImageViewPopup from '../components/ImageViewPopup.vue'
 import { base64ToBlobUrl } from '@/utils/helpers'
-
-const availableForms = ref([])
-
-watch(availableForms, (newList, oldList) => {
-  if (newList !== oldList) generateDisplayingForms(availableForms)
-})
 
 const imageViewerRef = ref()
 const imageBlobUrls = ref([])
@@ -280,6 +270,9 @@ watch(() => route?.params?.id, fetchData)
 // 1 first fetched data onMounted()
 const serverData = ref(null)
 
+// finding forms
+const availableForms = reactive({ usim: [], customer: [], deputy: [], payment: [] })
+
 async function fetchData() {
   try {
     const response = await fetchWithTokenRefresh('agent/applyInit', {
@@ -316,11 +309,13 @@ function generateInitialForms() {
     (mvno) => mvno.code === usimPlanInfo.mvno_cd
   ) //selected mvno
 
-  availableForms.value = selectedMvnoInfo?.forms ?? []
-  availableForms.value = [
-    ...(selectedMvnoInfo?.forms ?? []),
-    ...(selectedTypeInfo?.paymentForms ?? [])
-  ]
+  //setting available forms in each mvno
+  availableForms.usim = [...(selectedMvnoInfo?.usimForms ?? [])]
+  availableForms.customer = [...(selectedMvnoInfo?.customerForms ?? [])]
+  availableForms.deputy = []
+
+  //finding payment forms in each type
+  availableForms.payment = [...(selectedTypeInfo?.paymentForms ?? [])]
 
   //adding options to select forms
   for (const formName in FIXED_FORMS) {
@@ -336,7 +331,7 @@ function generateInitialForms() {
   //EXTRA FIELDS FOR FORMS
   //adding usim extra forms when type is 신규가입 and when it is not (UPM Umobile) COM
   if (FIXED_FORMS?.usim_act_cd?.value === 'N') {
-    availableForms.value.push('wish_number')
+    availableForms.usim.push('wish_number')
     //wish numbers input with cleave
     let wishArray = Array(selectedMvnoInfo.wishCount).fill(4) //[4,4,4]
     FIXED_FORMS.wish_number.pattern = { numericOnly: true, delimiter: ' / ', blocks: wishArray } //4,4,4
@@ -348,20 +343,25 @@ function generateInitialForms() {
     FIXED_FORMS?.usim_act_cd?.value === 'N' &&
     serverData.value?.usim_plan_info?.mvno_cd === 'COM'
   ) {
-    availableForms.value.push('phone_number')
+    availableForms.usim.push('phone_number')
     FIXED_FORMS.phone_number.required = false
     FIXED_FORMS.phone_number.pattern.prefix = null
   }
 
   if (FIXED_FORMS?.usim_act_cd?.value === 'M')
-    availableForms.value.push('mnp_carrier_type', 'phone_number', 'mnp_pre_carrier')
-  if (FIXED_FORMS?.mnp_pre_carrier?.value === 'MV') availableForms.value.push('mnp_pre_carrier_nm')
+    availableForms.usim.push('mnp_carrier_type', 'phone_number', 'mnp_pre_carrier')
+  if (FIXED_FORMS?.mnp_pre_carrier?.value === 'MV') availableForms.usim.push('mnp_pre_carrier_nm')
 
-  if (FIXED_FORMS?.paid_transfer_cd?.value === 'C') availableForms.value.push('card_yy_mm')
+  if (FIXED_FORMS?.paid_transfer_cd?.value === 'C') availableForms.payment.push('card_yy_mm')
 
   //adding deputy forms
   if (FIXED_FORMS?.cust_type_cd?.value === 'COL') {
-    availableForms.value.push('deputy_name', 'deputy_birthday', 'relationship_cd', 'deputy_contact')
+    availableForms.deputy.push(
+      'deputy_name',
+      'deputy_birthday',
+      'relationship_cd',
+      'deputy_contact'
+    )
   }
 
   //after extra forms added, set default should be called again!
@@ -374,27 +374,33 @@ function generateInitialForms() {
   //removing gender if not underage for HVS
   if (serverData.value['usim_plan_info']['mvno_cd'] === 'HVS') {
     if (FIXED_FORMS?.cust_type_cd?.value != 'COL') {
-      const index = availableForms.value.indexOf('gender_cd')
-      if (index !== -1) availableForms.value.splice(index, 1)
+      const index = availableForms.customer.indexOf('gender_cd')
+      if (index !== -1) availableForms.customer.splice(index, 1)
     }
   }
 
   if (serverData.value['usim_plan_info']['mvno_cd'] === 'SVM') {
-    const index = availableForms.value.indexOf('account_birthday')
+    const index = availableForms.payment.indexOf('account_birthday')
     if (index !== -1) {
-      availableForms.value.splice(index, 1)
-      availableForms.value.push('account_birthday_full')
+      availableForms.payment.splice(index, 1)
+      availableForms.payment.push('account_birthday_full')
     }
-    const index1 = availableForms.value.indexOf('deputy_birthday')
+    const index1 = availableForms.deputy.indexOf('deputy_birthday')
     if (index1 !== -1) {
-      availableForms.value.splice(index1, 1)
-      availableForms.value.push('deputy_birthday_full')
+      availableForms.deputy.splice(index1, 1)
+      availableForms.deputy.push('deputy_birthday_full')
     }
   }
 
   //checkable forms in order to submit or showing error
   filledCheckValues.value = Object.fromEntries(
-    availableForms.value.map((formName) => [
+    [
+      //
+      ...availableForms.usim,
+      ...availableForms.customer,
+      ...availableForms.payment,
+      ...availableForms.deputy
+    ].map((formName) => [
       formName,
       FIXED_FORMS[formName]?.value ? true : !FIXED_FORMS[formName]?.required
     ])
@@ -614,20 +620,17 @@ async function submit() {
         paymentNameImageData.value && paymentSignImageData.value
       )
 
-    if (availableForms.value.includes('deputy_name'))
+    if (availableForms.deputy.length > 0)
       filledCheckValues.value.deputySignPad = Boolean(
         deputyNameImageData.value && deputySignImageData.value
       )
-
-    console.log('deputyname error here')
-    console.log('sign after print is : ', signAfterPrintChecked.value)
 
     if (serverData.value?.usim_plan_info?.mvno_cd === 'UPM')
       filledCheckValues.value.agreeSignPad = Boolean(agreePadData.value)
   }
 
   if (Object.values(filledCheckValues.value).every(Boolean)) await fetchForms()
-  else useSnackbarStore().show('채워지지 않은 필드가 있습니다. llllxxx')
+  else useSnackbarStore().show('채워지지 않은 필드가 있습니다.')
 
   formSubmitting.value = false
 }
@@ -666,7 +669,12 @@ async function fetchForms() {
     'phone_number'
   ]
 
-  const avlFormNames = availableForms.value
+  const avlFormNames = [
+    ...availableForms.usim,
+    ...availableForms.customer,
+    ...availableForms.deputy,
+    ...availableForms.payment
+  ]
   for (var formName of avlFormNames) {
     // console.log(formName)
     if (
@@ -736,7 +744,7 @@ async function fetchForms() {
     })
 
     const decodedResponse = await response.json()
-
+    console.log(decodedResponse)
     const base64Images = decodedResponse?.data?.apply_forms_list ?? []
 
     if (base64Images?.length > 0) {
@@ -760,18 +768,14 @@ async function fetchForms() {
   display: flex;
   flex-flow: column;
   gap: 20px;
-  margin-top: 20px;
 }
 
 .partition {
   display: flex;
   flex-flow: wrap;
   gap: 15px;
-  box-sizing: border-box;
-}
-
-.empty_title {
-  width: 100%;
+  margin-bottom: 10px;
+  min-height: 100px;
 }
 
 .title {
@@ -779,6 +783,7 @@ async function fetchForms() {
   font-weight: 600;
   padding: 0;
   margin-top: 10px;
+  margin-bottom: 0px;
   width: 100%;
 }
 
@@ -791,7 +796,6 @@ async function fetchForms() {
   font-size: 16px;
   font-weight: 500;
 }
-
 .left-margin {
   margin-left: 15px;
 }
@@ -886,10 +890,6 @@ async function fetchForms() {
   width: auto;
   padding: 0 10px;
   white-space: nowrap;
-}
-
-.supperted-images {
-  margin-top: 20px;
 }
 
 @media (max-width: 600px) {

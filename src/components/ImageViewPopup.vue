@@ -26,7 +26,7 @@
           <span>다운로드</span>
         </button>
 
-        <button v-if="imageUrls.length > 0" @click="printContent" :disabled="isPrinting">
+        <button v-if="props?.imageUrls?.length > 0" @click="printContent" :disabled="isPrinting">
           <template v-if="isPrinting">
             <LoadingSpinner height="20px" color="#ffffff" />
           </template>

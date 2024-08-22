@@ -108,7 +108,6 @@
           sealData = seal
         }
       "
-      :errorMessage="!signData && !sealData && submitted ? '판매자서명을 하지 않았습니다.' : null"
     />
     <!-- <button @click="submit">서명/사인 저장</button> -->
 
@@ -150,7 +149,7 @@ function openImageViewPopup(base64Images) {
 
 function closeImageViewPopup() {
   imageViewerRef.value.closePopup()
-  // router.push('/')
+  router.push('/')
 }
 
 const router = useRouter()
@@ -231,9 +230,9 @@ const isLoading = ref(false)
 async function submit() {
   submitted.value = true
 
-  if (!signData.value || !sealData.value) {
-    return useSnackbarStore().show('서명/사인 하지 않았습니다')
-  }
+  // if (!signData.value || !sealData.value) {
+  //   return useSnackbarStore().show('서명/사인 하지 않았습니다')
+  // }
 
   //adding files
   for (const file of fileObjects.value) {
