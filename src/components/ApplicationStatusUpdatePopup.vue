@@ -31,7 +31,7 @@
             :options="{ phone: true, phoneRegionCode: 'KR', delimiter: '-', prefix: '010' }"
           />
 
-          <p v-if="isSubmitted && phoneNumber.length !== 13" class="input-error-message">
+          <p v-if="isSubmitted && phoneNumber.length !== 11" class="input-error-message">
             휴대전화 입력하세요.
           </p>
         </div>
@@ -70,6 +70,8 @@ const isStatusUpdating = ref(false)
 const isSubmitted = ref(false)
 
 async function updateStatus() {
+  // console.log(phoneNumber.value)
+  // return
   try {
     isSubmitted.value = true
     isStatusUpdating.value = true
@@ -77,7 +79,7 @@ async function updateStatus() {
     // const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
     // await delay(3000)
 
-    if (newStatus.value === 'Y' && props.isNewNumber && phoneNumber.value.length !== 13) return
+    if (newStatus.value === 'Y' && props.isNewNumber && phoneNumber.value.length !== 11) return
 
     const response = await fetchWithTokenRefresh('agent/setApplyStatus', {
       method: 'POST',
