@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import GlobalPopupWithOverlay from './GlobalPopupWithOverlay.vue'
 import SignPadPopupContent from './SignPadPopupContent.vue'
 

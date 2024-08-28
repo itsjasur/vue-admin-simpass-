@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { messaging, getToken } from '../firebase'
+import { FIREBASEVAPIDKEY } from '../../sensitive'
 
 export const useWebSocketStore = defineStore('webSocket', {
   state: () => ({
@@ -27,7 +28,7 @@ export const useWebSocketStore = defineStore('webSocket', {
 
         try {
           var currentFcmToken = await getToken(messaging, { vapidKey: FIREBASEVAPIDKEY })
-          console.log(currentFcmToken)
+          // console.log(currentFcmToken)
           if (currentFcmToken) {
             this.socket.send(
               JSON.stringify({ action: 'update_fcm_token', fcmToken: currentFcmToken })
@@ -49,12 +50,12 @@ export const useWebSocketStore = defineStore('webSocket', {
 
         if (data?.type === 'total_count') {
           this.totalUnreadCount = data?.total_unread_count
-          console.log('total unread count: ', data?.total_unread_count)
+          // console.log('total unread count: ', data?.total_unread_count)
         }
 
         if (data?.type === 'chat_rooms') {
           this.chatRooms = data?.rooms
-          console.log('chatrooms: ', data?.rooms)
+          // console.log('chatrooms: ', data?.rooms)
         }
 
         if (data?.type === 'room_added') {

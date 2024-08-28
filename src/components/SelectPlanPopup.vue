@@ -66,8 +66,14 @@
           size="middle"
         >
           <template #bodyCell="{ column, text, record }">
-            <template v-if="column.dataIndex === 'basic_fee' || column.dataIndex === 'sales_fee'">
-              <div>{{ text.toLocaleString() }}</div>
+            <template
+              v-if="text && (column.dataIndex === 'basic_fee' || column.dataIndex === 'sales_fee')"
+            >
+              <div>{{ text?.toLocaleString() }}원</div>
+            </template>
+
+            <template v-if="column.dataIndex === 'discount_fee'">
+              <span style="color: red"> {{ text?.toLocaleString() }}원 </span>
             </template>
 
             <template v-if="column.dataIndex === 'usim_plan_nm'">
@@ -161,16 +167,25 @@ const columns = ref([
     sortDirections: ['descend', 'ascend']
   },
   {
-    title: '기본금액 (월)',
-    dataIndex: 'basic_fee',
-    key: 'basic_fee',
-    sorter: (a, b) => a.basic_fee ?? 0 - b.basic_fee ?? 0
-  },
-  {
-    title: '판매금액 (월)',
+    title: '월납부금액',
     dataIndex: 'sales_fee',
     key: 'sales_fee',
-    sorter: (a, b) => a.sales_fee ?? 0 - b.sales_fee ?? 0
+    sorter: (a, b) => a.sales_fee ?? 0 - b.sales_fee ?? 0,
+    align: 'end'
+  },
+  {
+    title: '기본료',
+    dataIndex: 'basic_fee',
+    key: 'basic_fee',
+    sorter: (a, b) => a.basic_fee ?? 0 - b.basic_fee ?? 0,
+    align: 'end'
+  },
+  {
+    title: '프로모션할인금액',
+    dataIndex: 'discount_fee',
+    key: 'discount_fee',
+    sorter: (a, b) => a.discount_fee ?? 0 - b.discount_fee ?? 0,
+    align: 'end'
   },
 
   {
@@ -269,6 +284,8 @@ onUnmounted(() => {
   position: fixed;
   top: 0;
   left: 0;
+  /* width: 100vw; */
+  /* height: 100vh; */
   width: 100%;
   height: 100%;
 
@@ -361,6 +378,10 @@ onUnmounted(() => {
   .plan-card {
     display: none;
   }
+}
+
+.table {
+  font-weight: 600;
 }
 
 @media (max-width: 599px) {

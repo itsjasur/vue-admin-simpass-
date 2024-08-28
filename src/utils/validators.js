@@ -101,3 +101,72 @@ export function validateForNoneEmpty(value, name) {
 
   return null
 }
+
+//date as '24-08-31'
+export function validateShortBirthday(value) {
+  // checking if the field is empty
+  if (value == null || value.isEmpty) return '생년월일 입력하세요.'
+
+  // Check if the format is correct (YY-MM-DD)
+  if (!/^\d{2}-\d{2}-\d{2}$/.test(value)) {
+    return 'YY-MM-DD 형식으로 입력해주세요.'
+  }
+
+  return null
+}
+
+//date as '2024-08-31'
+export function validateBirthday(value) {
+  value = value?.replaceAll(' ', '')
+
+  // checking if the field is empty
+  if (value == null || value.isEmpty) return '생년월일 입력하세요.'
+
+  // Check if the format is correct (YY-MM-DD)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return 'YYYY-MM-DD 형식으로 입력해주세요.'
+  }
+
+  return null
+}
+
+//date as '08/31'
+export function expiryDate(value) {
+  value = value?.replaceAll(' ', '')
+
+  // checking if the field is empty
+  if (value == null || value.isEmpty) return '카드유효기간을 입력하세요.'
+
+  // Check if the format is correct (YY-MM-DD)
+  if (!/^\d{2}\/\d{2}$/.test(value)) {
+    return '카드유효기간을 정확하게 입력하세요.'
+  }
+
+  return null
+}
+
+export function validateEmpty(value, error) {
+  value = value?.replaceAll(' ', '')
+
+  if (value == null || value.isEmpty) {
+    return error
+  }
+
+  return null
+}
+
+export function validate010phoneNumber(value, error) {
+  // Remove all spaces from the input
+  value = value?.replaceAll(' ', '')
+
+  if (value == null || value === '') {
+    return error
+  }
+
+  // Check if the format is correct (0XX-XXX-XXXX or 0XX-XXXX-XXXX)
+  if (!/^0\d{1,2}(-|)\d{3,4}-\d{4}$/.test(value)) {
+    return '번호를 정확하게 입력하세요.'
+  }
+
+  return null
+}

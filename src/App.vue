@@ -32,7 +32,7 @@ import { useRouteMemoryStore } from './stores/router-memory-store'
 import { useSideMenuStore } from './stores/side-menu'
 import Loading from './components/Loading.vue'
 import SearchAddressPopup from './components/SearchAddressPopup.vue'
-import { messaging, getToken, onMessage } from './firebase'
+import { messaging, onMessage } from './firebase'
 import sound from '@/assets/sound.mp3'
 
 const router = useRouter()
