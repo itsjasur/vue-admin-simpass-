@@ -137,7 +137,7 @@ export const PLANSINFO = [
               'usim_act_cd',
 
               'usim_plan_nm',
-              'usim_model_list',
+              // 'usim_model_list',
               'usim_no',
               'usim_fee_cd'
             ]
@@ -155,7 +155,7 @@ export const PLANSINFO = [
               'usim_act_cd',
 
               'usim_plan_nm',
-              'usim_model_list',
+              // 'usim_model_list',
               'usim_no'
             ]
           }
@@ -247,7 +247,11 @@ export function generateDisplayingForms(availableForms) {
   // console.log('newList', newList)
   availableForms.value.forEach((formName) => {
     // console.log(e)
-    if (['usim_plan_nm', 'usim_model_list', 'usim_no', 'usim_fee_cd'].includes(formName)) {
+    if (
+      ['usim_plan_nm', 'usim_model_list', 'usim_no', 'usim_fee_cd', 'extra_service_cd'].includes(
+        formName
+      )
+    ) {
       displayingForms[0].forms.push(formName)
     }
     if (
@@ -268,7 +272,6 @@ export function generateDisplayingForms(availableForms) {
 
     if (
       [
-        'extra_service_cd',
         'data_block_cd',
         'plan_fee_cd',
         'phone_bill_block_cd',
@@ -419,7 +422,7 @@ export const FORMS = reactive({
     label: 'USIM 모델명',
     error: 'USIM 모델명을 선택하세요.',
     error() {
-      return validateEmpty(this.value, '요금제을 선택하세요')
+      return validateEmpty(this.value, '모델명을 선택하세요')
     }
   },
 

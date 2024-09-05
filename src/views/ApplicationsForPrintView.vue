@@ -166,9 +166,14 @@ import ImageViewPopup from '../components/ImageViewPopup.vue'
 
 const imageViewerRef = ref()
 const imageBlobUrls = ref([])
+
 function openImageViewPopup(base64Images) {
-  imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
-  imageViewerRef.value.showPopup()
+  if (base64Images.length > 0) {
+    imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
+    imageViewerRef.value.showPopup()
+  } else {
+    useSnackbarStore().show('이미지가 없습니다!')
+  }
 }
 
 function closeImageViewPopup() {
@@ -190,9 +195,18 @@ watch(
 )
 
 const propsStatuses = ref([])
-const currentApplicationStatus = ref(null)
-const isNewNumber = ref(true)
 const actNo = ref(null)
+
+//applicationDetailspoup
+const applicationDetailsPopupRef = ref()
+function openDetailsPopup(item) {
+  actNo.value = item?.act_no ?? null
+  applicationDetailsPopupRef.value.showPopup()
+}
+function closeDetailsPopup() {
+  actNo.value = null
+  applicationDetailsPopupRef.value.closePopup()
+}
 
 //from date set to 7 days ago default when initialized
 const toDate = ref(formatDate(new Date()))
@@ -304,8 +318,7 @@ async function fetchForms(actNo) {
     })
     if (!response.ok) throw 'Fetch forms data error'
     const decodedResponse = await response.json()
-
-    console.log(decodedResponse?.data?.apply_forms_list)
+    // console.log(decodedResponse?.data?.apply_forms_list)
     openImageViewPopup(decodedResponse?.data?.apply_forms_list ?? [])
   } catch (error) {
     useSnackbarStore().show(error.toString())

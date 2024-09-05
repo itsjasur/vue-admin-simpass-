@@ -95,15 +95,6 @@ const checkConnection = () => {
   }
 }
 
-watch(
-  () => webSocketStore.chats,
-  (newv, oldv) => {
-    console.log('chats changed')
-    scrollToBottom()
-  },
-  { deep: true }
-)
-
 onMounted(() => {
   console.log('chats mounted')
   chatContainer.value = document.querySelector('.container') //chat container to scroll up or down
@@ -122,13 +113,6 @@ const scrollToBottom = () => {
   })
 }
 
-function selectRoom(room) {
-  if (room?.room_id) {
-    webSocketStore.selectedRoomId = room?.room_id
-    webSocketStore.joinRoom()
-  }
-}
-
 async function sendNewMessage() {
   const attachmentPaths = await uploadFiles()
   console.log(attachmentPaths)
@@ -138,6 +122,7 @@ async function sendNewMessage() {
 
     newMessage.value = ''
     attachments.value = []
+    scrollToBottom()
   }
 }
 
@@ -240,6 +225,7 @@ async function fetchData() {
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
+  flex-direction: column-reverse;
 }
 
 .chat-bubble {
@@ -299,6 +285,7 @@ async function fetchData() {
   border-radius: 8px;
   width: 100%;
   height: 100%;
+  object-fit: contain;
 }
 .overlay {
   position: absolute;

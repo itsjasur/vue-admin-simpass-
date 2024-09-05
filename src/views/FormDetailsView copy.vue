@@ -16,20 +16,22 @@
     </div>
 
     <!-- FORMS -->
-    <template v-for="(typeFormNames, index) of availableForms" :key="index">
-      <template v-if="typeFormNames.length > 0">
+
+    <template v-for="(part, index) of displayingForms" :key="index">
+      <template v-if="part.forms.length > 0">
         <div class="partition">
-          <div v-if="index === 'usim'" class="title">요금제 정보</div>
-          <div v-if="index === 'customer'" class="title">고객 정보</div>
-          <div v-if="index === 'deputy'" class="title">법정대리인</div>
-          <div v-if="index === 'payment'" class="title">
+          <div v-if="part.type === 'payment'" class="title">
             <span> 자동이체 </span>
             <a-checkbox class="checkbox left-margin" v-model:checked="selfRegisterChecked"
               >가입자와 동일</a-checkbox
             >
           </div>
 
-          <template v-for="(formName, index) in typeFormNames" :key="index">
+          <div v-else :class="part.type === 'empty' ? 'empty_title' : 'title'">
+            {{ part.title }}
+          </div>
+
+          <template v-for="(formName, formIndex) of part.forms" :key="formIndex">
             <div class="group" :style="{ maxWidth: FIXED_FORMS[formName].maxwidth }">
               <label>{{ FIXED_FORMS[formName].label }}</label>
 
@@ -69,8 +71,15 @@
                 />
               </template>
 
-              <p v-if="formSubmitted && !filledCheckValues[formName]" class="input-error-message">
-                {{ FIXED_FORMS[formName].errorMessage }}
+              <p
+                v-if="
+                  formSubmitted &&
+                  FIXED_FORMS[formName].required &&
+                  FIXED_FORMS[formName].error() !== null
+                "
+                class="input-error-message"
+              >
+                {{ FIXED_FORMS[formName].error() }}
               </p>
             </div>
           </template>
@@ -127,7 +136,9 @@
         "
         title="가입자서명"
         :errorMessage="
-          !nameImageData && !signImageData && formSubmitted ? '가입자서명을 하지 않았습니다.' : null
+          (!nameImageData || !signImageData) && formSubmitted
+            ? '가입자서명을 하지 않았습니다.'
+            : null
         "
       />
       <!-- payment pad-->
@@ -142,14 +153,14 @@
         "
         title="자동이체 서명"
         :errorMessage="
-          !paymentNameImageData && !paymentSignImageData && formSubmitted
+          (!paymentNameImageData || !paymentSignImageData) && formSubmitted
             ? '후불이체동의 서명을 하지 않았습니다.'
             : null
         "
       />
       <!-- deputy sign pad -->
       <SignImageRowContainer
-        v-if="availableForms.deputy.length > 0"
+        v-if="FIXED_FORMS?.cust_type_cd?.value === 'COL'"
         :overlayText="FIXED_FORMS.deputy_name?.value"
         @updateSignSeal="
           (signData, sealData) => {
@@ -159,7 +170,7 @@
         "
         title="법정대리인 서명"
         :errorMessage="
-          !deputyNameImageData && !deputySignImageData && formSubmitted
+          (!deputyNameImageData || !deputySignImageData) && formSubmitted
             ? '법정대리인서명을 하지 않았습니다.'
             : null
         "
@@ -175,7 +186,7 @@
         "
         title="판매자 서명"
         :errorMessage="
-          !partnerNameImageData && !partnerSignImageData && formSubmitted
+          (!partnerNameImageData || !partnerSignImageData) && formSubmitted
             ? '판매자서명을 하지 않았습니다.'
             : null
         "
@@ -216,8 +227,7 @@ import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { FORMS } from '../assets/constants'
-import { PLANSINFO } from '../assets/constants'
+import { FORMS, PLANSINFO, displayingForms, generateDisplayingForms } from '../assets/plans_forms'
 import _ from 'lodash'
 import SignImageRowContainer from '../components/SignImageRowContainer.vue'
 import { useSearchaddressStore } from '../stores/select-address-popup'
@@ -227,14 +237,28 @@ import { useDeviceTypeStore } from '@/stores/device-type-store'
 import AgreePadContainer from '../components/AgreePadContainer.vue'
 import ImageViewPopup from '../components/ImageViewPopup.vue'
 import { base64ToBlobUrl } from '@/utils/helpers'
+import * as cleavePatterns from '../utils/cleavePatterns'
+import { validateBirthday } from '@/utils/validators'
+
+const availableForms = ref([])
+
+watch(availableForms, (newList, oldList) => {
+  if (newList !== oldList) generateDisplayingForms(availableForms)
+})
 
 const imageViewerRef = ref()
 const imageBlobUrls = ref([])
 const canPrintImages = ref(false)
+
 function openImageViewPopup(base64Images) {
-  imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
-  imageViewerRef.value.showPopup()
+  if (base64Images.length > 0) {
+    imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
+    imageViewerRef.value.showPopup()
+  } else {
+    useSnackbarStore().show('이미지가 없습니다!')
+  }
 }
+
 function closeImageViewPopup() {
   imageViewerRef.value.closePopup()
   router.push('/')
@@ -250,10 +274,13 @@ const router = useRouter()
 const FIXED_FORMS = reactive(_.cloneDeep(FORMS))
 
 //setting address and addressdetail to store value
-watchEffect(() => {
-  FIXED_FORMS.address.value = selectAddressPopup.address
-  FIXED_FORMS.addressdetail.value = selectAddressPopup.buildingName
-})
+watch(
+  () => selectAddressPopup.address,
+  (newValue, oldValue) => {
+    FIXED_FORMS.address.value = selectAddressPopup.address
+    FIXED_FORMS.addressdetail.value = selectAddressPopup.buildingName
+  }
+)
 
 //this inits page
 onMounted(fetchData)
@@ -270,9 +297,6 @@ watch(() => route?.params?.id, fetchData)
 // 1 first fetched data onMounted()
 const serverData = ref(null)
 
-// finding forms
-const availableForms = reactive({ usim: [], customer: [], deputy: [], payment: [] })
-
 async function fetchData() {
   try {
     const response = await fetchWithTokenRefresh('agent/applyInit', {
@@ -283,12 +307,14 @@ async function fetchData() {
 
     const decodedResponse = await response.json()
     serverData.value = decodedResponse.data
-
+    // console.log(serverData.value)
     //setting usim plan name everytime it refetches
     FIXED_FORMS.usim_plan_nm.value = serverData.value.usim_plan_info.usim_plan_nm
 
     // usim list select required
     FIXED_FORMS.usim_model_list.required = serverData.value?.chk_usim_model === 'Y'
+
+    console.log(decodedResponse.data)
 
     generateInitialForms()
   } catch (error) {
@@ -309,13 +335,10 @@ function generateInitialForms() {
     (mvno) => mvno.code === usimPlanInfo.mvno_cd
   ) //selected mvno
 
-  //setting available forms in each mvno
-  availableForms.usim = [...(selectedMvnoInfo?.usimForms ?? [])]
-  availableForms.customer = [...(selectedMvnoInfo?.customerForms ?? [])]
-  availableForms.deputy = []
-
-  //finding payment forms in each type
-  availableForms.payment = [...(selectedTypeInfo?.paymentForms ?? [])]
+  availableForms.value = [
+    ...(selectedMvnoInfo?.forms ?? []),
+    ...(selectedTypeInfo?.paymentForms ?? [])
+  ]
 
   //adding options to select forms
   for (const formName in FIXED_FORMS) {
@@ -331,37 +354,34 @@ function generateInitialForms() {
   //EXTRA FIELDS FOR FORMS
   //adding usim extra forms when type is 신규가입 and when it is not (UPM Umobile) COM
   if (FIXED_FORMS?.usim_act_cd?.value === 'N') {
-    availableForms.usim.push('wish_number')
+    availableForms.value.push('wish_number')
     //wish numbers input with cleave
     let wishArray = Array(selectedMvnoInfo.wishCount).fill(4) //[4,4,4]
     FIXED_FORMS.wish_number.pattern = { numericOnly: true, delimiter: ' / ', blocks: wishArray } //4,4,4
     FIXED_FORMS.wish_number.placeholder = wishArray.map((e) => '1234').join(' / ')
   }
 
-  //adding transferable number when type is 신규가입 mvno is UPM (umobile)
+  //adding transferable number when type is 신규가입 mvno is UPM (codemobile)
   if (
     FIXED_FORMS?.usim_act_cd?.value === 'N' &&
     serverData.value?.usim_plan_info?.mvno_cd === 'COM'
   ) {
-    availableForms.usim.push('phone_number')
+    availableForms.value.push('phone_number')
     FIXED_FORMS.phone_number.required = false
     FIXED_FORMS.phone_number.pattern.prefix = null
   }
 
-  if (FIXED_FORMS?.usim_act_cd?.value === 'M')
-    availableForms.usim.push('mnp_carrier_type', 'phone_number', 'mnp_pre_carrier')
-  if (FIXED_FORMS?.mnp_pre_carrier?.value === 'MV') availableForms.usim.push('mnp_pre_carrier_nm')
+  if (FIXED_FORMS?.usim_act_cd?.value === 'M') {
+    availableForms.value.push('mnp_carrier_type', 'phone_number', 'mnp_pre_carrier')
+  }
 
-  if (FIXED_FORMS?.paid_transfer_cd?.value === 'C') availableForms.payment.push('card_yy_mm')
+  if (FIXED_FORMS?.mnp_pre_carrier?.value === 'MV') availableForms.value.push('mnp_pre_carrier_nm')
+
+  if (FIXED_FORMS?.paid_transfer_cd?.value === 'C') availableForms.value.push('card_yy_mm')
 
   //adding deputy forms
   if (FIXED_FORMS?.cust_type_cd?.value === 'COL') {
-    availableForms.deputy.push(
-      'deputy_name',
-      'deputy_birthday',
-      'relationship_cd',
-      'deputy_contact'
-    )
+    availableForms.value.push('deputy_name', 'deputy_birthday', 'relationship_cd', 'deputy_contact')
   }
 
   //after extra forms added, set default should be called again!
@@ -374,45 +394,29 @@ function generateInitialForms() {
   //removing gender if not underage for HVS
   if (serverData.value['usim_plan_info']['mvno_cd'] === 'HVS') {
     if (FIXED_FORMS?.cust_type_cd?.value != 'COL') {
-      const index = availableForms.customer.indexOf('gender_cd')
-      if (index !== -1) availableForms.customer.splice(index, 1)
+      const index = availableForms.value.indexOf('gender_cd')
+      if (index !== -1) availableForms.value.splice(index, 1)
     }
   }
 
   if (serverData.value['usim_plan_info']['mvno_cd'] === 'SVM') {
-    const index = availableForms.payment.indexOf('account_birthday')
-    if (index !== -1) {
-      availableForms.payment.splice(index, 1)
-      availableForms.payment.push('account_birthday_full')
-    }
-    const index1 = availableForms.deputy.indexOf('deputy_birthday')
-    if (index1 !== -1) {
-      availableForms.deputy.splice(index1, 1)
-      availableForms.deputy.push('deputy_birthday_full')
+    if (serverData.value['usim_plan_info']['combine']) availableForms.value.push('extra_service_cd')
+
+    const birthdays = ['birthday', 'account_birthday', 'deputy_birthday']
+    for (var i of birthdays) {
+      FIXED_FORMS[i].pattern = cleavePatterns.birthdayPatternFull
+      FIXED_FORMS[i].placeholder = '1991-01-31'
+      FIXED_FORMS[i].error = function () {
+        return validateBirthday(this.value)
+      }
     }
   }
-
-  //checkable forms in order to submit or showing error
-  filledCheckValues.value = Object.fromEntries(
-    [
-      //
-      ...availableForms.usim,
-      ...availableForms.customer,
-      ...availableForms.payment,
-      ...availableForms.deputy
-    ].map((formName) => [
-      formName,
-      FIXED_FORMS[formName]?.value ? true : !FIXED_FORMS[formName]?.required
-    ])
-  )
 }
 
 //sets default values
 function setDefault() {
   for (const formName in FIXED_FORMS) {
     //setting empty default error messages
-    if (!FIXED_FORMS[formName].value)
-      FIXED_FORMS[formName].errorMessage = FIXED_FORMS[formName].error
 
     if (
       FIXED_FORMS[formName].type === 'select' &&
@@ -449,7 +453,7 @@ const inputBindings = (formName) => {
   }
 
   //setting payment
-  if (['account_name', 'account_birthday', 'account_birthday_full'].includes(formName)) {
+  if (['account_name', 'account_birthday'].includes(formName)) {
     bindings.readonly = selfRegisterChecked.value
   }
 
@@ -473,11 +477,9 @@ watchEffect(() => {
   if (selfRegisterChecked.value) {
     FIXED_FORMS.account_name.value = FIXED_FORMS.name.value
     FIXED_FORMS.account_birthday.value = FIXED_FORMS.birthday.value
-    FIXED_FORMS.account_birthday_full.value = FIXED_FORMS.birthday_full.value
   } else {
     FIXED_FORMS.account_name.value = ''
     FIXED_FORMS.account_birthday.value = ''
-    FIXED_FORMS.account_birthday_full.value = ''
   }
 })
 
@@ -485,7 +487,11 @@ watchEffect(() => {
 const handleCleaveInput = (formattedValue, formName) => {
   FIXED_FORMS[formName].value = formattedValue
 
-  if (['birthday', 'deputy_birthday', 'account_birthday'].includes(formName)) {
+  //if not seven mobile validate short date
+  if (
+    ['birthday', 'deputy_birthday', 'account_birthday'].includes(formName) &&
+    serverData.value['usim_plan_info']['mvno_cd'] !== 'SVM'
+  ) {
     const today = new Date()
     const currYear = today.getFullYear() % 100
 
@@ -551,52 +557,6 @@ const partnerSignImageData = ref()
 //i agreee pad
 const agreePadData = ref()
 
-const filledCheckValues = ref({})
-
-for (const formName in FIXED_FORMS) {
-  watch(
-    () => FIXED_FORMS[formName].value,
-    (newValue, oldValue) => {
-      let field = FIXED_FORMS[formName]
-      let isValid = true
-      field.errorMessage = null
-
-      // Phone number validation
-      if (['deputy_contact', 'contact', 'phone_number'].includes(formName)) {
-        if (newValue && newValue?.replaceAll('-', '')?.length < 10) {
-          field.errorMessage = '전화번호를 정확하게 입력하세요.'
-          isValid = false
-        }
-      }
-
-      // Card expiry validation
-      else if (formName === 'card_yy_mm' && field.value?.replaceAll('/', '')?.length < 4) {
-        field.errorMessage = '카드 만료일은 MM(월) 및 YY(년)여야 합니다.'
-        isValid = false
-      }
-
-      // Birthday validation
-      else if (
-        ['birthday', 'deputy_birthday', 'account_birthday'].includes(formName) &&
-        field.value?.replaceAll('-', '')?.length < 6
-      ) {
-        field.errorMessage = '올바른 날짜를 입력하십시오'
-        isValid = false
-      }
-
-      // Required field validation
-      if (field.required && !field.value) {
-        field.errorMessage = field.error
-        isValid = false
-      }
-
-      // Set filledCheckValues.value based on final validation state
-      filledCheckValues.value[formName] = Boolean(isValid)
-    },
-    { immediate: true }
-  )
-}
-
 //SUBMIT //FORM DATA REQUEST
 const formSubmitting = ref(false)
 const formSubmitted = ref(false)
@@ -604,35 +564,54 @@ const formData = new FormData()
 
 async function submit() {
   formSubmitted.value = true
-  formSubmitting.value = true
 
-  //removing froms
-  delete filledCheckValues.value.formsSignPad
-  delete filledCheckValues.value.paymentSignPad
-  delete filledCheckValues.value.deputySignPad
-  delete filledCheckValues.value.agreeSignPad
-
-  if (!signAfterPrintChecked.value) {
-    filledCheckValues.value.formsSignPad = Boolean(nameImageData.value && signImageData.value)
-
-    if (!selfRegisterChecked.value)
-      filledCheckValues.value.paymentSignPad = Boolean(
-        paymentNameImageData.value && paymentSignImageData.value
-      )
-
-    if (availableForms.deputy.length > 0)
-      filledCheckValues.value.deputySignPad = Boolean(
-        deputyNameImageData.value && deputySignImageData.value
-      )
-
-    if (serverData.value?.usim_plan_info?.mvno_cd === 'UPM')
-      filledCheckValues.value.agreeSignPad = Boolean(agreePadData.value)
+  //here checking if any required form available is filled, if not return and show snackbar
+  for (var formname of availableForms.value) {
+    if (FIXED_FORMS[formname].required && FIXED_FORMS[formname].error() !== null) {
+      useSnackbarStore().show(`채워지지 않은 필드가 있습니다 (${FIXED_FORMS[formname]?.label})`)
+      return
+    }
   }
 
-  if (Object.values(filledCheckValues.value).every(Boolean)) await fetchForms()
-  else useSnackbarStore().show('채워지지 않은 필드가 있습니다.')
+  //here all the image pads are being checked
+  if (!signAfterPrintChecked.value) {
+    if (!nameImageData.value || !signImageData.value) {
+      useSnackbarStore().show('가입자서명을 하지 않았습니다.')
+      return
+    }
 
-  formSubmitting.value = false
+    if (!selfRegisterChecked.value) {
+      if (!paymentNameImageData.value || !paymentSignImageData.value) {
+        useSnackbarStore().show('후불이체동의 서명을 하지 않았습니다.')
+        return
+      }
+    }
+
+    if (availableForms.value.includes('deputy_name')) {
+      if (!deputyNameImageData.value || !deputySignImageData.value) {
+        useSnackbarStore().show('법정대리인서명을 하지 않았습니다.')
+        return
+      }
+    }
+
+    if (serverData.value?.usim_plan_info?.mvno_cd === 'UPM') {
+      if (!agreePadData.value) {
+        useSnackbarStore().show('판매자서명을 하지 않았습니다.')
+        return
+      }
+    }
+
+    if (serverData?.chk_partner_sign === 'N' && serverData?.usim_plan_info?.mvno_cd === 'UPM') {
+      if (!partnerNameImageData.value || !partnerSignImageData.value) {
+        useSnackbarStore().show('가입약관에 동의하지 않았습니다.')
+        return
+      }
+    }
+  }
+
+  formSubmitting.value = true
+
+  await fetchForms()
 }
 
 async function fetchForms() {
@@ -640,10 +619,10 @@ async function fetchForms() {
     formData.set('attach_files[]', file) //adding files
   }
 
-  formData.set('bill_sign', paymentNameImageData?.value ?? '')
-  formData.set('bill_seal', paymentSignImageData?.value ?? '')
   formData.set('apply_sign', nameImageData?.value ?? '')
   formData.set('apply_seal', signImageData?.value ?? '')
+  formData.set('bill_sign', paymentNameImageData?.value ?? '')
+  formData.set('bill_seal', paymentSignImageData?.value ?? '')
   formData.set('partner_sign', partnerNameImageData?.value ?? '')
   formData.set('partner_seal', partnerSignImageData?.value ?? '')
   formData.set('deputy_sign', deputyNameImageData?.value ?? '')
@@ -661,75 +640,55 @@ async function fetchForms() {
     'birthday',
     'deputy_birthday',
     'account_birthday',
-    'birthday_full',
-    'deputy_birthday_full',
-    'account_birthday_full',
     'deputy_contact',
     'contact',
     'phone_number'
   ]
 
-  const avlFormNames = [
-    ...availableForms.usim,
-    ...availableForms.customer,
-    ...availableForms.deputy,
-    ...availableForms.payment
-  ]
-  for (var formName of avlFormNames) {
-    // console.log(formName)
-    if (
-      dashRemovables.includes(formName) &&
-      FIXED_FORMS[formName].value !== null &&
-      FIXED_FORMS[formName].value
-    ) {
-      FIXED_FORMS[formName].value = FIXED_FORMS?.[formName]?.value?.replaceAll('-', '')
-    }
+  // {formname: 'contact', value: '0101231231212'}
+  var formsAndValues = {}
 
-    if (formName === 'wish_number' && FIXED_FORMS[formName]?.value) {
-      const wishList = FIXED_FORMS[formName]?.value.split(' / ')
+  for (var formName of availableForms.value) {
+    if (dashRemovables.includes(formName)) {
+      formsAndValues[formName] = FIXED_FORMS[formName]?.value?.replaceAll('-', '')
+    } else {
+      formsAndValues[formName] = FIXED_FORMS[formName].value
+    }
+  }
+
+  for (const [formName, value] of Object.entries(formsAndValues)) {
+    if (formName === 'wish_number' && value) {
+      const wishList = value.split(' / ')
       wishList.forEach((item, index) => {
         const key = 'request_no_' + (index + 1)
         formData.set(key, item)
       })
       //
     } else if (formName === 'country') {
-      formData.set('country_cd', FIXED_FORMS[formName].value)
+      formData.set('country_cd', value)
       //
     } else if (formName === 'address') {
-      formData.set(
-        'address',
-        FIXED_FORMS[formName].value + ' ' + FIXED_FORMS['addressdetail'].value
-      )
+      formData.set('address', value + ' ' + formsAndValues?.addressdetail)
     } else if (formName === 'usim_model_list') {
-      formData.set('usim_model_no', FIXED_FORMS[formName].value)
+      formData.set('usim_model_no', value)
       //
     } else if (formName === 'gender_cd') {
-      formData.set('gender', FIXED_FORMS[formName].value)
+      formData.set('gender', value)
       //
     } else if (formName === 'data_roming_block_cd') {
-      formData.set('data_roming_block', FIXED_FORMS[formName].value)
+      formData.set('data_roming_block', value)
       //
     } else if (formName === 'data_block_cd') {
-      formData.set('data_block', FIXED_FORMS[formName].value)
+      formData.set('data_block', value)
       //
     } else if (formName === 'phone_bill_block_cd') {
-      formData.set('phone_bill_block', FIXED_FORMS[formName].value)
+      formData.set('phone_bill_block', value)
       //
     } else if (formName === 'extra_service_cd') {
-      formData.set('extra_service', FIXED_FORMS[formName].value)
-      //
-    } else if (formName === 'birthday_full') {
-      formData.set('birthday', FIXED_FORMS[formName].value)
-      //
-    } else if (formName === 'deputy_birthday_full') {
-      formData.set('deputy_birthday', FIXED_FORMS[formName].value)
-      //
-    } else if (formName === 'account_birthday_full') {
-      formData.set('account_birthday', FIXED_FORMS[formName].value)
-      //
+      formData.set('extra_service', value)
     } else if (formName === 'usim_plan_nm') {
     } else {
-      formData.set(formName, FIXED_FORMS[formName].value)
+      formData.set(formName, value)
     }
   }
 
@@ -744,7 +703,7 @@ async function fetchForms() {
     })
 
     const decodedResponse = await response.json()
-    console.log(decodedResponse)
+
     const base64Images = decodedResponse?.data?.apply_forms_list ?? []
 
     if (base64Images?.length > 0) {
@@ -755,6 +714,8 @@ async function fetchForms() {
     }
   } catch (error) {
     useSnackbarStore().show(error.toString())
+  } finally {
+    formSubmitting.value = false
   }
 }
 </script>
@@ -768,14 +729,18 @@ async function fetchForms() {
   display: flex;
   flex-flow: column;
   gap: 20px;
+  margin-top: 20px;
 }
 
 .partition {
   display: flex;
   flex-flow: wrap;
   gap: 15px;
-  margin-bottom: 10px;
-  min-height: 100px;
+  box-sizing: border-box;
+}
+
+.empty_title {
+  width: 100%;
 }
 
 .title {
@@ -783,7 +748,6 @@ async function fetchForms() {
   font-weight: 600;
   padding: 0;
   margin-top: 10px;
-  margin-bottom: 0px;
   width: 100%;
 }
 
@@ -796,6 +760,7 @@ async function fetchForms() {
   font-size: 16px;
   font-weight: 500;
 }
+
 .left-margin {
   margin-left: 15px;
 }
@@ -890,6 +855,10 @@ async function fetchForms() {
   width: auto;
   padding: 0 10px;
   white-space: nowrap;
+}
+
+.supperted-images {
+  margin-top: 20px;
 }
 
 @media (max-width: 600px) {

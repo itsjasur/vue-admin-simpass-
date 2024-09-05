@@ -64,6 +64,7 @@ export function validatePass(value) {
   }
 
   const regex = /^(?=.*?[a-zA-Z])(?=.*?[0-9]){2}(?=.*?[!@#$&~*%^?]).{8,}$/
+
   if (!regex.test(value)) {
     return '비밀번호는 8자 이상, 대/소문자 1자, 숫자 2자 및 특수 대소문자 1자를 조합'
   }
@@ -83,19 +84,10 @@ export function validateRentryPass(oldValue, newValue) {
   return null
 }
 
-export function validateCountry(value) {
-  value = value?.replaceAll(' ', '')
-
-  // checking if the field is empty
-  if (!value) return '국가를 선택하세요.'
-
-  return null
-}
-
 export function validateForNoneEmpty(value, name) {
   value = value?.replaceAll(' ', '')
 
-  if (value == null || value.isEmpty) {
+  if (value == null || value.isEmpty || value === '') {
     return `${name} 입력하세요.`
   }
 
@@ -105,7 +97,7 @@ export function validateForNoneEmpty(value, name) {
 //date as '24-08-31'
 export function validateShortBirthday(value) {
   // checking if the field is empty
-  if (value == null || value.isEmpty) return '생년월일 입력하세요.'
+  if (value == null || value.isEmpty || value === '') return '생년월일 입력하세요.'
 
   // Check if the format is correct (YY-MM-DD)
   if (!/^\d{2}-\d{2}-\d{2}$/.test(value)) {
@@ -120,7 +112,7 @@ export function validateBirthday(value) {
   value = value?.replaceAll(' ', '')
 
   // checking if the field is empty
-  if (value == null || value.isEmpty) return '생년월일 입력하세요.'
+  if (value == null || value.isEmpty || value === '') return '생년월일 입력하세요.'
 
   // Check if the format is correct (YY-MM-DD)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -135,7 +127,7 @@ export function expiryDate(value) {
   value = value?.replaceAll(' ', '')
 
   // checking if the field is empty
-  if (value == null || value.isEmpty) return '카드유효기간을 입력하세요.'
+  if (value == null || value.isEmpty || value === '') return '카드유효기간을 입력하세요.'
 
   // Check if the format is correct (YY-MM-DD)
   if (!/^\d{2}\/\d{2}$/.test(value)) {
@@ -148,7 +140,7 @@ export function expiryDate(value) {
 export function validateEmpty(value, error) {
   value = value?.replaceAll(' ', '')
 
-  if (value == null || value.isEmpty) {
+  if (value == null || value.isEmpty || value === '') {
     return error
   }
 

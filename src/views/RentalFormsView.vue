@@ -142,9 +142,14 @@ import ImageViewPopup from '../components/ImageViewPopup.vue'
 
 const imageViewerRef = ref()
 const imageBlobUrls = ref([])
+
 function openImageViewPopup(base64Images) {
-  imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
-  imageViewerRef.value.showPopup()
+  if (base64Images.length > 0) {
+    imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
+    imageViewerRef.value.showPopup()
+  } else {
+    useSnackbarStore().show('이미지가 없습니다!')
+  }
 }
 
 function closeImageViewPopup() {

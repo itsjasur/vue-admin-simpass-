@@ -249,9 +249,14 @@ watch(availableForms, (newList, oldList) => {
 const imageViewerRef = ref()
 const imageBlobUrls = ref([])
 const canPrintImages = ref(false)
+
 function openImageViewPopup(base64Images) {
-  imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
-  imageViewerRef.value.showPopup()
+  if (base64Images.length > 0) {
+    imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
+    imageViewerRef.value.showPopup()
+  } else {
+    useSnackbarStore().show('이미지가 없습니다!')
+  }
 }
 function closeImageViewPopup() {
   imageViewerRef.value.closePopup()
@@ -308,6 +313,8 @@ async function fetchData() {
     // usim list select required
     FIXED_FORMS.usim_model_list.required = serverData.value?.chk_usim_model === 'Y'
 
+    console.log(decodedResponse.data)
+
     generateInitialForms()
   } catch (error) {
     useSnackbarStore().show(error.toString())
@@ -353,7 +360,7 @@ function generateInitialForms() {
     FIXED_FORMS.wish_number.placeholder = wishArray.map((e) => '1234').join(' / ')
   }
 
-  //adding transferable number when type is 신규가입 mvno is UPM (umobile)
+  //adding transferable number when type is 신규가입 mvno is UPM (codemobile)
   if (
     FIXED_FORMS?.usim_act_cd?.value === 'N' &&
     serverData.value?.usim_plan_info?.mvno_cd === 'COM'
@@ -361,6 +368,7 @@ function generateInitialForms() {
     availableForms.value.push('phone_number')
     FIXED_FORMS.phone_number.required = false
     FIXED_FORMS.phone_number.pattern.prefix = null
+    FIXED_FORMS.phone_number.value = ''
   }
 
   if (FIXED_FORMS?.usim_act_cd?.value === 'M') {
@@ -392,6 +400,8 @@ function generateInitialForms() {
   }
 
   if (serverData.value['usim_plan_info']['mvno_cd'] === 'SVM') {
+    if (serverData.value['usim_plan_info']['combine']) availableForms.value.push('extra_service_cd')
+
     const birthdays = ['birthday', 'account_birthday', 'deputy_birthday']
     for (var i of birthdays) {
       FIXED_FORMS[i].pattern = cleavePatterns.birthdayPatternFull
@@ -682,9 +692,9 @@ async function fetchForms() {
     }
   }
 
-  // for (const [key, value] of formData.entries()) {
-  //   console.log(key, value)
-  // }
+  for (const [key, value] of formData.entries()) {
+    console.log(key, value)
+  }
 
   try {
     const response = await fetchWithTokenRefresh('agent/actApply', {

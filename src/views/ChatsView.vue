@@ -65,7 +65,7 @@ function selectRoom(room) {
   }
   //opens chats popup if not desktop
   if (!sideMenuHanlder.isDesktop) {
-    chatPopupRef.value.showPopup()
+    chatPopupRef.value.showPopup(null, null)
   }
 }
 

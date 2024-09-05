@@ -77,11 +77,18 @@ export const useWebSocketStore = defineStore('webSocket', {
 
         if (data?.type === 'chats') {
           this.selectedRoomId = data?.room_id
-          this.chats = data?.chats
+          // this.chats = data?.chats
+          let chatz = data.chats
+          this.chats = [...chatz].reverse()
+          this.resetRoomUnreadCount()
         }
 
         if (data?.type === 'new_chat') {
-          if (this.selectedRoomId === data?.new_chat.room_id) this.chats.push(data?.new_chat)
+          if (this.selectedRoomId === data?.new_chat.room_id) {
+            this.chats.unshift(data.new_chat)
+            this.resetRoomUnreadCount()
+          }
+          // if (this.selectedRoomId === data?.new_chat.room_id) this.chats.push(data?.new_chat)
           //   console.log(data.new_chat)
         }
       }

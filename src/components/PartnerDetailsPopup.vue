@@ -129,7 +129,7 @@
   </div>
 
   <GlobalPopupWithOverlay ref="imageViewerRef">
-    <ImageViewPopup @closePopup="closeImageViewPopup" :canPrint="true" />
+    <ImageViewPopup @closePopup="closeImageViewPopup" :canPrint="true" :imageUrls="imageBlobUrls" />
   </GlobalPopupWithOverlay>
 </template>
 
@@ -140,18 +140,26 @@ import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { onMounted, ref } from 'vue'
 import GlobalPopupWithOverlay from './GlobalPopupWithOverlay.vue'
 import ImageViewPopup from './ImageViewPopup.vue'
-import { useImagesHolderStore } from '@/stores/image-holder-store'
+
 import * as cleavePatterns from '../utils/cleavePatterns'
+import { base64ToBlobUrl } from '@/utils/helpers'
 
 const emits = defineEmits(['closePopup'])
 const props = defineProps({ partnerCd: { type: String, default: null } })
 
 const imageViewerRef = ref()
-function openImageViewPopup() {
-  imageViewerRef.value.showPopup()
+const imageBlobUrls = ref([])
+
+function openImageViewPopup(base64Images) {
+  if (base64Images.length > 0) {
+    imageBlobUrls.value = base64Images?.map((i) => base64ToBlobUrl(i)) || []
+    imageViewerRef.value.showPopup()
+  } else {
+    useSnackbarStore().show('이미지가 없습니다!')
+  }
 }
+
 function closeImageViewPopup() {
-  useImagesHolderStore().clear()
   imageViewerRef.value.closePopup()
 }
 
@@ -186,8 +194,7 @@ async function fetchImageByName(fileName) {
 
     if (!decodedResponse?.data) throw decodedResponse?.message ?? 'No image'
     if (!decodedResponse?.data?.image) throw 'No image'
-    useImagesHolderStore().save([decodedResponse.data.image])
-    openImageViewPopup()
+    openImageViewPopup([decodedResponse.data.image])
   } catch (error) {
     useSnackbarStore().show(error.toString())
   } finally {
