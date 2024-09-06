@@ -233,7 +233,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import * as cleavePatterns from '../utils/cleavePatterns'
 import { base64ToBlobUrl, formatDate } from '../utils/helpers'
 import { useSnackbarStore } from '../stores/snackbar'
@@ -419,14 +419,24 @@ const columns = ref([
 
 // opens chat with this user
 function openChat(record) {
-  console.log(record)
+  // console.log(record)
   if (record?.partner_cd) {
-    webSocketStore.selectedRoomId = null
-    webSocketStore.joinRoom(record.partner_cd, record.partner_nm)
-  }
+    webSocketStore.selectedRoom = null
 
-  router.push('chats')
+    console.log('null room', webSocketStore.selectedRoom)
+    webSocketStore.getRoomInfo(record.partner_cd, record.partner_nm)
+
+    console.log('room added')
+  }
 }
+
+//this listens if room is selected and then pushes afterwards
+watch(
+  () => webSocketStore.selectedRoom,
+  (newv, oldv) => {
+    if (newv) router.push('chats')
+  }
+)
 
 const dataList = ref([])
 

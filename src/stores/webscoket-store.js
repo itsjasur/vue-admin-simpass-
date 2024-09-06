@@ -7,18 +7,16 @@ export const useWebSocketStore = defineStore('webSocket', {
     socket: null,
     isConnected: false,
     totalUnreadCount: 0,
-    selectedRoomId: null,
-    chatRooms: [],
     reconnectInterval: null,
-    chats: []
+
+    chats: [],
+    chatRooms: [],
+    selectedRoom: null
   }),
 
   actions: {
     connect() {
       const accessToken = localStorage.getItem('accessToken')
-      // this.socket = new WebSocket(`ws://localhost:8000/ws/${accessToken}`)
-      // this.socket = new WebSocket(`wss://chat.baroform.com/ws/${accessToken}`)
-      // this.socket = new WebSocket(`https://chat.baroform.com/ws/${accessToken}`)
       this.socket = new WebSocket(import.meta.env.VITE_CHAT_SERVER_URL + `ws/${accessToken}`)
 
       this.socket.onopen = async () => {
@@ -72,24 +70,30 @@ export const useWebSocketStore = defineStore('webSocket', {
 
         if (data?.type === 'new_chat_room') {
           this.chatRooms.push(data?.chat_room)
-          //   console.log(data.new_chat)
         }
 
-        if (data?.type === 'chats') {
-          this.selectedRoomId = data?.room_id
-          // this.chats = data?.chats
+        if (data?.type === 'room_chats') {
           let chatz = data.chats
           this.chats = [...chatz].reverse()
           this.resetRoomUnreadCount()
+
+          console.log('room chats called')
+        }
+
+        if (data?.type === 'room_info') {
+          if (data?.room_info) {
+            console.log('room info listened and selected room updated')
+            this.selectedRoom = data.room_info
+
+            console.log(this.selectedRoom)
+          }
         }
 
         if (data?.type === 'new_chat') {
-          if (this.selectedRoomId === data?.new_chat.room_id) {
+          if (this.selectedRoom.room_id === data?.new_chat.room_id) {
             this.chats.unshift(data.new_chat)
             this.resetRoomUnreadCount()
           }
-          // if (this.selectedRoomId === data?.new_chat.room_id) this.chats.push(data?.new_chat)
-          //   console.log(data.new_chat)
         }
       }
     },
@@ -100,14 +104,25 @@ export const useWebSocketStore = defineStore('webSocket', {
       }
     },
 
-    joinRoom(partnerCd, partnerNm) {
+    //this gets room info
+    getRoomInfo(partnerCode, partnerName) {
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        this.socket.send(
+          JSON.stringify({
+            action: 'get_room_info',
+            partnerCode: partnerCode,
+            partnerName: partnerName
+          })
+        )
+      }
+    },
+
+    joinRoom() {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         this.socket.send(
           JSON.stringify({
             action: 'join_room',
-            roomId: this.selectedRoomId,
-            partnerCode: partnerCd,
-            partnerName: partnerNm
+            roomId: this.selectedRoom.room_id
           })
         )
       }
@@ -116,7 +131,7 @@ export const useWebSocketStore = defineStore('webSocket', {
     resetRoomUnreadCount() {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         this.socket.send(
-          JSON.stringify({ action: 'reset_room_unread_count', roomId: this.selectedRoomId })
+          JSON.stringify({ action: 'reset_room_unread_count', roomId: this.selectedRoom.room_id })
         )
       }
     },
@@ -127,7 +142,7 @@ export const useWebSocketStore = defineStore('webSocket', {
           action: 'new_message',
           text: text,
           attachmentPaths: attachmentPaths,
-          roomId: this.selectedRoomId
+          roomId: this.selectedRoom.room_id
         })
       )
     },

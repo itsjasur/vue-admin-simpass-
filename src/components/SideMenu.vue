@@ -1,9 +1,12 @@
 <template>
   <div class="menu">
     <div class="logo">
-      <router-link @click="router.push('/')" to="/profile"
+      <!-- <router-link @click="router.push('/')" to="/profile"
         ><img src="../assets/logo.png" alt="Logo" style="width: 200px" />
-      </router-link>
+      </router-link> -->
+      <div @click="router.push('/')">
+        <img src="../assets/logo.png" alt="Logo" style="width: 200px" />
+      </div>
     </div>
 
     <template v-for="(item, index) in visibleMenuItems" :key="index">

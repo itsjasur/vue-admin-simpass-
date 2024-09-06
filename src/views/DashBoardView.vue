@@ -58,7 +58,7 @@ const checkConnection = () => {
 onMounted(() => {
   sideMenuStore.updateIsDesktop()
   window.addEventListener('resize', handleResize)
-  console.log('dashboard mounted')
+  // console.log('dashboard mounted')
 
   if (!webSocketStore.socket) webSocketStore.connect()
   checkConnection()

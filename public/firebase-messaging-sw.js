@@ -11,23 +11,26 @@ const firebaseConfig = {
   measurementId: 'G-0N60MS076C'
 }
 
-firebase.initializeApp(firebaseConfig)
-const messaging = firebase.messaging()
+try {
+  firebase.initializeApp(firebaseConfig)
+  const messaging = firebase.messaging()
 
-messaging.onBackgroundMessage(function (payload) {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload)
-  const notificationTitle = payload.notification.title
-  const notificationOptions = {
-    body: payload.notification.body,
-    // icon: '/logo.png',
-    silent: false,
-    tag: 'notification-' + Date.now()
-  }
+  messaging.onBackgroundMessage(function (payload) {
+    console.log('[firebase-messaging-sw.js] Received background message ', payload)
+    const notificationTitle = payload.notification.title
+    const notificationOptions = {
+      body: payload.notification.body,
+      silent: false,
+      tag: 'notification-' + Date.now()
+    }
 
-  return self.registration
-    .showNotification(notificationTitle, notificationOptions)
-    .catch((error) => console.error('Error showing notification:', error))
-})
+    return self.registration
+      .showNotification(notificationTitle, notificationOptions)
+      .catch((error) => console.error('Error showing notification:', error))
+  })
+} catch (error) {
+  console.error('Error initializing Firebase:', error)
+}
 
 // self.addEventListener('push', function (event) {
 //   console.log('[firebase-messaging-sw.js] Received background message ', payload)

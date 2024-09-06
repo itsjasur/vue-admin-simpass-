@@ -26,7 +26,7 @@
         </template>
       </div>
 
-      <div v-if="webSocketStore.selectedRoomId" class="bottom-actions">
+      <div class="bottom-actions">
         <div v-if="attachments.length > 0" class="attachments-row">
           <div v-for="(file, index) in attachments" :key="index" class="attached-images">
             <img :src="file.url" :alt="'image index: ' + index" />
@@ -87,21 +87,18 @@ const handleKeyDown = (event) => {
   }
 }
 
-const checkConnection = () => {
-  if (!webSocketStore.isConnected) {
-    setTimeout(checkConnection, 100) // checks every 100ms
-  } else {
-    webSocketStore.getChatRooms(searchText.value)
-  }
-}
+// const checkConnection = () => {
+//   if (!webSocketStore.isConnected) {
+//     setTimeout(checkConnection, 100) // checks every 100ms
+//   } else {
+//     webSocketStore.getChatRooms(searchText.value)
+//   }
+// }
 
 onMounted(() => {
   console.log('chats mounted')
   chatContainer.value = document.querySelector('.container') //chat container to scroll up or down
   fetchData()
-
-  if (!webSocketStore.socket) webSocketStore.connect()
-  checkConnection()
 })
 
 const scrollToBottom = () => {

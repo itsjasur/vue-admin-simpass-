@@ -16,7 +16,10 @@
         <template v-for="(room, index) in webSocketStore.chatRooms" :key="index">
           <div
             @click="selectRoom(room)"
-            :class="['chatroom', { isSelected: webSocketStore.selectedRoomId === room?.room_id }]"
+            :class="[
+              'chatroom',
+              { isSelected: webSocketStore?.selectedRoom?.room_id === room?.room_id }
+            ]"
           >
             <span> {{ room.partner_name }}</span>
 
@@ -29,7 +32,7 @@
     </div>
 
     <div class="chats_section">
-      <ChatsComponent />
+      <ChatsComponent v-if="webSocketStore.selectedRoom" />
     </div>
   </div>
 
@@ -37,11 +40,12 @@
     <GlobalPopupWithOverlay ref="chatPopupRef">
       <div class="mobile_chats_popup">
         <div class="fixed-header">
+          <span>{{ webSocketStore.selectedRoom.partner_name }}</span>
           <span @click="closeChatsPopup" class="material-symbols-outlined close-button">
             cancel
           </span>
         </div>
-        <ChatsComponent />
+        <ChatsComponent v-if="webSocketStore.selectedRoom" />
       </div>
     </GlobalPopupWithOverlay>
   </template>
@@ -59,8 +63,8 @@ const sideMenuHanlder = useSideMenuStore()
 const chatPopupRef = ref()
 
 function selectRoom(room) {
-  if (room?.room_id) {
-    webSocketStore.selectedRoomId = room?.room_id
+  if (room) {
+    webSocketStore.selectedRoom = room
     webSocketStore.joinRoom()
   }
   //opens chats popup if not desktop
@@ -71,7 +75,7 @@ function selectRoom(room) {
 
 function closeChatsPopup() {
   if (!sideMenuHanlder.isDesktop) {
-    webSocketStore.selectedRoomId = null
+    webSocketStore.selectedRoom = null
     chatPopupRef.value.closePopup()
   }
 }
@@ -88,8 +92,8 @@ const checkConnection = () => {
 }
 
 onMounted(() => {
-  console.log('chats mounted')
   checkConnection()
+  if (webSocketStore.selectedRoom) webSocketStore.joinRoom()
 })
 </script>
 
@@ -129,6 +133,9 @@ onMounted(() => {
   padding: 0 20px;
   padding-top: 60px;
   overflow-y: auto;
+  display: flex;
+  flex-flow: column;
+  gap: 10px;
 }
 
 .chatroom {
