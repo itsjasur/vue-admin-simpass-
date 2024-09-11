@@ -419,24 +419,12 @@ const columns = ref([
 
 // opens chat with this user
 function openChat(record) {
-  // console.log(record)
   if (record?.partner_cd) {
     webSocketStore.selectedRoom = null
-
-    console.log('null room', webSocketStore.selectedRoom)
-    webSocketStore.getRoomInfo(record.partner_cd, record.partner_nm)
-
-    console.log('room added')
+    webSocketStore.joinNewRoom(record.partner_cd, record.partner_nm)
+    router.push('chats')
   }
 }
-
-//this listens if room is selected and then pushes afterwards
-watch(
-  () => webSocketStore.selectedRoom,
-  (newv, oldv) => {
-    if (newv) router.push('chats')
-  }
-)
 
 const dataList = ref([])
 

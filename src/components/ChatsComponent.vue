@@ -76,7 +76,6 @@ const webSocketStore = useWebSocketStore()
 
 const chatContainer = ref(null)
 const userInfo = ref()
-const searchText = ref('')
 const newMessage = ref('')
 
 // adds logic for the action to take on Enter without Shift
@@ -87,16 +86,7 @@ const handleKeyDown = (event) => {
   }
 }
 
-// const checkConnection = () => {
-//   if (!webSocketStore.isConnected) {
-//     setTimeout(checkConnection, 100) // checks every 100ms
-//   } else {
-//     webSocketStore.getChatRooms(searchText.value)
-//   }
-// }
-
 onMounted(() => {
-  console.log('chats mounted')
   chatContainer.value = document.querySelector('.container') //chat container to scroll up or down
   fetchData()
 })
@@ -112,7 +102,6 @@ const scrollToBottom = () => {
 
 async function sendNewMessage() {
   const attachmentPaths = await uploadFiles()
-  console.log(attachmentPaths)
 
   if (newMessage.value.trim() || attachmentPaths.length > 0) {
     webSocketStore.sendMessage(newMessage.value, attachmentPaths)
@@ -173,7 +162,6 @@ async function uploadFiles() {
 }
 
 async function fetchData() {
-  console.log('chats fetch called')
   try {
     const response = await fetchWithTokenRefresh('agent/userInfo', { method: 'GET' })
     if (!response.ok) throw 'Fetch data error'

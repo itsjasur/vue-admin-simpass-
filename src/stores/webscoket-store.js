@@ -73,20 +73,13 @@ export const useWebSocketStore = defineStore('webSocket', {
         }
 
         if (data?.type === 'room_chats') {
+          // room_info will come when user joins new room
+          if (data?.room_info) {
+            this.selectedRoom = { ...this.selectedRoom, ...data.room_info }
+          }
           let chatz = data.chats
           this.chats = [...chatz].reverse()
           this.resetRoomUnreadCount()
-
-          console.log('room chats called')
-        }
-
-        if (data?.type === 'room_info') {
-          if (data?.room_info) {
-            console.log('room info listened and selected room updated')
-            this.selectedRoom = data.room_info
-
-            console.log(this.selectedRoom)
-          }
         }
 
         if (data?.type === 'new_chat') {
@@ -105,11 +98,11 @@ export const useWebSocketStore = defineStore('webSocket', {
     },
 
     //this gets room info
-    getRoomInfo(partnerCode, partnerName) {
+    joinNewRoom(partnerCode, partnerName) {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         this.socket.send(
           JSON.stringify({
-            action: 'get_room_info',
+            action: 'join_new_room',
             partnerCode: partnerCode,
             partnerName: partnerName
           })
@@ -152,7 +145,7 @@ export const useWebSocketStore = defineStore('webSocket', {
         this.reconnectInterval = setInterval(() => {
           console.log('Attempting to reconnect...')
           this.connect()
-        }, 5000)
+        }, 20000)
       }
     },
 
