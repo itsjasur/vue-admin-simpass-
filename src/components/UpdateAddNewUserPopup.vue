@@ -142,9 +142,7 @@ import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import { useAuthenticationStore } from '@/stores/authentication'
 import lodash from 'lodash'
-
 import * as VALIDATOR from '../utils/validators'
-import router from '@/router'
 
 const emit = defineEmits(['closePopup'])
 

@@ -223,6 +223,17 @@ const router = createRouter({
             requiresAuth: true,
             requiredRoles: ['ALL']
           }
+        },
+
+        {
+          path: '/htmls',
+          name: 'htmls',
+          component: () => import('../views/HtmlsView.vue'),
+          meta: {
+            title: 'HTMLS',
+            requiresAuth: true,
+            requiredRoles: ['ALL']
+          }
         }
       ]
     },

@@ -92,6 +92,10 @@ const menuItems = [
   {
     path: '/chats',
     icon: 'chat'
+  },
+  {
+    path: '/htmls',
+    icon: 'pages'
   }
 ]
 
