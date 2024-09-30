@@ -1,9 +1,9 @@
 <template>
   <div class="html_editor_container">
     <div class="editor">
-      <div class="title_group" style="width: 600px">
-        <label>제목</label>
-        <input v-model="title" />
+      <div class="title_group">
+        <label>정책등록관리 </label>
+        <input v-model="title" :disabled="!canEdit" />
       </div>
 
       <Editor
@@ -16,44 +16,50 @@
       <div class="buttons">
         <!-- <button @click="logHtml">Log HTML</button> -->
         <button class="close_button" @click="$emit('closePopup', false, false)">닫기</button>
-        <button class="delete_button" @click="false">삭제</button>
-        <button @click="submitForm">저장</button>
+        <button v-if="canDelete" class="delete_button" @click="deleteHtml">삭제</button>
+        <button v-if="canEdit" @click="submitForm">저장</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, readonly, ref } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import { useSnackbarStore } from '@/stores/snackbar'
 
 const props = defineProps({
-  id: { type: String, default: null }
+  id: { type: String, default: null },
+  username: { type: String, default: null }
 })
+
+const canEdit = computed(() => !props.id || props.username === creator.value)
+const canDelete = computed(() => props.id && props.username === creator.value)
 
 const emit = defineEmits(['closePopup'])
 
 const title = ref('기본 제목')
 const editorContent = ref()
+const creator = ref()
+
 const editorConfig = {
   selector: '#about',
-  // language: 'ko_KR', // Korean language code
-  // language_url: 'https://cdn.tiny.cloud/1/no-api-key/tinymce/5/langs/ko_KR.js',
+  language: 'ko_KR', // Korean language code
+  language_url: 'https://cdn.tiny.cloud/1/no-api-key/tinymce/5/langs/ko_KR.js',
   menubar: false,
   branding: false,
   plugins:
     'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table wordcount',
-  toolbar: `undo redo | link customImageUpload | bold italic backcolor | insertdatetime media table | pagebreak | wordcount |
-   alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | 
-   removeformat | charmap emoticons | searchreplace visualblocks code | fullscreen preview`,
+  toolbar: `undo redo fontsizeinput fontfamily link customImageUpload bold italic backcolor insertdatetime media table pagebreak wordcount
+  alignleft aligncenter alignright alignjustify bullist numlist outdent indent removeformat charmap emoticons searchreplace visualblocks code fullscreen preview print`,
   license_key: 'gpl',
   height: '80%',
   width: '100%',
   // content_style: 'body { text-align: center; }',
 
-  // Custom image upload button
+  // custom image upload button
   setup: function (editor) {
+    if (canEdit.value === false) editor.mode.set('readonly')
     editor.ui.registry.addButton('customImageUpload', {
       icon: 'image',
       tooltip: 'Upload Image',
@@ -78,26 +84,24 @@ const logHtml = () => {
 }
 
 const submitForm = async () => {
-  // console.log('Submitting form with HTML:', editorContent.value)
-
   if (!title.value) {
     useSnackbarStore().show('제목을 적어주세요')
     return
   }
-
   if (!editorContent.value) {
     useSnackbarStore().show('내용은 비어 있을 수 없습니다.')
     return
   }
 
   try {
+    const accessToken = localStorage.getItem('accessToken')
     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'save-html-string', {
       method: 'POST',
       body: JSON.stringify({
-        id: '123123',
+        id: props.id,
         htmlString: editorContent.value,
-        title: 'title',
-        creator: 'jasur'
+        title: title.value,
+        accessToken: accessToken
       })
     })
 
@@ -106,7 +110,9 @@ const submitForm = async () => {
     }
 
     const decodedResponse = await response.json()
+
     useSnackbarStore().show(decodedResponse?.message ?? 'Somethign is wrong')
+    if (decodedResponse.success) emit('closePopup', true, true)
   } catch (error) {
     console.error('Error uplading html:', error)
     useSnackbarStore().show(error.toString())
@@ -139,6 +145,8 @@ async function uploadImage(file, editor) {
 }
 
 const fetchHtmlContent = async () => {
+  if (!props.id) return
+
   try {
     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'get-html', {
       method: 'POST',
@@ -150,10 +158,35 @@ const fetchHtmlContent = async () => {
     }
 
     const decodedResponse = await response.json()
-    editorContent.value = decodedResponse.html.content
-    title.value = decodedResponse.html.title
+    editorContent.value = decodedResponse?.html?.content
+    title.value = decodedResponse?.html?.title
+    creator.value = decodedResponse?.html?.creator
 
     console.log(decodedResponse.htmls)
+  } catch (error) {
+    console.error('Error uplading html:', error)
+    useSnackbarStore().show(error.toString())
+  }
+}
+
+async function deleteHtml() {
+  const accessToken = localStorage.getItem('accessToken')
+  if (!props.id) return
+  try {
+    const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'delete-html', {
+      method: 'POST',
+      body: JSON.stringify({ id: props.id, accessToken: accessToken })
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const decodedResponse = await response.json()
+    console.log(decodedResponse.htmls)
+
+    useSnackbarStore().show(decodedResponse?.message ?? 'Somethign is wrong')
+    if (decodedResponse.success) emit('closePopup', true, true)
   } catch (error) {
     console.error('Error uplading html:', error)
     useSnackbarStore().show(error.toString())

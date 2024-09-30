@@ -28,26 +28,30 @@
           size="middle"
           :showSorterTooltip="false"
         >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.dataIndex === 'open'">
+          <template #bodyCell="{ column, text, record }">
+            <template v-if="column.dataIndex === 'title'">
+              <span class="clickable_title" @click="openPopup(record.id)">{{ text }}</span>
+            </template>
+            <!-- <template v-if="column.dataIndex === 'open'">
               <button class="open_button" @click="openPopup(record.id)">
                 <span class="material-symbols-outlined view_icon">expand_content</span>
                 <span>열기</span>
               </button>
-            </template>
+            </template> -->
           </template>
         </a-table>
       </div>
     </div>
   </div>
   <GlobalPopupWithOverlay ref="openOrUpdateHtml">
-    <HtmlMakerView :id="selectedId" @closePopup="closePopup" />
+    <HtmlMakerView :id="selectedId" :username="username" @closePopup="closePopup" />
   </GlobalPopupWithOverlay>
 </template>
 <script setup>
 import { useSnackbarStore } from '@/stores/snackbar'
 import { ref, onMounted } from 'vue'
 import HtmlMakerView from './HtmlMakerView.vue'
+import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 
 const openOrUpdateHtml = ref(false)
 const selectedId = ref(null)
@@ -91,23 +95,27 @@ const columns = ref([
     key: 'updatedAt',
     sorter: (a, b) => (a.updatedAt ?? '').localeCompare(b.updatedAt ?? ''),
     width: 200
-  },
-
-  {
-    title: '열기',
-    dataIndex: 'open',
-    key: 'open',
-    width: 120,
-    // align: 'start'
-    alignContent: 'center'
   }
+
+  // {
+  //   title: '열기',
+  //   dataIndex: 'open',
+  //   key: 'open',
+  //   width: 120,
+  //   // align: 'start'
+  //   alignContent: 'center'
+  // }
 ])
 
 const fetchHtmlContents = async () => {
+  await fetchUserInfo()
   try {
     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'get-htmls', {
       method: 'POST',
-      body: JSON.stringify({ pageNumber: currentPage.value })
+      body: JSON.stringify({
+        pageNumber: currentPage.value,
+        perPage: rowLimit.value
+      })
     })
 
     if (!response.ok) {
@@ -115,22 +123,7 @@ const fetchHtmlContents = async () => {
     }
 
     const decodedResponse = await response.json()
-    htmlContents.value = [
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls,
-      ...decodedResponse.htmls
-    ]
-
+    htmlContents.value = decodedResponse.htmls
     totalCount.value = decodedResponse.total_count
 
     console.log(decodedResponse.htmls)
@@ -140,9 +133,19 @@ const fetchHtmlContents = async () => {
   }
 }
 
-onMounted(() => {
-  fetchHtmlContents()
-})
+const username = ref()
+async function fetchUserInfo() {
+  try {
+    const response = await fetchWithTokenRefresh('admin/myInfo', { method: 'GET' })
+    if (!response.ok) throw 'Fetch profile data error'
+    const decodedResponse = await response.json()
+    username.value = decodedResponse?.data?.info?.username
+  } catch (error) {
+    useSnackbarStore().show(error.toString())
+  }
+}
+
+onMounted(fetchHtmlContents)
 </script>
 
 <style scoped>
@@ -189,5 +192,14 @@ onMounted(() => {
 
 .open_button .view_icon {
   font-size: 20px;
+}
+
+/* .clickable_title {
+  text-decoration: underline;
+} */
+
+.clickable_title:hover {
+  color: var(--main-color);
+  cursor: pointer;
 }
 </style>
