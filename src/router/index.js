@@ -232,7 +232,14 @@ const router = createRouter({
           meta: {
             title: 'HTMLS',
             requiresAuth: true,
-            requiredRoles: ['ALL']
+            requiredRoles: [
+              'ROLE_SUPER',
+              'ROLE_ADMIN',
+              'ROLE_MANAGER',
+              'ROLE_OPEN_ADMIN',
+              'ROLE_OPEN_MANAGER',
+              'ROLE_AGENCY_ADMIN'
+            ]
           }
         }
       ]

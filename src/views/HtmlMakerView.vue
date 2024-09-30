@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, readonly, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import { useSnackbarStore } from '@/stores/snackbar'
 
@@ -33,14 +33,14 @@ const props = defineProps({
   username: { type: String, default: null }
 })
 
-const canEdit = computed(() => !props.id || props.username === creator.value)
-const canDelete = computed(() => props.id && props.username === creator.value)
+const canEdit = ref(false)
+const canDelete = ref(false)
 
 const emit = defineEmits(['closePopup'])
 
 const title = ref('기본 제목')
 const editorContent = ref()
-const creator = ref()
+const editorRef = ref()
 
 const editorConfig = {
   selector: '#about',
@@ -59,7 +59,7 @@ const editorConfig = {
 
   // custom image upload button
   setup: function (editor) {
-    if (canEdit.value === false) editor.mode.set('readonly')
+    editorRef.value = editor
     editor.ui.registry.addButton('customImageUpload', {
       icon: 'image',
       tooltip: 'Upload Image',
@@ -160,7 +160,10 @@ const fetchHtmlContent = async () => {
     const decodedResponse = await response.json()
     editorContent.value = decodedResponse?.html?.content
     title.value = decodedResponse?.html?.title
-    creator.value = decodedResponse?.html?.creator
+
+    canEdit.value = !props.id || props.username === decodedResponse?.html?.creator
+    canDelete.value = props.id && props.username === decodedResponse?.html?.creator
+    if (canEdit.value === false) editorRef.value.mode.set('readonly')
 
     console.log(decodedResponse.htmls)
   } catch (error) {
