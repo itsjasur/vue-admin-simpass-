@@ -2,19 +2,20 @@
   <div class="html_editor_container">
     <div class="editor">
       <div class="title_group">
-        <label>정책등록관리 </label>
+        <label>정책등록제목</label>
         <input v-model="title" :disabled="!canEdit" />
       </div>
-
-      <Editor
-        api-key="no-api-key"
-        :init="editorConfig"
-        tinymce-script-src="/vendor/tinymce/tinymce.min.js"
-        v-model="editorContent"
-      />
+      <template v-if="htmlFetched">
+        <Editor
+          api-key="no-api-key"
+          :init="editorConfig"
+          tinymce-script-src="/vendor/tinymce/tinymce.min.js"
+          v-model="editorContent"
+          :disabled="!canEdit"
+        />
+      </template>
 
       <div class="buttons">
-        <!-- <button @click="logHtml">Log HTML</button> -->
         <button class="close_button" @click="$emit('closePopup', false, false)">닫기</button>
         <button v-if="canDelete" class="delete_button" @click="deleteHtml">삭제</button>
         <button v-if="canEdit" @click="submitForm">저장</button>
@@ -24,7 +25,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import { useSnackbarStore } from '@/stores/snackbar'
 
@@ -33,14 +34,11 @@ const props = defineProps({
   username: { type: String, default: null }
 })
 
-const canEdit = ref(false)
-const canDelete = ref(false)
-
 const emit = defineEmits(['closePopup'])
 
 const title = ref('기본 제목')
+const creator = ref()
 const editorContent = ref()
-const editorRef = ref()
 
 const editorConfig = {
   selector: '#about',
@@ -50,7 +48,7 @@ const editorConfig = {
   branding: false,
   plugins:
     'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table wordcount',
-  toolbar: `undo redo fontsizeinput fontfamily link customImageUpload bold italic backcolor insertdatetime media table pagebreak wordcount
+  toolbar: `undo redo fontsizeinput fontfamily link customImageUpload bold italic backcolor forecolor insertdatetime media table pagebreak wordcount
   alignleft aligncenter alignright alignjustify bullist numlist outdent indent removeformat charmap emoticons searchreplace visualblocks code fullscreen preview print`,
   license_key: 'gpl',
   height: '80%',
@@ -59,7 +57,6 @@ const editorConfig = {
 
   // custom image upload button
   setup: function (editor) {
-    editorRef.value = editor
     editor.ui.registry.addButton('customImageUpload', {
       icon: 'image',
       tooltip: 'Upload Image',
@@ -77,10 +74,6 @@ const editorConfig = {
       }
     })
   }
-}
-
-const logHtml = () => {
-  console.log(editorContent.value)
 }
 
 const submitForm = async () => {
@@ -144,6 +137,7 @@ async function uploadImage(file, editor) {
   }
 }
 
+const htmlFetched = ref(false)
 const fetchHtmlContent = async () => {
   if (!props.id) return
 
@@ -160,17 +154,27 @@ const fetchHtmlContent = async () => {
     const decodedResponse = await response.json()
     editorContent.value = decodedResponse?.html?.content
     title.value = decodedResponse?.html?.title
+    creator.value = decodedResponse?.html?.creator
 
-    canEdit.value = !props.id || props.username === decodedResponse?.html?.creator
-    canDelete.value = props.id && props.username === decodedResponse?.html?.creator
-    if (canEdit.value === false) editorRef.value.mode.set('readonly')
-
-    console.log(decodedResponse.htmls)
+    // console.log(decodedResponse.htmls)
   } catch (error) {
     console.error('Error uplading html:', error)
     useSnackbarStore().show(error.toString())
+  } finally {
+    htmlFetched.value = true
   }
 }
+
+const canDelete = computed(() => {
+  if (!props.id) return false
+  if (props.username === creator.value) return true
+  return false
+})
+
+const canEdit = computed(() => {
+  if (!props.id) return true
+  return props.username === creator.value
+})
 
 async function deleteHtml() {
   const accessToken = localStorage.getItem('accessToken')
@@ -201,12 +205,9 @@ onMounted(fetchHtmlContent)
 
 <style scoped>
 .html_editor_container {
-  /* position: absolute; */
-
   box-sizing: border-box;
   margin: 30px;
   border-radius: 8px;
-  /* height: 100vh; */
   width: 100%;
   background-color: #fff;
   overflow-y: scroll;
@@ -217,11 +218,6 @@ onMounted(fetchHtmlContent)
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
-
-  /* display: flex;
-  flex-flow: column; */
-  /* align-items: center; */
-  /* justify-content: center; */
 }
 
 .title_group {

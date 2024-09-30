@@ -230,7 +230,7 @@ const router = createRouter({
           name: 'htmls',
           component: () => import('../views/HtmlsView.vue'),
           meta: {
-            title: 'HTMLS',
+            title: '정책등록관리',
             requiresAuth: true,
             requiredRoles: [
               'ROLE_SUPER',
