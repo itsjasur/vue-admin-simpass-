@@ -56,6 +56,29 @@ const editorConfig = {
   // content_style: 'body { text-align: center; }',
 
   // custom image upload button
+  // setup: function (editor) {
+  //   editor.ui.registry.addButton('customImageUpload', {
+  //     icon: 'image',
+  //     tooltip: 'Upload Image',
+  //     onAction: function () {
+  //       const input = document.createElement('input')
+  //       input.setAttribute('type', 'file')
+  //       input.setAttribute('accept', 'image/*')
+
+  //       input.onchange = async function () {
+  //         const file = this.files[0]
+  //         uploadImage(file, editor)
+  //       }
+
+  //       input.click()
+  //     }
+  //   })
+  // }
+
+  paste_data_images: true,
+  automatic_uploads: false,
+
+  // custom image upload button
   setup: function (editor) {
     editor.ui.registry.addButton('customImageUpload', {
       icon: 'image',
@@ -73,8 +96,73 @@ const editorConfig = {
         input.click()
       }
     })
+
+    editor.on('paste', function (e) {
+      var items = (e.clipboardData || e.originalEvent.clipboardData).items
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          var blob = items[i].getAsFile()
+          uploadImage(blob, editor)
+          e.preventDefault()
+          return
+        }
+      }
+    })
   }
 }
+
+async function uploadImage(file, editor) {
+  editor.setProgressState(true)
+  try {
+    const formData = new FormData()
+    formData.set('file', file)
+    formData.set('filename', 'filename')
+
+    const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'upload-html-image', {
+      method: 'POST',
+      body: formData
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    const decodedResponse = await response.json()
+    editor.insertContent(
+      editor.insertContent(
+        `<img src="${decodedResponse.path}" alt="image" style=" width: auto; height: 400px;" />`
+      )
+    )
+  } catch (error) {
+    useSnackbarStore().show(error.toString())
+  } finally {
+    editor.setProgressState(false)
+  }
+}
+
+// async function uploadImage(file, editor) {
+//   try {
+//     const formData = new FormData()
+//     formData.set('file', file)
+//     formData.set('filename', 'filename')
+
+//     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'upload-html-image', {
+//       method: 'POST',
+//       body: formData
+//     })
+
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`)
+//     }
+//     const decodedResponse = await response.json()
+//     editor.insertContent(
+//       `<img src="${decodedResponse.path}" alt="image" width="200" height="200" />`
+//     )
+//   } catch (error) {
+//     useSnackbarStore().show(error.toString())
+//   } finally {
+//     editor.setProgressState(false)
+//   }
+// }
 
 const submitForm = async () => {
   if (!title.value) {
@@ -112,34 +200,13 @@ const submitForm = async () => {
   }
 }
 
-async function uploadImage(file, editor) {
-  try {
-    const formData = new FormData()
-    formData.set('file', file)
-    formData.set('filename', 'filename')
-
-    const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'upload-html-image', {
-      method: 'POST',
-      body: formData
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    const decodedResponse = await response.json()
-    editor.insertContent(
-      `<img src="${decodedResponse.path}" alt="image" width="200" height="200" />`
-    )
-  } catch (error) {
-    useSnackbarStore().show(error.toString())
-  } finally {
-    editor.setProgressState(false)
-  }
-}
-
 const htmlFetched = ref(false)
+
 const fetchHtmlContent = async () => {
-  if (!props.id) return
+  if (!props.id) {
+    htmlFetched.value = true
+    return
+  }
 
   try {
     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'get-html', {

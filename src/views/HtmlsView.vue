@@ -32,6 +32,9 @@
             <template v-if="column.dataIndex === 'title'">
               <span class="clickable_title" @click="openPopup(record.id)">{{ text }}</span>
             </template>
+            <template v-if="column.dataIndex === 'num'">
+              <span class="clickable_title" @click="openPopup(record.id)">{{ text }}</span>
+            </template>
             <!-- <template v-if="column.dataIndex === 'open'">
               <button class="open_button" @click="openPopup(record.id)">
                 <span class="material-symbols-outlined view_icon">expand_content</span>
@@ -81,6 +84,14 @@ function onPagChange(curPage, perPage) {
 }
 
 const columns = ref([
+  {
+    title: 'No.',
+    dataIndex: 'num',
+    key: 'num',
+    sorter: (a, b) => (a.num ?? 0) - (b.num ?? 0),
+    sortDirections: ['descend', 'ascend'],
+    width: 50
+  },
   {
     title: '제목',
     dataIndex: 'title',
