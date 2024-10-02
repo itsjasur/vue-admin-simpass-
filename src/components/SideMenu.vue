@@ -58,6 +58,10 @@ const menuItems = [
     icon: 'dashboard'
   },
   {
+    path: '/htmls',
+    icon: 'pages'
+  },
+  {
     path: '/manage-plans-for-print',
     icon: 'print_connect'
   },
@@ -92,10 +96,6 @@ const menuItems = [
   {
     path: '/chats',
     icon: 'chat'
-  },
-  {
-    path: '/htmls',
-    icon: 'pages'
   }
 ]
 

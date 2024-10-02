@@ -48,41 +48,20 @@ const editorConfig = {
   branding: false,
   plugins:
     'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table wordcount',
-  toolbar: `undo redo fontsizeinput fontfamily link customImageUpload bold italic backcolor forecolor insertdatetime media table pagebreak wordcount
+  toolbar: `undo redo fontsizeinput fontfamily lineheight  bold italic backcolor forecolor link customImageUpload insertdatetime media table pagebreak wordcount
   alignleft aligncenter alignright alignjustify bullist numlist outdent indent removeformat charmap emoticons searchreplace visualblocks code fullscreen preview print`,
   license_key: 'gpl',
   height: '80%',
   width: '100%',
   // content_style: 'body { text-align: center; }',
-
-  // custom image upload button
-  // setup: function (editor) {
-  //   editor.ui.registry.addButton('customImageUpload', {
-  //     icon: 'image',
-  //     tooltip: 'Upload Image',
-  //     onAction: function () {
-  //       const input = document.createElement('input')
-  //       input.setAttribute('type', 'file')
-  //       input.setAttribute('accept', 'image/*')
-
-  //       input.onchange = async function () {
-  //         const file = this.files[0]
-  //         uploadImage(file, editor)
-  //       }
-
-  //       input.click()
-  //     }
-  //   })
-  // }
-
   paste_data_images: true,
   automatic_uploads: false,
 
-  // custom image upload button
+  // custom setup
   setup: function (editor) {
     editor.ui.registry.addButton('customImageUpload', {
       icon: 'image',
-      tooltip: 'Upload Image',
+      tooltip: '이미지 업로드',
       onAction: function () {
         const input = document.createElement('input')
         input.setAttribute('type', 'file')
@@ -97,14 +76,28 @@ const editorConfig = {
       }
     })
 
-    editor.on('paste', function (e) {
+    editor.on('paste', async function (e) {
       var items = (e.clipboardData || e.originalEvent.clipboardData).items
       for (var i = 0; i < items.length; i++) {
         if (items[i].type.indexOf('image') !== -1) {
-          var blob = items[i].getAsFile()
-          uploadImage(blob, editor)
           e.preventDefault()
+          var blob = items[i].getAsFile()
+          await uploadImage(blob, editor)
           return
+        }
+      }
+    })
+
+    editor.on('drop', async function (e) {
+      const dataTransfer = e.dataTransfer
+      const files = dataTransfer.files
+
+      if (files.length > 0) {
+        e.preventDefault()
+        for (let file of files) {
+          if (file.type.indexOf('image') !== -1) {
+            await uploadImage(file, editor)
+          }
         }
       }
     })
@@ -116,7 +109,7 @@ async function uploadImage(file, editor) {
   try {
     const formData = new FormData()
     formData.set('file', file)
-    formData.set('filename', 'filename')
+    formData.set('filename', file.name)
 
     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'upload-html-image', {
       method: 'POST',
@@ -128,41 +121,14 @@ async function uploadImage(file, editor) {
     }
     const decodedResponse = await response.json()
     editor.insertContent(
-      editor.insertContent(
-        `<img src="${decodedResponse.path}" alt="image" style=" width: auto; height: 400px;" />`
-      )
+      `<img src="${decodedResponse.path}" alt="${file.name}" style="width: auto; height: 400px;" />`
     )
   } catch (error) {
-    useSnackbarStore().show(error.toString())
+    useSnackbarStore().show('Image upload failed: ' + error.toString())
   } finally {
     editor.setProgressState(false)
   }
 }
-
-// async function uploadImage(file, editor) {
-//   try {
-//     const formData = new FormData()
-//     formData.set('file', file)
-//     formData.set('filename', 'filename')
-
-//     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'upload-html-image', {
-//       method: 'POST',
-//       body: formData
-//     })
-
-//     if (!response.ok) {
-//       throw new Error(`HTTP error! status: ${response.status}`)
-//     }
-//     const decodedResponse = await response.json()
-//     editor.insertContent(
-//       `<img src="${decodedResponse.path}" alt="image" width="200" height="200" />`
-//     )
-//   } catch (error) {
-//     useSnackbarStore().show(error.toString())
-//   } finally {
-//     editor.setProgressState(false)
-//   }
-// }
 
 const submitForm = async () => {
   if (!title.value) {
