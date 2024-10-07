@@ -1,5 +1,5 @@
 <template>
-  <div v-if="popup.active" class="overlay">
+  <div class="overlay">
     <div class="popup-content">
       <div class="innerHeader">
         <h3 class="title">주소 검색</h3>
@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watchEffect } from 'vue'
+import { onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
 import { useSearchaddressStore } from '../stores/select-address-popup'
 
 const popup = useSearchaddressStore()
@@ -22,36 +22,53 @@ function keydownHandle(event) {
   if (event.key === 'Escape') popup.close()
 }
 
-onMounted(() => {
-  // listen for keydown events
+function loadDaumPostcodeScript() {
+  return new Promise((resolve, reject) => {
+    if (window.daum && window.daum.Postcode) {
+      resolve()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
+    script.async = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('Failed to load Daum Postcode script'))
+    document.head.appendChild(script)
+  })
+}
+
+function initializePostcode() {
+  if (embed.value) {
+    new window.daum.Postcode({
+      width: '100%',
+      height: '100%',
+      oncomplete: (data) => {
+        let selectedType = data.userSelectedType
+        let roadAddr = data.roadAddress
+        let jibunAddr = data.jibunAddress
+        let buildingName = data.buildingName
+
+        popup.address = selectedType === 'R' ? roadAddr : jibunAddr
+        popup.buildingName = buildingName
+        popup.close()
+      }
+    }).embed(embed.value)
+  }
+}
+
+onMounted(async () => {
   document.addEventListener('keydown', keydownHandle)
+
+  try {
+    await loadDaumPostcodeScript()
+    initializePostcode()
+  } catch (error) {
+    console.error('Error loading Daum Postcode script:', error)
+  }
 })
 
 onUnmounted(() => {
-  // cleanup keydown event listener
   document.removeEventListener('keydown', keydownHandle)
-})
-
-// watchs for changes in popup.active and mount the Daum Postcode widget when active
-watchEffect(() => {
-  if (popup.active) {
-    if (embed.value) {
-      new window.daum.Postcode({
-        width: '100%', // Width of the iframe
-        height: '100%',
-        oncomplete: (data) => {
-          let selectedType = data.userSelectedType
-          let roadAddr = data.roadAddress
-          let jibunAddr = data.jibunAddress
-          let buildingName = data.buildingName
-
-          popup.address = selectedType === 'R' ? roadAddr : jibunAddr
-          popup.buildingName = buildingName
-          popup.close()
-        }
-      }).embed(embed.value)
-    }
-  }
 })
 </script>
 
@@ -64,9 +81,8 @@ watchEffect(() => {
   left: 0;
   width: 100%;
   height: 100%;
-
-  justify-content: center; /* cnters horizontally */
-  align-items: center; /* centers vertically */
+  justify-content: center;
+  align-items: center;
   z-index: 1100;
   background-color: rgba(0, 0, 0, 0.552);
   padding: 20px;
@@ -90,7 +106,7 @@ watchEffect(() => {
   display: flex;
   justify-content: space-between;
   background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bottom shadow */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1101;
 }
 </style>

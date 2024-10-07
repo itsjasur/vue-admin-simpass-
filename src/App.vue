@@ -19,7 +19,10 @@
   <Loading />
   <Snackbar />
   <Warning />
-  <SearchAddressPopup />
+
+  <template v-if="useSearchaddressStore().active">
+    <SearchAddressPopup />
+  </template>
 </template>
 
 <script setup>
@@ -33,7 +36,7 @@ import { useSideMenuStore } from './stores/side-menu'
 import Loading from './components/Loading.vue'
 import SearchAddressPopup from './components/SearchAddressPopup.vue'
 import { initializeMessaging, messaging, onMessage } from './firebase'
-
+import { useSearchaddressStore } from './stores/select-address-popup'
 import sound from '@/assets/sound.mp3'
 
 const router = useRouter()
