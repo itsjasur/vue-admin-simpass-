@@ -57,7 +57,7 @@ const isLoading = ref(false)
 
 const router = useRouter()
 
-async function login(event) {
+async function login() {
   isLoading.value = true
 
   // Check if input fields are empty

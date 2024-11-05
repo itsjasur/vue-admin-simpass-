@@ -185,7 +185,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 import PartnerDetails from '../components/PartnerDetailsPopup.vue'
@@ -240,6 +240,33 @@ function closeStatusUpdatePopup(result) {
   if (result) fetchData()
 }
 
+// async function fetchContractPDFAndPrint(agentCd, partnerCd) {
+//   usePageLoadingStore().start()
+//   try {
+//     const response = await fetchWithTokenRefresh('agent/viewContract', {
+//       method: 'POST',
+//       body: { agent_cd: agentCd, partner_cd: partnerCd }
+//     })
+
+//     const filename = `${agentCd}_${partnerCd}.pdf`
+//     const blob = await response.blob()
+//     const url = window.URL.createObjectURL(blob)
+
+//     const link = document.createElement('a')
+//     link.href = url
+//     link.download = filename
+
+//     document.body.appendChild(link)
+//     link.click()
+//     document.body.removeChild(link)
+//     URL.revokeObjectURL(link)
+//   } catch (error) {
+//     useSnackbarStore().show(error.toString())
+//   } finally {
+//     usePageLoadingStore().stop()
+//   }
+// }
+
 async function fetchContractPDFAndPrint(agentCd, partnerCd) {
   usePageLoadingStore().start()
   try {
@@ -262,7 +289,6 @@ async function fetchContractPDFAndPrint(agentCd, partnerCd) {
     usePageLoadingStore().stop()
   }
 }
-
 const columns = ref([
   {
     title: 'No.',
@@ -444,6 +470,7 @@ onMounted(fetchData)
   max-height: 30px;
   min-height: unset;
   width: auto;
+  white-space: nowrap;
 }
 .reg-details-button {
   background-color: transparent;
@@ -453,6 +480,7 @@ onMounted(fetchData)
   max-height: 30px;
   min-height: unset;
   width: auto;
+  white-space: nowrap;
 }
 
 .status-Y {

@@ -8,6 +8,12 @@
 
       <div style="height: 100%" v-if="popup.url">
         <object :data="popup.url" type="application/pdf" width="100%" height="100%"></object>
+        <!-- <iframe
+          :src="popup.url"
+          class="pdf-frame"
+          download="filename as required.pdf"
+          style="width: 100%; height: 100%"
+        ></iframe> -->
       </div>
       <div v-else>
         <h1>Not pdf blob url</h1>
