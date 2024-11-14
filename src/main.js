@@ -7,8 +7,8 @@ import Antd from 'ant-design-vue'
 import './assets/global.css'
 import LoadingSpinner from './components/Loader.vue'
 import GlobalPopupWithOverlay from './components/GlobalPopupWithOverlay.vue'
-// import 'ant-design-vue/dist/reset.css'
 import CleaveInput from './components/CleaveInput.vue'
+// import 'ant-design-vue/dist/reset.css'
 
 const app = createApp(App)
 const pinia = createPinia()

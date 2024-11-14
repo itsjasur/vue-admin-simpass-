@@ -14,10 +14,10 @@ body {
 }
 
 button {
-  width: 100%;
   min-height: 40px;
   height: 40px;
   color: white;
+  box-sizing: border-box;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -141,6 +141,18 @@ input[readonly]:hover {
   box-shadow: none !important;
 }
 
+.ant-select-content {
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 0 2px var(--main-color);
+}
+
+.ant-picker {
+  padding: 0 10px;
+  height: 40px;
+  width: 100%;
+}
+
 .input-error-message {
   margin: 0;
   padding: 0;
@@ -155,12 +167,6 @@ input[readonly]:hover {
 
 .material-symbols-outlined {
   font-variation-settings: 'wght' 300;
-}
-
-.ant-select-open {
-  background-color: white;
-  border-radius: 4px;
-  box-shadow: 0 0 2px var(--main-color);
 }
 
 .bordered-status-button {

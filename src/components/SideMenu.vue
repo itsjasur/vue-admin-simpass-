@@ -20,6 +20,11 @@
 
         <template v-if="item.path === '/chats'">
           <!-- <span>{{ webSocketStore.isConnected }}</span> -->
+
+          <span class="material-symbols-outlined link"
+            >{{ webSocketStore.isConnected ? 'link' : 'link_off' }}
+          </span>
+
           <span class="total-badge-count" v-if="webSocketStore.totalUnreadCount > 0">{{
             webSocketStore.totalUnreadCount
           }}</span>

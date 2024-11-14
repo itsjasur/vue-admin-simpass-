@@ -1,10 +1,64 @@
 <template>
   <div class="html_editor_container">
     <div class="editor">
-      <div class="title_group">
-        <label>정책등록제목</label>
-        <input v-model="title" :disabled="!canEdit" />
+      <div class="top_actions">
+        <div class="title_group">
+          <label>정책등록제목</label>
+          <input v-model="title" :disabled="!canEdit" />
+        </div>
+
+        <div class="carrier_selector">
+          <label>유형</label>
+          <a-select
+            v-model:value="selected_carrier"
+            :style="{ width: '100%' }"
+            :options="[
+              { value: 'N/A', label: '섬불' },
+              { value: 'N/B', label: '후불' }
+            ]"
+          >
+          </a-select>
+        </div>
+        <div class="agent_selector">
+          <label>대리점</label>
+          <a-select
+            v-model:value="selected_carrier"
+            :style="{ width: '100%' }"
+            :options="[
+              { value: 'N/A', label: '프리티' },
+              { value: 'N/B', label: '인스모바일' },
+              { value: 'N/B', label: '코드모바일' }
+            ]"
+          >
+          </a-select>
+        </div>
+
+        <div class="date_picker">
+          <label>정책년월</label>
+          <a-date-picker picker="month"></a-date-picker>
+        </div>
       </div>
+
+      <label style="font-weight: 600; margin-bottom: 5px">변경통신사</label>
+      <div class="mvnos_buttons">
+        <div
+          v-for="(mvno, index) in mvnos"
+          :key="index"
+          @click="
+            () => {
+              if (selected_mvnos.has(mvno)) {
+                selected_mvnos.delete(mvno)
+              } else {
+                selected_mvnos.add(mvno)
+              }
+            }
+          "
+          :class="{ selected: selected_mvnos.has(mvno) }"
+        >
+          {{ mvno }}
+        </div>
+      </div>
+
       <template v-if="htmlFetched">
         <Editor
           api-key="no-api-key"
@@ -28,6 +82,12 @@
 import { computed, onMounted, ref } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import { useSnackbarStore } from '@/stores/snackbar'
+
+const selected_carrier = ref()
+const selected_agent = ref()
+
+const selected_mvnos = ref(new Set())
+const mvnos = ref(['Mmobile', '7mobile', 'Mobing', 'Inscobi', 'Freet'])
 
 const props = defineProps({
   id: { type: String, default: null },
@@ -253,8 +313,15 @@ onMounted(fetchHtmlContent)
   box-sizing: border-box;
 }
 
+.top_actions {
+  display: flex;
+  flex-flow: row;
+  gap: 20px;
+}
+
 .title_group {
-  margin-bottom: 20px;
+  width: 100%;
+  margin-bottom: 15px;
 }
 
 .title_group label {
@@ -262,8 +329,47 @@ onMounted(fetchHtmlContent)
   color: #000;
 }
 
+.carrier_selector {
+  width: 200px;
+}
+.agent_selector {
+  width: 400px;
+}
+
 .title_group input {
   font-weight: 600;
+}
+
+.date_picker {
+  width: 400px;
+}
+
+.mvnos_buttons {
+  display: flex;
+  flex-flow: wrap;
+  gap: 20px;
+
+  margin-bottom: 15px;
+  user-select: none;
+}
+
+.mvnos_buttons * {
+  background-color: #0000001d;
+  border: 1px solid #0000001d;
+  padding: 7px 10px;
+  border-radius: 4px;
+  text-align: center;
+  min-width: 80px;
+}
+
+.mvnos_buttons .selected {
+  background-color: var(--main-color);
+  color: #fff;
+}
+
+.mvnos_buttons *:hover {
+  cursor: pointer;
+  opacity: 0.5;
 }
 
 .buttons {
@@ -272,6 +378,10 @@ onMounted(fetchHtmlContent)
   gap: 20px;
   margin-top: 20px;
   justify-content: center;
+}
+
+.ant-picker-body.button {
+  width: 20px;
 }
 
 .buttons button {
