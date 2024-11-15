@@ -1,28 +1,37 @@
 <template>
   <a-config-provider
+    :locale="ko_KR"
     :theme="{
       token: {
         colorPrimary: '#00d42a', //primary
         colorPrimaryHover: '#00d42a', //primary hover
         colorBorder: '#cccccc', // border color
-        controlHeight: 40, // input/select/button height
+        // controlHeight: 40, // input/select/button height
         borderRadius: 4, //all border radius
         lineWidth: 1, //border line width
         controlOutline: 'none', //focus outline
         fontSize: 15
+      },
+      components: {
+        Select: {
+          controlHeight: 40
+        },
+        DatePicker: {
+          controlHeight: 60
+        }
       }
     }"
   >
+    <router-view />
+
+    <Loading />
+    <Snackbar />
+    <Warning />
+
+    <template v-if="useSearchaddressStore().active">
+      <SearchAddressPopup />
+    </template>
   </a-config-provider>
-  <router-view />
-
-  <Loading />
-  <Snackbar />
-  <Warning />
-
-  <template v-if="useSearchaddressStore().active">
-    <SearchAddressPopup />
-  </template>
 </template>
 
 <script setup>
@@ -38,6 +47,12 @@ import SearchAddressPopup from './components/SearchAddressPopup.vue'
 import { initializeMessaging, messaging, onMessage } from './firebase'
 import { useSearchaddressStore } from './stores/select-address-popup'
 import sound from '@/assets/sound.mp3'
+
+import ko_KR from 'ant-design-vue/es/locale/ko_KR'
+import dayjs from 'dayjs'
+import 'dayjs/locale/ko'
+
+dayjs.locale('ko')
 
 const router = useRouter()
 const authStore = useAuthenticationStore()

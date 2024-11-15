@@ -10,54 +10,57 @@
         <div class="carrier_selector">
           <label>유형</label>
           <a-select
-            v-model:value="selected_carrier"
+            v-model:value="selectedType"
             :style="{ width: '100%' }"
-            :options="[
-              { value: 'N/A', label: '섬불' },
-              { value: 'N/B', label: '후불' }
-            ]"
+            :options="
+              policyData?.carrier_type?.map((i) => ({ value: i.cd, label: i.value })) ?? [
+                { value: 'N/A', label: 'N/A' }
+              ]
+            "
           >
           </a-select>
         </div>
         <div class="agent_selector">
           <label>대리점</label>
           <a-select
-            v-model:value="selected_carrier"
+            v-model:value="selectedAgent"
             :style="{ width: '100%' }"
-            :options="[
-              { value: 'N/A', label: '프리티' },
-              { value: 'N/B', label: '인스모바일' },
-              { value: 'N/B', label: '코드모바일' }
-            ]"
+            :options="
+              policyData?.agent_cd_list?.map((i) => ({ value: i.agent_cd, label: i.agent_nm })) ?? [
+                { value: 'N/A', label: 'N/A' }
+              ]
+            "
           >
           </a-select>
         </div>
 
         <div class="date_picker">
           <label>정책년월</label>
-          <a-date-picker picker="month"></a-date-picker>
+          <a-date-picker v-model:value="selectedMonth" picker="month"></a-date-picker>
         </div>
       </div>
 
-      <label style="font-weight: 600; margin-bottom: 5px">변경통신사</label>
-      <div class="mvnos_buttons">
-        <div
-          v-for="(mvno, index) in mvnos"
-          :key="index"
-          @click="
-            () => {
-              if (selected_mvnos.has(mvno)) {
-                selected_mvnos.delete(mvno)
-              } else {
-                selected_mvnos.add(mvno)
+      <template v-if="policyData?.mvno_cd_list?.length > 0">
+        <label style="font-weight: 600; margin-bottom: 5px">변경통신사</label>
+        <div class="mvnos_buttons">
+          <div
+            v-for="(mvno, index) in policyData?.mvno_cd_list"
+            :key="index"
+            @click="
+              () => {
+                if (selectedMvnos.has(mvno.mvno_cd)) {
+                  selectedMvnos.delete(mvno.mvno_cd)
+                } else {
+                  selectedMvnos.add(mvno.mvno_cd)
+                }
               }
-            }
-          "
-          :class="{ selected: selected_mvnos.has(mvno) }"
-        >
-          {{ mvno }}
+            "
+            :class="{ selected: selectedMvnos.has(mvno.mvno_cd) }"
+          >
+            {{ mvno.mvno_nm }}
+          </div>
         </div>
-      </div>
+      </template>
 
       <template v-if="htmlFetched">
         <Editor
@@ -82,12 +85,14 @@
 import { computed, onMounted, ref } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import { useSnackbarStore } from '@/stores/snackbar'
+import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 
-const selected_carrier = ref()
-const selected_agent = ref()
+const policyData = ref()
+const selectedType = ref()
+const selectedAgent = ref()
 
-const selected_mvnos = ref(new Set())
-const mvnos = ref(['Mmobile', '7mobile', 'Mobing', 'Inscobi', 'Freet'])
+const selectedMvnos = ref(new Set())
+const selectedMonth = ref()
 
 const props = defineProps({
   id: { type: String, default: null },
@@ -199,16 +204,34 @@ const submitForm = async () => {
     useSnackbarStore().show('내용은 비어 있을 수 없습니다.')
     return
   }
+  if (!selectedAgent.value) {
+    useSnackbarStore().show('대리점 비어 있을 수 없습니다.')
+    return
+  }
+  if (!selectedMonth.value) {
+    useSnackbarStore().show('정책년월 비어 있을 수 없습니다.')
+    return
+  }
+  if (!selectedType.value) {
+    useSnackbarStore().show('유형 비어 있을 수 없습니다.')
+    return
+  }
 
   try {
     const accessToken = localStorage.getItem('accessToken')
     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'save-html-string', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
+        access_token: accessToken,
         id: props.id,
-        htmlString: editorContent.value,
         title: title.value,
-        accessToken: accessToken
+        html_string: editorContent.value,
+        carrier_type: selectedType.value,
+        selected_agent: selectedAgent.value,
+        policy_date_month: selectedMonth.value.format('YYYY-MM'),
+        selected_mvnos: Array.from(selectedMvnos.value)
       })
     })
 
@@ -226,14 +249,28 @@ const submitForm = async () => {
   }
 }
 
-const htmlFetched = ref(false)
+async function fetchPlicyinfo() {
+  console.log('fetch policy info called')
+  try {
+    const response = await fetchWithTokenRefresh('agent/getPolicyInitInfo', { method: 'GET' })
+    const decodedResponse = await response.json()
+    console.log(decodedResponse.data)
 
-const fetchHtmlContent = async () => {
-  if (!props.id) {
-    htmlFetched.value = true
-    return
+    policyData.value = decodedResponse.data
+
+    //give default values if new content
+    if (!props.id) {
+      selectedType.value = policyData.value?.carrier_type?.[0].cd
+      selectedAgent.value = policyData.value?.agent_cd_list?.[0].agent_cd
+    }
+  } catch (error) {
+    useSnackbarStore().show(error.toString())
+  } finally {
   }
+}
 
+const htmlFetched = ref(true)
+const fetchHtmlContent = async () => {
   try {
     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'get-html', {
       method: 'POST',
@@ -249,7 +286,14 @@ const fetchHtmlContent = async () => {
     title.value = decodedResponse?.html?.title
     creator.value = decodedResponse?.html?.creator
 
-    // console.log(decodedResponse.htmls)
+    //this converts str date to dayjs
+    selectedMonth.value = dayjs(decodedResponse?.html?.policyDateMonth, 'YYYY-MM')
+    decodedResponse?.html?.selectedMvnos?.forEach((item) => selectedMvnos.value.add(item))
+
+    selectedType.value = decodedResponse?.html?.carrierType
+    selectedAgent.value = decodedResponse?.html?.selectedAgent
+
+    console.log(decodedResponse.html)
   } catch (error) {
     console.error('Error uplading html:', error)
     useSnackbarStore().show(error.toString())
@@ -293,7 +337,13 @@ async function deleteHtml() {
   }
 }
 
-onMounted(fetchHtmlContent)
+onMounted(() => {
+  fetchPlicyinfo()
+  if (props.id) {
+    htmlFetched.value = false
+    fetchHtmlContent()
+  }
+})
 </script>
 
 <style scoped>
@@ -322,11 +372,6 @@ onMounted(fetchHtmlContent)
 .title_group {
   width: 100%;
   margin-bottom: 15px;
-}
-
-.title_group label {
-  font-size: 15px;
-  color: #000;
 }
 
 .carrier_selector {
@@ -398,6 +443,10 @@ onMounted(fetchHtmlContent)
 }
 
 .delete_button {
+  background-color: #e41c1c !important;
+}
+
+.ant-picker-dropdown {
   background-color: #e41c1c !important;
 }
 </style>

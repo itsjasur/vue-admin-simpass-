@@ -35,6 +35,18 @@
             <template v-if="column.dataIndex === 'num'">
               <span class="clickable_title" @click="openPopup(record.id)">{{ text }}</span>
             </template>
+            <template v-if="column.dataIndex === 'selectedMvnos'">
+              <div class="selected_mvnos">
+                <div
+                  v-for="(mvno_cd, index) in text"
+                  :key="index"
+                  :style="{ backgroundColor: getRandomColor() }"
+                  class="selected_mvno_box"
+                >
+                  {{ mvnos?.find((i) => i.mvno_cd === mvno_cd)?.mvno_nm }}
+                </div>
+              </div>
+            </template>
             <!-- <template v-if="column.dataIndex === 'open'">
               <button class="open_button" @click="openPopup(record.id)">
                 <span class="material-symbols-outlined view_icon">expand_content</span>
@@ -56,6 +68,14 @@ import { ref, onMounted } from 'vue'
 import HtmlMakerView from './HtmlMakerView.vue'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
 
+function getRandomColor() {
+  // Generate random RGB values
+  const r = Math.floor(Math.random() * 150 + 55) // 55-255 for better visibility
+  const g = Math.floor(Math.random() * 200 + 5)
+  const b = Math.floor(Math.random() * 200 + 50)
+  return `rgb(${r}, ${g}, ${b})`
+}
+
 const openOrUpdateHtml = ref(false)
 const selectedId = ref(null)
 function openPopup(id) {
@@ -66,7 +86,7 @@ function openPopup(id) {
 function closePopup(result, needsRefresh) {
   openOrUpdateHtml.value.closePopup()
   if (needsRefresh) currentPage.value = 1
-  if (result) fetchHtmlContents()
+  if (result) fetchHtmlHtmls()
 }
 
 // list of string htmls
@@ -80,7 +100,7 @@ const rowLimit = ref(10)
 function onPagChange(curPage, perPage) {
   currentPage.value = curPage
   rowLimit.value = perPage
-  fetchHtmlContents()
+  fetchHtmlHtmls()
 }
 
 const columns = ref([
@@ -97,17 +117,30 @@ const columns = ref([
     dataIndex: 'title',
     key: 'title',
     sorter: (a, b) => (a.title ?? '').localeCompare(b.title ?? '')
-    // width: '60%'
+    // width: '40%'
     // width: 500
+  },
+  {
+    title: '정책년월',
+    dataIndex: 'policyDateMonth',
+    key: 'policyDateMonth',
+    sorter: (a, b) => (a.policyDateMonth ?? '').localeCompare(b.policyDateMonth ?? ''),
+    width: 100
+  },
+  {
+    title: '변경통신사',
+    dataIndex: 'selectedMvnos',
+    key: 'selectedMvnos',
+    sorter: (a, b) => (a.selectedMvnos ?? '').localeCompare(b.selectedMvnos ?? '')
+    // width: 120
   },
   {
     title: '날짜',
     dataIndex: 'updatedAt',
     key: 'updatedAt',
     sorter: (a, b) => (a.updatedAt ?? '').localeCompare(b.updatedAt ?? ''),
-    width: 200
+    width: 150
   }
-
   // {
   //   title: '열기',
   //   dataIndex: 'open',
@@ -118,7 +151,7 @@ const columns = ref([
   // }
 ])
 
-const fetchHtmlContents = async () => {
+const fetchHtmlHtmls = async () => {
   await fetchUserInfo()
   try {
     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'get-htmls', {
@@ -155,8 +188,24 @@ async function fetchUserInfo() {
     useSnackbarStore().show(error.toString())
   }
 }
+const mvnos = ref([])
+async function fetchPlicyinfo() {
+  console.log('fetch policy info called')
+  try {
+    const response = await fetchWithTokenRefresh('agent/getPolicyInitInfo', { method: 'GET' })
+    const decodedResponse = await response.json()
+    console.log(decodedResponse.data)
+    if (!response.ok) throw 'Fetch plicy info error'
 
-onMounted(fetchHtmlContents)
+    mvnos.value = decodedResponse?.data?.mvno_cd_list
+  } catch (error) {
+    useSnackbarStore().show(error.toString())
+  } finally {
+  }
+}
+
+onMounted(fetchHtmlHtmls)
+onMounted(fetchPlicyinfo)
 </script>
 
 <style scoped>
@@ -203,6 +252,18 @@ onMounted(fetchHtmlContents)
 
 .open_button .view_icon {
   font-size: 20px;
+}
+.selected_mvnos {
+  display: flex;
+  flex-flow: wrap;
+  gap: 10px;
+}
+.selected_mvno_box {
+  padding: 3px 10px;
+  border-radius: 500px;
+  color: #fff;
+  min-width: 50px;
+  text-align: center;
 }
 
 /* .clickable_title {
