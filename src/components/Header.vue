@@ -14,26 +14,24 @@
       </span>
     </div>
 
-    <button @click="logout">로그 아웃</button>
+    <!-- <button @click="logout">로그 아웃</button> -->
   </div>
 </template>
 
 <script setup>
 import { useSideMenuStore } from '../stores/side-menu'
-import { useAuthenticationStore } from '../stores/authentication'
-import { useRouteMemoryStore } from '@/stores/router-memory-store'
 import { useRoute } from 'vue-router'
-// import MenuTitle from '../components/MenuTitle.vue'
+// import { useAuthenticationStore } from '../stores/authentication'
+// import { useRouteMemoryStore } from '@/stores/router-memory-store'
 
 const route = useRoute()
-
 const sideMenuStore = useSideMenuStore()
 
-function logout() {
-  useRouteMemoryStore().clear() //clearing intended route afters redirected
-  useAuthenticationStore().isAutoLoggedOut = false
-  useAuthenticationStore().logout()
-}
+// function logout() {
+//   useRouteMemoryStore().clear() //clearing intended route afters redirected
+//   useAuthenticationStore().isAutoLoggedOut = false
+//   useAuthenticationStore().logout()
+// }
 </script>
 
 <style scoped>

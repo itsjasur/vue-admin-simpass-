@@ -1,108 +1,113 @@
 <template>
   <div class="html_editor_container">
-    <div class="editor">
-      <div class="top_actions">
-        <div class="title_group">
-          <label>정책등록제목</label>
-          <input v-model="title" :disabled="!canEdit" />
-        </div>
-
-        <div class="carrier_selector">
-          <label>유형</label>
-          <a-select
-            v-model:value="selectedType"
-            :style="{ width: '100%' }"
-            :options="
-              policyData?.carrier_type?.map((i) => ({ value: i.cd, label: i.value })) ?? [
-                { value: 'N/A', label: 'N/A' }
-              ]
-            "
-          >
-          </a-select>
-        </div>
-        <div class="agent_selector">
-          <label>대리점</label>
-          <a-select
-            v-model:value="selectedAgent"
-            :style="{ width: '100%' }"
-            :options="
-              policyData?.agent_cd_list?.map((i) => ({ value: i.agent_cd, label: i.agent_nm })) ?? [
-                { value: 'N/A', label: 'N/A' }
-              ]
-            "
-          >
-          </a-select>
-        </div>
-
-        <div class="date_picker">
-          <label>정책년월</label>
-          <a-date-picker v-model:value="selectedMonth" picker="month"></a-date-picker>
-        </div>
+    <div class="top_actions">
+      <div class="title_group">
+        <label>정책등록제목</label>
+        <!-- <input v-model="title" :disabled="!canEdit" /> -->
+        <input v-model="title" />
       </div>
 
-      <template v-if="policyData?.mvno_cd_list?.length > 0">
-        <label style="font-weight: 600; margin-bottom: 5px">변경통신사</label>
-        <div class="mvnos_buttons">
-          <div
-            v-for="(mvno, index) in policyData?.mvno_cd_list"
-            :key="index"
-            @click="
-              () => {
-                if (selectedMvnos.has(mvno.mvno_cd)) {
-                  selectedMvnos.delete(mvno.mvno_cd)
-                } else {
-                  selectedMvnos.add(mvno.mvno_cd)
-                }
+      <div class="type_selector">
+        <label>유형</label>
+        <a-select
+          v-model:value="selectedType"
+          :style="{ width: '100%' }"
+          @change="selectTypeChange"
+          :options="
+            policyData?.carrier_type?.map((i) => ({ value: i.cd, label: i.value })) ?? [
+              { value: 'N/A', label: 'N/A' }
+            ]
+          "
+        >
+        </a-select>
+      </div>
+
+      <div class="agent_selector">
+        <label>대리점</label>
+        <a-select
+          :disabled="!selectedType"
+          v-model:value="selectedAgent"
+          :style="{ width: '100%' }"
+          :options="agentCdList?.map((i) => ({ value: i.agent_cd, label: i.agent_nm })) || []"
+        >
+        </a-select>
+      </div>
+
+      <div class="date_picker">
+        <label>정책년월</label>
+        <a-date-picker
+          v-model:value="selectedMonth"
+          @clear="selectedMonth = null"
+          picker="month"
+        ></a-date-picker>
+      </div>
+    </div>
+
+    <div v-if="policyData?.mvno_cd_list?.length > 0">
+      <label style="font-weight: 600; margin-bottom: 5px">변경통신사</label>
+      <div class="mvnos_buttons">
+        <div
+          v-for="(mvno, index) in policyData?.mvno_cd_list"
+          :key="index"
+          @click="
+            () => {
+              if (selectedMvnos.has(mvno.mvno_cd)) {
+                selectedMvnos.delete(mvno.mvno_cd)
+              } else {
+                selectedMvnos.add(mvno.mvno_cd)
               }
-            "
-            :class="{ selected: selectedMvnos.has(mvno.mvno_cd) }"
-          >
-            {{ mvno.mvno_nm }}
-          </div>
+            }
+          "
+          :class="{ selected: selectedMvnos.has(mvno.mvno_cd) }"
+        >
+          {{ mvno.mvno_nm }}
         </div>
-      </template>
+      </div>
+    </div>
 
-      <template v-if="htmlFetched">
-        <Editor
-          api-key="no-api-key"
-          :init="editorConfig"
-          tinymce-script-src="/vendor/tinymce/tinymce.min.js"
-          v-model="editorContent"
-          :disabled="!canEdit"
-        />
-      </template>
+    <template v-if="htmlFetched">
+      <Editor
+        api-key="no-api-key"
+        :init="editorConfig"
+        tinymce-script-src="/vendor/tinymce/tinymce.min.js"
+        v-model="editorContent"
+      />
+      <!-- :disabled="!canEdit" -->
+    </template>
 
-      <div class="buttons">
+    <div class="buttons">
+      <button class="close_button" @click="$emit('closePopup', false, false)">닫기</button>
+      <button class="delete_button" @click="deleteHtml">삭제</button>
+      <button @click="submitForm">저장</button>
+    </div>
+
+    <!-- <div class="buttons">
         <button class="close_button" @click="$emit('closePopup', false, false)">닫기</button>
         <button v-if="canDelete" class="delete_button" @click="deleteHtml">삭제</button>
         <button v-if="canEdit" @click="submitForm">저장</button>
-      </div>
-    </div>
+      </div> -->
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
+import dayjs from 'dayjs'
 
 const policyData = ref()
 const selectedType = ref()
 const selectedAgent = ref()
-
 const selectedMvnos = ref(new Set())
 const selectedMonth = ref()
+const agentCdList = ref()
 
-const props = defineProps({
-  id: { type: String, default: null },
-  username: { type: String, default: null }
-})
+const props = defineProps({ id: { type: String, default: null } })
 
 const emit = defineEmits(['closePopup'])
 
 const title = ref('기본 제목')
-const creator = ref()
 const editorContent = ref()
 
 const editorConfig = {
@@ -200,10 +205,11 @@ const submitForm = async () => {
     useSnackbarStore().show('제목을 적어주세요')
     return
   }
-  if (!editorContent.value) {
-    useSnackbarStore().show('내용은 비어 있을 수 없습니다.')
+  if (!selectedType.value) {
+    useSnackbarStore().show('유형 비어 있을 수 없습니다.')
     return
   }
+
   if (!selectedAgent.value) {
     useSnackbarStore().show('대리점 비어 있을 수 없습니다.')
     return
@@ -212,8 +218,9 @@ const submitForm = async () => {
     useSnackbarStore().show('정책년월 비어 있을 수 없습니다.')
     return
   }
-  if (!selectedType.value) {
-    useSnackbarStore().show('유형 비어 있을 수 없습니다.')
+
+  if (!editorContent.value) {
+    useSnackbarStore().show('내용은 비어 있을 수 없습니다.')
     return
   }
 
@@ -250,50 +257,54 @@ const submitForm = async () => {
 }
 
 async function fetchPlicyinfo() {
-  console.log('fetch policy info called')
+  // console.log('fetch policy info called')
   try {
     const response = await fetchWithTokenRefresh('agent/getPolicyInitInfo', { method: 'GET' })
     const decodedResponse = await response.json()
-    console.log(decodedResponse.data)
+    // console.log(decodedResponse.data)
 
     policyData.value = decodedResponse.data
-
-    //give default values if new content
-    if (!props.id) {
-      selectedType.value = policyData.value?.carrier_type?.[0].cd
-      selectedAgent.value = policyData.value?.agent_cd_list?.[0].agent_cd
-    }
+    agentCdList.value = policyData.value?.agent_cd_list
   } catch (error) {
     useSnackbarStore().show(error.toString())
   } finally {
   }
 }
 
+function selectTypeChange(newValue) {
+  // selectedtype triggeres agentList change
+  agentCdList.value = policyData.value?.agent_cd_list
+  agentCdList.value = policyData.value?.agent_cd_list?.filter((item) =>
+    item?.carrier_type_list?.includes(newValue)
+  )
+  // default changes to first item
+  selectedAgent.value = agentCdList.value?.[0]?.agent_cd
+}
+
 const htmlFetched = ref(true)
-const fetchHtmlContent = async () => {
+async function fetchHtmlContent() {
   try {
     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'get-html', {
       method: 'POST',
       body: JSON.stringify({ id: props.id })
     })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
 
     const decodedResponse = await response.json()
     editorContent.value = decodedResponse?.html?.content
     title.value = decodedResponse?.html?.title
-    creator.value = decodedResponse?.html?.creator
 
     //this converts str date to dayjs
-    selectedMonth.value = dayjs(decodedResponse?.html?.policyDateMonth, 'YYYY-MM')
+    const dateStr = decodedResponse?.html?.policyDateMonth
+    const parsedDate = dayjs(dateStr, 'YYYY-MM')
+    if (parsedDate.isValid()) selectedMonth.value = parsedDate
+
     decodedResponse?.html?.selectedMvnos?.forEach((item) => selectedMvnos.value.add(item))
 
     selectedType.value = decodedResponse?.html?.carrierType
     selectedAgent.value = decodedResponse?.html?.selectedAgent
 
-    console.log(decodedResponse.html)
+    // console.log(decodedResponse.html)
   } catch (error) {
     console.error('Error uplading html:', error)
     useSnackbarStore().show(error.toString())
@@ -301,17 +312,6 @@ const fetchHtmlContent = async () => {
     htmlFetched.value = true
   }
 }
-
-const canDelete = computed(() => {
-  if (!props.id) return false
-  if (props.username === creator.value) return true
-  return false
-})
-
-const canEdit = computed(() => {
-  if (!props.id) return true
-  return props.username === creator.value
-})
 
 async function deleteHtml() {
   const accessToken = localStorage.getItem('accessToken')
@@ -322,13 +322,9 @@ async function deleteHtml() {
       body: JSON.stringify({ id: props.id, accessToken: accessToken })
     })
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
     const decodedResponse = await response.json()
-    console.log(decodedResponse.htmls)
-
+    // console.log(decodedResponse.htmls)
     useSnackbarStore().show(decodedResponse?.message ?? 'Somethign is wrong')
     if (decodedResponse.success) emit('closePopup', true, true)
   } catch (error) {
@@ -337,8 +333,8 @@ async function deleteHtml() {
   }
 }
 
-onMounted(() => {
-  fetchPlicyinfo()
+onMounted(async () => {
+  await fetchPlicyinfo()
   if (props.id) {
     htmlFetched.value = false
     fetchHtmlContent()
@@ -348,37 +344,33 @@ onMounted(() => {
 
 <style scoped>
 .html_editor_container {
-  box-sizing: border-box;
-  margin: 30px;
-  border-radius: 8px;
   width: 100%;
   background-color: #fff;
-  overflow-y: scroll;
-}
-
-.editor {
-  height: 100%;
-  width: 100%;
   padding: 20px;
+  display: flex;
+  flex-flow: column;
+  gap: 20px;
   box-sizing: border-box;
 }
 
 .top_actions {
   display: flex;
   flex-flow: row;
+  flex-flow: wrap;
   gap: 20px;
 }
 
 .title_group {
   width: 100%;
-  margin-bottom: 15px;
+  max-width: 700px;
 }
 
-.carrier_selector {
-  width: 200px;
+.type_selector {
+  width: 150px;
 }
+
 .agent_selector {
-  width: 400px;
+  width: 200px;
 }
 
 .title_group input {
@@ -386,15 +378,13 @@ onMounted(() => {
 }
 
 .date_picker {
-  width: 400px;
+  width: 200px;
 }
 
 .mvnos_buttons {
   display: flex;
   flex-flow: wrap;
   gap: 20px;
-
-  margin-bottom: 15px;
   user-select: none;
 }
 
@@ -402,7 +392,7 @@ onMounted(() => {
   background-color: #0000001d;
   border: 1px solid #0000001d;
   padding: 7px 10px;
-  border-radius: 4px;
+  border-radius: 40px;
   text-align: center;
   min-width: 80px;
 }
@@ -421,7 +411,10 @@ onMounted(() => {
   display: flex;
   flex-flow: row;
   gap: 20px;
-  margin-top: 20px;
+  /* margin-top: 20px; */
+  /* margin-bottom: 20px; */
+  /* margin: 20px 0; */
+  box-sizing: border-box;
   justify-content: center;
 }
 

@@ -31,6 +31,8 @@
         </template>
       </div>
     </template>
+
+    <button class="logout_button" @click="logout">로그 아웃</button>
   </div>
 </template>
 
@@ -40,6 +42,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useAuthenticationStore } from '@/stores/authentication'
 import { useWebSocketStore } from '@/stores/webscoket-store'
+import { useRouteMemoryStore } from '@/stores/router-memory-store'
 
 const webSocketStore = useWebSocketStore()
 
@@ -48,6 +51,12 @@ const authStore = useAuthenticationStore()
 const router = useRouter()
 const route = useRoute()
 const sideMenuStore = useSideMenuStore()
+
+function logout() {
+  useRouteMemoryStore().clear() //clearing intended route afters redirected
+  useAuthenticationStore().isAutoLoggedOut = false
+  useAuthenticationStore().logout()
+}
 
 const menuItems = [
   {
@@ -144,18 +153,20 @@ function getRolesByRouteNameOrPath(nameOrPath) {
 
 <style scoped>
 .menu {
-  min-width: 300px;
-  width: 100%;
+  width: 300px;
+  box-sizing: border-box;
   height: 100%;
   background-color: #282c35;
   display: flex;
   flex-flow: column;
   gap: 15px;
   overflow-y: auto;
+  padding: 0 20px;
 }
+
 .logo {
-  padding: 10px;
-  margin: 15px 10px;
+  /* padding: 10px; */
+  margin: 15px 0px;
   user-select: none;
 }
 img {
@@ -176,7 +187,6 @@ a {
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
-  margin: 0 15px;
   border-radius: 5px;
   padding: 0 10px;
   min-height: 50px;
@@ -208,5 +218,13 @@ a {
   background-color: #c63434;
   margin: 0;
   border-radius: 50px;
+}
+
+.logout_button {
+  background-color: #ffffff25;
+  font-weight: 600;
+  margin-top: auto;
+  margin-top: 30px;
+  margin-bottom: 40px;
 }
 </style>

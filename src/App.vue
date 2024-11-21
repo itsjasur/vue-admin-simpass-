@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import Snackbar from './components/Snackbar.vue'
 import Warning from './components/Warning.vue'
 import { useRouter } from 'vue-router'
