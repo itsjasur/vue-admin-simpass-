@@ -77,15 +77,24 @@
 
     <div class="buttons">
       <button class="close_button" @click="$emit('closePopup', false, false)">닫기</button>
-      <button class="delete_button" @click="deleteHtml">삭제</button>
+      <!-- <button class="delete_button" @click="deleteHtml">삭제</button> -->
+      <button class="delete_button" @click="isDeleteModalVisible = true">삭제</button>
       <button @click="submitForm">저장</button>
     </div>
 
-    <!-- <div class="buttons">
-        <button class="close_button" @click="$emit('closePopup', false, false)">닫기</button>
-        <button v-if="canDelete" class="delete_button" @click="deleteHtml">삭제</button>
-        <button v-if="canEdit" @click="submitForm">저장</button>
-      </div> -->
+    <!-- delete confirmation modal -->
+    <a-modal
+      v-model:visible="isDeleteModalVisible"
+      title="삭제 확인"
+      :closable="false"
+      :maskClosable="false"
+    >
+      <p>콘텐츠를 삭제하시겠습니까? 삭제하면 복구할 수 없습니다.</p>
+      <template #footer>
+        <a-button key="cancel" @click="isDeleteModalVisible = false">취소</a-button>
+        <a-button key="delete" type="primary" danger @click="deleteHtml">삭제</a-button>
+      </template>
+    </a-modal>
   </div>
 </template>
 
@@ -102,6 +111,8 @@ const selectedAgent = ref()
 const selectedMvnos = ref(new Set())
 const selectedMonth = ref()
 const agentCdList = ref()
+
+const isDeleteModalVisible = ref(false)
 
 const props = defineProps({ id: { type: String, default: null } })
 
