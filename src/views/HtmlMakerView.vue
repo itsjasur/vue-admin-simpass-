@@ -65,15 +65,13 @@
       </div>
     </div>
 
-    <template v-if="htmlFetched">
-      <Editor
-        api-key="no-api-key"
-        tinymce-script-src="/vendor/tinymce/tinymce.min.js"
-        :init="editorConfig"
-        v-model="editorContent"
-      />
-      <!-- :disabled="!canEdit" -->
-    </template>
+    <Editor
+      api-key="no-api-key"
+      tinymce-script-src="/vendor/tinymce/tinymce.min.js"
+      :init="editorConfig"
+      v-model="editorContent"
+    />
+    <!-- :disabled="!canEdit" -->
 
     <div class="buttons">
       <button class="close_button" @click="$emit('closePopup', false, false)">닫기</button>
@@ -294,7 +292,6 @@ function selectTypeChange(newValue) {
   selectedAgent.value = agentCdList.value?.[0]?.agent_cd
 }
 
-const htmlFetched = ref(true)
 async function fetchHtmlContent() {
   try {
     const response = await fetch(import.meta.env.VITE_CHAT_SERVER_URL + 'get-html', {
@@ -321,8 +318,6 @@ async function fetchHtmlContent() {
   } catch (error) {
     console.error('Error uplading html:', error)
     useSnackbarStore().show(error.toString())
-  } finally {
-    htmlFetched.value = true
   }
 }
 
@@ -349,7 +344,6 @@ async function deleteHtml() {
 onMounted(async () => {
   await fetchPlicyinfo()
   if (props.id) {
-    htmlFetched.value = false
     fetchHtmlContent()
   }
 })
