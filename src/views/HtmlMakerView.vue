@@ -68,8 +68,8 @@
     <template v-if="htmlFetched">
       <Editor
         api-key="no-api-key"
-        :init="editorConfig"
         tinymce-script-src="/vendor/tinymce/tinymce.min.js"
+        :init="editorConfig"
         v-model="editorContent"
       />
       <!-- :disabled="!canEdit" -->
@@ -77,18 +77,20 @@
 
     <div class="buttons">
       <button class="close_button" @click="$emit('closePopup', false, false)">닫기</button>
-      <!-- <button class="delete_button" @click="deleteHtml">삭제</button> -->
-      <button class="delete_button" @click="isDeleteModalVisible = true">삭제</button>
+      <button v-if="props.id" class="delete_button" @click="isDeleteModalVisible = true">
+        삭제
+      </button>
       <button @click="submitForm">저장</button>
     </div>
 
     <!-- delete confirmation modal -->
     <a-modal
-      v-model:visible="isDeleteModalVisible"
+      v-model:open="isDeleteModalVisible"
+      :centered="true"
       title="삭제 확인"
       :closable="false"
-      :maskClosable="false"
     >
+      <!-- :maskClosable="false" -->
       <p>콘텐츠를 삭제하시겠습니까? 삭제하면 복구할 수 없습니다.</p>
       <template #footer>
         <a-button key="cancel" @click="isDeleteModalVisible = false">취소</a-button>
