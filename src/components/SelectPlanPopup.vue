@@ -152,6 +152,8 @@ watch(
 const selectPlan = (selectedPlan) => {
   popup.close()
 
+  console.log(selectedPlan)
+
   router.push({
     name: 'form-details',
     params: { id: selectedPlan.id }
@@ -245,6 +247,7 @@ const fetchData = async () => {
     if (!response.ok) throw 'Fetch data error'
 
     const decodedResponse = await response.json()
+
     if (decodedResponse.data && decodedResponse.data.info) {
       let list = decodedResponse.data.info
       dataList.value = list

@@ -16,7 +16,6 @@
     </div>
 
     <!-- FORMS -->
-
     <template v-for="(part, index) of displayingForms" :key="index">
       <template v-if="part.forms.length > 0">
         <div class="partition">
@@ -128,6 +127,8 @@
       <!-- form sign pad -->
       <SignImageRowContainer
         :overlayText="FIXED_FORMS.name?.value"
+        signComment="가입자 이름을 적어주세요"
+        sealComment="가입자 사인을 해주세요"
         @updateSignSeal="
           (signData, sealData) => {
             nameImageData = signData
@@ -144,6 +145,8 @@
       <!-- payment pad-->
       <SignImageRowContainer
         v-if="serverData?.usim_plan_info?.carrier_type === 'PO' && !selfRegisterChecked"
+        signComment="자동이체 이름을 적어주세요"
+        sealComment="자동이체 사인을 해주세요"
         :overlayText="FIXED_FORMS.account_name?.value"
         @updateSignSeal="
           (signData, sealData) => {
@@ -161,6 +164,8 @@
       <!-- deputy sign pad -->
       <SignImageRowContainer
         v-if="FIXED_FORMS?.cust_type_cd?.value === 'COL'"
+        signComment="법정대리인 이름을 적어주세요"
+        sealComment="법정대리인 사인을 해주세요"
         :overlayText="FIXED_FORMS.deputy_name?.value"
         @updateSignSeal="
           (signData, sealData) => {
@@ -178,6 +183,8 @@
       <!-- partner sign pad -->
       <SignImageRowContainer
         v-if="serverData?.chk_partner_sign === 'N' && serverData?.usim_plan_info?.mvno_cd === 'UPM'"
+        signComment="판매자 이름을 적어주세요"
+        sealComment="판매자 사인을 해주세요"
         @updateSignSeal="
           (signData, sealData) => {
             partnerNameImageData = signData
@@ -220,17 +227,20 @@
       :canPrint="canPrintImages"
     />
   </GlobalPopupWithOverlay>
+
+  <GlobalPopupWithOverlay ref="addressPopupRef">
+    <GlobalSearchAddress @selected="handleAddressSelected" @closePopup="closeAddressPopup" />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
 import { useSnackbarStore } from '@/stores/snackbar'
 import { fetchWithTokenRefresh } from '@/utils/tokenUtils'
-import { onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue'
+import { onMounted, reactive, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { FORMS, PLANSINFO, displayingForms, generateDisplayingForms } from '../assets/plans_forms'
 import _ from 'lodash'
 import SignImageRowContainer from '../components/SignImageRowContainer.vue'
-import { useSearchaddressStore } from '../stores/select-address-popup'
 import LoadingSpinner from '../components/Loader.vue'
 import { useSelectPlansPopup } from '../stores/select-plans-popup'
 import { useDeviceTypeStore } from '@/stores/device-type-store'
@@ -263,32 +273,27 @@ function closeImageViewPopup() {
   router.push('/')
 }
 
-//address poup
-const selectAddressPopup = useSearchaddressStore()
-
 const route = useRoute()
 const router = useRouter()
 
 //need to make deep copy in order to reset when page reloads
 const FIXED_FORMS = reactive(_.cloneDeep(FORMS))
 
-//setting address and addressdetail to store value
-watch(
-  () => selectAddressPopup.address,
-  (newValue, oldValue) => {
-    FIXED_FORMS.address.value = selectAddressPopup.address
-    FIXED_FORMS.addressdetail.value = selectAddressPopup.buildingName
-  }
-)
+// address select popup and setting value
+const addressPopupRef = ref(null)
+const closeAddressPopup = () => {
+  addressPopupRef.value.closePopup()
+}
+function openAddressPopup() {
+  addressPopupRef.value.showPopup()
+}
+const handleAddressSelected = (data) => {
+  FIXED_FORMS.address.value = data.address
+  FIXED_FORMS.addressdetail.value = data.buildingName
+}
 
 //this inits page
 onMounted(fetchData)
-
-//clearing up the address store once unmounted
-onUnmounted(() => {
-  selectAddressPopup.address = ''
-  selectAddressPopup.buildingName = ''
-})
 
 //this watches route id (if plan id changed)
 watch(() => route?.params?.id, fetchData)
@@ -355,7 +360,7 @@ function generateInitialForms() {
   if (FIXED_FORMS?.usim_act_cd?.value === 'N') {
     availableForms.value.push('wish_number')
     //wish numbers input with cleave
-    let wishArray = Array(selectedMvnoInfo.wishCount).fill(4) //[4,4,4]
+    let wishArray = Array(selectedMvnoInfo?.wishCount).fill(4) //[4,4,4]
     FIXED_FORMS.wish_number.pattern = { numericOnly: true, delimiter: ' / ', blocks: wishArray } //4,4,4
     FIXED_FORMS.wish_number.placeholder = wishArray.map((e) => '1234').join(' / ')
   }
@@ -458,7 +463,7 @@ const inputBindings = (formName) => {
   }
 
   if (formName === 'address') {
-    bindings.onClick = (event) => selectAddressPopup.open()
+    bindings.onClick = (event) => openAddressPopup()
     bindings.readonly = true
   }
   if (formName === 'account_number') {
@@ -645,7 +650,6 @@ async function fetchForms() {
     'phone_number'
   ]
 
-  // {formname: 'contact', value: '0101231231212'}
   var formsAndValues = {}
 
   for (var formName of availableForms.value) {
@@ -692,9 +696,9 @@ async function fetchForms() {
     }
   }
 
-  for (const [key, value] of formData.entries()) {
-    console.log(key, value)
-  }
+  // for (const [key, value] of formData.entries()) {
+  //   console.log(key, value)
+  // }
 
   try {
     const response = await fetchWithTokenRefresh('agent/actApply', {

@@ -75,6 +75,8 @@ async function fetchData() {
     })
 
     const decodedResponse = await response.json()
+    // console.log(decodedResponse)
+
     if (!response.ok) throw decodedResponse?.message ?? 'Fetch data error'
     if (decodedResponse.data && decodedResponse.data.info) mvnos.value = decodedResponse.data.info
   } catch (error) {

@@ -8,6 +8,7 @@ import './assets/global.css'
 import LoadingSpinner from './components/Loader.vue'
 import GlobalPopupWithOverlay from './components/GlobalPopupWithOverlay.vue'
 import CleaveInput from './components/CleaveInput.vue'
+import GlobalSearchAddress from './components/GlobalSearchAddress.vue'
 // import 'ant-design-vue/dist/reset.css'
 
 const app = createApp(App)
@@ -21,5 +22,6 @@ app.component('CleaveInput', CleaveInput)
 //common components
 app.component('LoadingSpinner', LoadingSpinner)
 app.component('GlobalPopupWithOverlay', GlobalPopupWithOverlay)
+app.component('GlobalSearchAddress', GlobalSearchAddress)
 
 app.mount('#app')

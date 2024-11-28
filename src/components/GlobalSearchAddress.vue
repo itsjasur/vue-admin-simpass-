@@ -1,26 +1,20 @@
 <template>
-  <div class="overlay">
-    <div class="popup-content">
-      <div class="innerHeader">
-        <h3 class="title">주소 검색</h3>
-        <span @click="popup.close()" class="material-symbols-outlined close-button">cancel</span>
-      </div>
-      <div style="margin-top: 10px; width: 100%; height: calc(100% - 70px)" ref="embed"></div>
+  <div class="popup-content">
+    <div class="innerHeader">
+      <h3 class="title">주소 검색</h3>
+      <span @click="$emit('closePopup')" class="material-symbols-outlined close-button"
+        >cancel</span
+      >
     </div>
+    <div style="margin-top: 10px; width: 100%; height: calc(100% - 70px)" ref="embed"></div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
-import { useSearchaddressStore } from '../stores/select-address-popup'
+import { onMounted, onUnmounted, ref } from 'vue'
 
-const popup = useSearchaddressStore()
 const embed = ref(null)
-
-// This handles keyboard actions
-function keydownHandle(event) {
-  if (event.key === 'Escape') popup.close()
-}
+const emit = defineEmits(['selected', 'closePopup'])
 
 function loadDaumPostcodeScript() {
   return new Promise((resolve, reject) => {
@@ -43,17 +37,23 @@ function initializePostcode() {
       width: '100%',
       height: '100%',
       oncomplete: (data) => {
-        let selectedType = data.userSelectedType
-        let roadAddr = data.roadAddress
-        let jibunAddr = data.jibunAddress
-        let buildingName = data.buildingName
+        const selectedType = data.userSelectedType
+        const roadAddr = data.roadAddress
+        const jibunAddr = data.jibunAddress
+        const buildingName = data.buildingName
 
-        popup.address = selectedType === 'R' ? roadAddr : jibunAddr
-        popup.buildingName = buildingName
-        popup.close()
+        emit('selected', {
+          address: selectedType === 'R' ? roadAddr : jibunAddr,
+          buildingName: buildingName
+        })
+
+        emit('closePopup')
       }
     }).embed(embed.value)
   }
+}
+function keydownHandle(event) {
+  if (event.key === 'Escape') close()
 }
 
 onMounted(async () => {
@@ -73,21 +73,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.overlay {
-  display: flex;
-  box-sizing: border-box;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-  z-index: 1100;
-  background-color: rgba(0, 0, 0, 0.552);
-  padding: 20px;
-}
-
 .popup-content {
   background-color: white;
   border-radius: 8px;
@@ -95,6 +80,8 @@ onUnmounted(() => {
   height: 100%;
   max-height: 600px;
   overflow: auto;
+
+  align-self: center;
 }
 
 .innerHeader {

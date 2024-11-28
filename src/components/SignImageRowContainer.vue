@@ -69,7 +69,9 @@ const props = defineProps({
   title: { type: String, default: 'Sign title' },
   overlayText: { type: String, default: '' },
   signImageData: { type: String, default: null },
-  sealImageData: { type: String, default: null }
+  sealImageData: { type: String, default: null },
+  signComment: { type: String, default: '' },
+  sealComment: { type: String, default: '' }
 })
 
 const popupRef = ref(null)

@@ -27,10 +27,6 @@
     <Loading />
     <Snackbar />
     <Warning />
-
-    <template v-if="useSearchaddressStore().active">
-      <SearchAddressPopup />
-    </template>
   </a-config-provider>
 </template>
 
@@ -43,9 +39,7 @@ import { useAuthenticationStore } from './stores/authentication'
 import { useRouteMemoryStore } from './stores/router-memory-store'
 import { useSideMenuStore } from './stores/side-menu'
 import Loading from './components/Loading.vue'
-import SearchAddressPopup from './components/SearchAddressPopup.vue'
 import { initializeMessaging, messaging, onMessage } from './firebase'
-import { useSearchaddressStore } from './stores/select-address-popup'
 import sound from '@/assets/sound.mp3'
 
 import ko_KR from 'ant-design-vue/es/locale/ko_KR'

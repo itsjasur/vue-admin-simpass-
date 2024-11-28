@@ -33,6 +33,25 @@ export const PLANSINFO = [
               'usim_model_list',
               'usim_no'
             ]
+          },
+
+          {
+            code: 'FRT',
+            wishCount: 2,
+            forms: [
+              'cust_type_cd',
+              'contact',
+              'name',
+              'birthday',
+              'id_no',
+              'country',
+              'address',
+              'addressdetail',
+              'usim_act_cd',
+
+              'usim_plan_nm',
+              'usim_no'
+            ]
           }
         ]
       },
@@ -78,6 +97,47 @@ export const PLANSINFO = [
               'usim_model_list',
               'usim_no'
             ]
+          },
+          {
+            code: 'FRT',
+            wishCount: 2,
+            forms: [
+              'cust_type_cd',
+              'contact',
+              'name',
+              'birthday',
+              'id_no',
+              'country',
+              'address',
+              'addressdetail',
+              'usim_act_cd',
+
+              'usim_plan_nm',
+              'usim_no'
+            ]
+          }
+        ]
+      },
+      {
+        code: 'SK',
+        mvnos: [
+          {
+            code: 'FRT',
+            wishCount: 2,
+            forms: [
+              'cust_type_cd',
+              'contact',
+              'name',
+              'birthday',
+              'id_no',
+              'country',
+              'address',
+              'addressdetail',
+              'usim_act_cd',
+
+              'usim_plan_nm',
+              'usim_no'
+            ]
           }
         ]
       }
@@ -114,6 +174,24 @@ export const PLANSINFO = [
               'usim_no',
               'usim_fee_cd'
             ]
+          },
+
+          {
+            wishCount: 2,
+            code: 'FRT',
+            forms: [
+              //
+              'cust_type_cd',
+              'contact',
+              'name',
+              'birthday',
+              'address',
+              'addressdetail',
+              'usim_act_cd',
+
+              'usim_plan_nm',
+              'usim_no'
+            ]
           }
         ]
       },
@@ -143,6 +221,7 @@ export const PLANSINFO = [
             ]
           },
           {
+            wishCount: 2,
             code: 'KTS',
             forms: [
               //
@@ -156,6 +235,24 @@ export const PLANSINFO = [
 
               'usim_plan_nm',
               // 'usim_model_list',
+              'usim_no'
+            ]
+          },
+
+          {
+            wishCount: 2,
+            code: 'FRT',
+            forms: [
+              //
+              'cust_type_cd',
+              'contact',
+              'name',
+              'birthday',
+              'address',
+              'addressdetail',
+              'usim_act_cd',
+
+              'usim_plan_nm',
               'usim_no'
             ]
           }
@@ -223,6 +320,23 @@ export const PLANSINFO = [
               'usim_model_list',
               'usim_no',
               'usim_fee_cd'
+            ]
+          },
+          {
+            wishCount: 2,
+            code: 'FRT',
+            forms: [
+              //
+              'cust_type_cd',
+              'contact',
+              'name',
+              'birthday',
+              'address',
+              'addressdetail',
+              'usim_act_cd',
+
+              'usim_plan_nm',
+              'usim_no'
             ]
           }
         ]

@@ -43,7 +43,7 @@
       <div class="group" style="max-width: 500px">
         <label>주소</label>
         <input
-          @click="addressPopup.active = true"
+          @click="openAddressPopup"
           v-model="address"
           placeholder="서울시 구로구 디지털로33길 28"
           readonly
@@ -125,12 +125,15 @@
       :canPrint="true"
     />
   </GlobalPopupWithOverlay>
+
+  <GlobalPopupWithOverlay ref="addressPopupRef">
+    <GlobalSearchAddress @selected="handleAddressSelected" @closePopup="closeAddressPopup" />
+  </GlobalPopupWithOverlay>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 import * as cleavePatterns from '../utils/cleavePatterns'
-import { useSearchaddressStore } from '../stores/select-address-popup'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '../utils/tokenUtils'
 import SignImageRowContainer from '../components/SignImageRowContainer.vue'
@@ -158,8 +161,6 @@ function closeImageViewPopup() {
 }
 
 const router = useRouter()
-const addressPopup = useSearchaddressStore()
-
 const registrer = ref('')
 const registrerBirthday = ref('')
 const registrerPhoneNumber = ref('')
@@ -192,13 +193,18 @@ function validateDate(formattedValue) {
   }
 }
 
-watch(
-  () => addressPopup.address,
-  () => {
-    address.value = addressPopup.address
-    addressDetails.value = addressPopup.buildingName
-  }
-)
+// address select popup and setting value
+const addressPopupRef = ref(null)
+const closeAddressPopup = () => {
+  addressPopupRef.value.closePopup()
+}
+function openAddressPopup() {
+  addressPopupRef.value.showPopup()
+}
+const handleAddressSelected = (data) => {
+  address.value = data.address
+  addressDetails.value = data.buildingName
+}
 
 // this handles file upload
 const supportedImages = ref([])

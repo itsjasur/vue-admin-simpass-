@@ -245,9 +245,22 @@ const selectedMvno = ref('')
 const selectedMonth = ref()
 const agentCdList = ref()
 
-function selectType(type) {
+// function selectType(type) {
+//   selectedType.value = selectedType.value === type ? '' : type
+//   selectedAgent.value = ''
+//   fetchHtmlsList()
+// }
+async function selectType(type) {
   selectedType.value = selectedType.value === type ? '' : type
-  fetchHtmlsList()
+  selectedAgent.value = ''
+  await fetchHtmlsList()
+  agentCdList.value = policyData.value?.agent_cd_list
+  // agentcdlist is regenereted after checking policydata
+  if (selectedType.value) {
+    agentCdList.value = policyData.value?.agent_cd_list?.filter((item) =>
+      item?.carrier_type_list?.includes(selectedType.value)
+    )
+  }
 }
 
 const username = ref()
@@ -286,14 +299,13 @@ const fetchHtmlsList = async () => {
     htmlContents.value = decodedResponse.htmls
     totalCount.value = decodedResponse.total_count
 
-    agentCdList.value = policyData.value?.agent_cd_list
-
-    // agentcdlist is regenereted after checking policydata
-    if (selectedType.value) {
-      agentCdList.value = policyData.value?.agent_cd_list?.filter((item) =>
-        item?.carrier_type_list?.includes(selectedType.value)
-      )
-    }
+    // agentCdList.value = policyData.value?.agent_cd_list
+    // // agentcdlist is regenereted after checking policydata
+    // if (selectedType.value) {
+    //   agentCdList.value = policyData.value?.agent_cd_list?.filter((item) =>
+    //     item?.carrier_type_list?.includes(selectedType.value)
+    //   )
+    // }
   } catch (error) {
     console.error('Error uplading html:', error)
     useSnackbarStore().show(error.toString())
