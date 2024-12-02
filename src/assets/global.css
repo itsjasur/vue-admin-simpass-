@@ -140,6 +140,10 @@ input[readonly]:hover {
   box-shadow: none !important;
 }
 
+.ant-pagination button {
+  min-height: unset !important;
+}
+
 .ant-select-content {
   background-color: white;
   border-radius: 4px;

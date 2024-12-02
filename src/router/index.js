@@ -241,6 +241,17 @@ const router = createRouter({
               'ROLE_AGENCY_ADMIN'
             ]
           }
+        },
+
+        {
+          path: '/order-usim',
+          name: 'order-usim',
+          component: () => import('../views/UsimOrderView.vue'),
+          meta: {
+            title: '유심 주문요청',
+            requiresAuth: true,
+            requiredRoles: ['ALL']
+          }
         }
       ]
     },

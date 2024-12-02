@@ -1,9 +1,6 @@
 <template>
   <div class="dashboard-container">
-    <div
-      v-if="sideMenuStore.isDesktop"
-      :class="['dashboard-side-menu', { open: sideMenuStore.isOpen }]"
-    >
+    <div v-if="sideMenuStore.isDesktop" :class="['dashboard-side-menu', { open: sideMenuStore.isOpen }]">
       <SideMenu />
     </div>
 
@@ -17,11 +14,7 @@
       </div>
     </div>
     <template v-if="!sideMenuStore.isDesktop">
-      <div
-        v-if="sideMenuStore.isOpen"
-        @click="sideMenuStore.close()"
-        class="m-dashboard-side-menu-overlay"
-      ></div>
+      <div v-if="sideMenuStore.isOpen" @click="sideMenuStore.close()" class="m-dashboard-side-menu-overlay"></div>
       <div :class="['m-dashboard-side-menu', { closed: !sideMenuStore.isOpen }]">
         <SideMenu />
       </div>

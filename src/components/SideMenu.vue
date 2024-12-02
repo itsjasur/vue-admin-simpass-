@@ -110,6 +110,10 @@ const menuItems = [
   {
     path: '/chats',
     icon: 'chat'
+  },
+  {
+    path: '/order-usim',
+    icon: 'local_shipping'
   }
 ]
 
