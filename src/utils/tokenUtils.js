@@ -1,39 +1,55 @@
-import { useAuthenticationStore } from '../stores/authentication'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+let refreshPromise = null // Single promise for token refresh
 
 export async function refreshToken() {
+  console.log('token refresh called')
+
+  // If a refresh is already in progress, return the existing promise
+  if (refreshPromise) {
+    return refreshPromise
+  }
+
   try {
-    const currentRefreshToken = localStorage.getItem('refreshToken')
+    refreshPromise = (async () => {
+      const currentRefreshToken = localStorage.getItem('refreshToken')
+      if (!currentRefreshToken) {
+        throw new Error('No refresh token available')
+      }
 
-    if (!currentRefreshToken) {
-      throw new Error('No refresh token available')
-    }
+      const response = await fetch(import.meta.env.VITE_API_BASE_URL + 'auth/refreshtoken', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ refreshToken: currentRefreshToken })
+      })
 
-    const response = await fetch(`${API_BASE_URL}auth/refreshtoken`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken: currentRefreshToken })
-    })
+      if (!response.ok) {
+        throw new Error(`Token refresh failed: ${response.status}`)
+      }
 
-    if (response.ok) {
       const data = await response.json()
+      if (!data.accessToken || !data.refreshToken) {
+        throw new Error('Invalid token response format')
+      }
+
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('refreshToken', data.refreshToken)
       return data.accessToken
-    } else {
-      useAuthenticationStore().logout()
-      throw new Error('Could not refresh the token')
-    }
+    })()
+
+    return await refreshPromise
   } catch (error) {
-    console.error('Token refresh failed:', error)
+    useAuthenticationStore().logout()
     throw error
+  } finally {
+    refreshPromise = null
   }
 }
 
-export async function fetchWithTokenRefresh(url, options = {}) {
-  const fullUrl = `${API_BASE_URL}${url}`
-  let accessToken = localStorage.getItem('accessToken')
+export async function fetchWithTokenRefresh(url, options = {}, retryCount = 0) {
+  const MAX_RETRIES = 2
+  const fullUrl = import.meta.env.VITE_API_BASE_URL + url
+  const accessToken = localStorage.getItem('accessToken')
 
   options.headers = {
     ...options.headers,
@@ -46,19 +62,21 @@ export async function fetchWithTokenRefresh(url, options = {}) {
   }
 
   try {
-    let response = await fetch(fullUrl, options)
+    const response = await fetch(fullUrl, options)
 
-    if (response.status === 401 && !options._retry) {
-      options._retry = true
-      const newAccessToken = await refreshToken()
-      if (newAccessToken) {
+    if (response.status === 401 && retryCount < MAX_RETRIES) {
+      try {
+        const newAccessToken = await refreshToken()
         options.headers['Authorization'] = `Bearer ${newAccessToken}`
-        return fetchWithTokenRefresh(url, options)
+        return fetchWithTokenRefresh(url, options, retryCount + 1)
+      } catch (refreshError) {
+        useAuthenticationStore().logout()
+        throw refreshError
       }
     }
+
     return response
   } catch (error) {
-    console.error('Request failed:', error)
     throw error
   }
 }

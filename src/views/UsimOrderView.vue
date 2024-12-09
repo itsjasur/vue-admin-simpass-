@@ -46,7 +46,7 @@
               </div>
             </template>
 
-            <template v-if="column.dataIndex === 'agent_cd'">
+            <template v-if="column.dataIndex === 'agent_code'">
               <div class="order_items_content">
                 <span v-for="(item, index) in record.order_items" :key="index">
                   <!-- :style="{ fontWeight: 'bold', color: getColor(index) }" -->
@@ -63,7 +63,7 @@
               </div>
             </template>
 
-            <template v-if="column.dataIndex === 'mvno_cd'">
+            <template v-if="column.dataIndex === 'mvno_code'">
               <div class="order_items_content">
                 <span v-for="(item, index) in record.order_items" :key="index">
                   {{ MVNO_CODES?.[item?.mvno_code] ?? '' }}
@@ -160,8 +160,8 @@ const columns = ref([
     children: [
       {
         title: '대리점',
-        dataIndex: 'agent_cd',
-        key: 'agent_cd',
+        dataIndex: 'agent_code',
+        key: 'agent_code',
         align: 'center',
         customHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } })
       },
@@ -174,8 +174,8 @@ const columns = ref([
       },
       {
         title: '통신사',
-        dataIndex: 'mvno_cd',
-        key: 'mvno_cd',
+        dataIndex: 'mvno_code',
+        key: 'mvno_code',
         align: 'center',
         customHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } })
       },

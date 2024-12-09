@@ -32,11 +32,7 @@
 
       <div class="filter_group">
         <label>정책년월</label>
-        <a-date-picker
-          v-model:value="selectedMonth"
-          @change="fetchHtmlsList"
-          picker="month"
-        ></a-date-picker>
+        <a-date-picker v-model:value="selectedMonth" @change="fetchHtmlsList" picker="month"></a-date-picker>
       </div>
     </div>
 
@@ -89,12 +85,7 @@
       </div>
 
       <div class="html_cards">
-        <div
-          v-for="(html, index) in htmlContents"
-          :key="index"
-          @click="openPopup(html)"
-          class="html_card"
-        >
+        <div v-for="(html, index) in htmlContents" :key="index" @click="openPopup(html)" class="html_card">
           <div class="html_card_row">
             <span>정책년월:</span>
             <span style=""> {{ html.policyDateMonth }}</span>
