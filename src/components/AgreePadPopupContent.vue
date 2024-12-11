@@ -1,8 +1,6 @@
 <template>
   <div ref="fullscreenElement" class="signpad_main">
-    <span @click="$emit('closePopup')" class="material-symbols-outlined close-button">
-      cancel
-    </span>
+    <span @click="$emit('closePopup')" class="material-symbols-outlined close-button"> cancel </span>
 
     <div class="signpad_main_content">
       <div class="buttons">
@@ -12,7 +10,7 @@
 
       <div class="pen_style">
         <span class="pen_style_title">펜 잉크 멀미: {{ signPenSickness }} </span>
-        <a-slider v-model:value="signPenSickness" :min="1" :max="8" :step="1" />
+        <a-slider v-model:value="signPenSickness" :min="4" :max="10" :step="1" />
       </div>
 
       <div class="canvas_container">
@@ -34,7 +32,7 @@ import { useSnackbarStore } from '@/stores/snackbar'
 import SignaturePad from 'signature_pad'
 
 const fullscreenElement = ref(null)
-const signPenSickness = ref(3)
+const signPenSickness = ref(6)
 const signatureCanvas = ref(null)
 let padData = null
 
@@ -58,8 +56,8 @@ const initializeSignaturePad = () => {
 
   padData = new SignaturePad(canvas, {
     velocityFilterWeight: 0.1,
-    minWidth: 3,
-    maxWidth: 3,
+    minWidth: signPenSickness.value,
+    maxWidth: signPenSickness.value,
     throttle: 1,
     minPointDistance: 1,
     dotSize: undefined,
@@ -165,13 +163,15 @@ const save = async () => {
 
 canvas {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 92%;
+  height: 80%;
   background-color: #00000012;
   border-radius: 6px;
 }
 
 .canvas_container img {
+  /* padding: 0;
+  margin: 0; */
   width: 100%;
   display: block;
   pointer-events: none !important;

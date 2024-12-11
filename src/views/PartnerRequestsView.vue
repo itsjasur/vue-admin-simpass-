@@ -12,11 +12,7 @@
         <a-select
           v-model:value="selectedStatus"
           :style="{ width: '100%' }"
-          :options="
-            statuses.map((i) => ({ value: i.cd, label: i.value })) ?? [
-              { value: 'N/A', label: 'N/A' }
-            ]
-          "
+          :options="statuses.map((i) => ({ value: i.cd, label: i.value })) ?? [{ value: 'N/A', label: 'N/A' }]"
         >
         </a-select>
       </div>
@@ -68,9 +64,7 @@
             </template>
 
             <template v-if="column.dataIndex === 'details'">
-              <button @click="openPopup(record.partner_cd)" class="reg-details-button">
-                가입정보
-              </button>
+              <button @click="openPopup(record.partner_cd)" class="reg-details-button">가입정보</button>
             </template>
 
             <template v-if="column.dataIndex === 'contractor'">
@@ -143,9 +137,7 @@
 
         <div class="card-row">
           <span class="left-label">상세정보: </span>
-          <button @click="openPopup(item.partner_cd)" class="right-content reg-details-button">
-            가입정보
-          </button>
+          <button @click="openPopup(item.partner_cd)" class="right-content reg-details-button">가입정보</button>
         </div>
       </div>
     </div>

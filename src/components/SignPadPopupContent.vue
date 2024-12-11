@@ -1,8 +1,6 @@
 <template>
   <div ref="fullscreenElement" class="signpad_main">
-    <span @click="$emit('closePopup')" class="material-symbols-outlined close-button">
-      cancel
-    </span>
+    <span @click="$emit('closePopup')" class="material-symbols-outlined close-button"> cancel </span>
 
     <div class="signpad_main_content">
       <div class="buttons">
@@ -15,11 +13,7 @@
         <a-slider v-model:value="signPenSickness" :min="1" :max="8" :step="1" />
       </div>
 
-      <div
-        class="canvas_container"
-        :style="{ maxWidth: props.popupFor === 'sign' ? '700px' : '500px' }"
-      >
-        <!-- <span class="overlay-text" :style="nameStyle">{{ overlayText }}</span> -->
+      <div class="canvas_container" :style="{ maxWidth: props.popupFor === 'sign' ? '700px' : '500px' }">
         <canvas ref="signatureCanvas" class="signature_pad"></canvas>
       </div>
     </div>
@@ -27,7 +21,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useSnackbarStore } from '@/stores/snackbar'
 import SignaturePad from 'signature_pad'
 
@@ -50,70 +44,7 @@ watch(signPenSickness, (newValue) => {
   }
 })
 
-const nameStyle = ref()
-
-const length = props?.overlayText?.length ?? 0
-
-const setNameStyle = () => {
-  const screenWidth = window.innerWidth
-  if (screenWidth <= 768) {
-    nameStyle.value = {
-      fontSize: '5vw',
-      letterSpacing: '2px'
-    }
-
-    if (length <= 4) {
-      nameStyle.value = {
-        fontSize: '22vw',
-        letterSpacing: '12px'
-      }
-    }
-
-    if (length > 4 && length < 20) {
-      nameStyle.value = {
-        fontSize: '11vw',
-        letterSpacing: '5px'
-      }
-    }
-    if (length >= 20 && length < 40) {
-      nameStyle.value = {
-        fontSize: '8.5vw',
-        letterSpacing: '3px'
-      }
-    }
-  }
-
-  if (screenWidth > 768) {
-    nameStyle.value = {
-      fontSize: '40px',
-      letterSpacing: '10px'
-    }
-
-    if (length <= 4) {
-      nameStyle.value = {
-        fontSize: '180px',
-        letterSpacing: '10px'
-      }
-    }
-
-    if (length > 4 && length < 20) {
-      nameStyle.value = {
-        fontSize: '80px',
-        letterSpacing: '5px'
-      }
-    }
-    if (length >= 20 && length < 40) {
-      nameStyle.value = {
-        fontSize: '60px',
-        letterSpacing: '5px'
-      }
-    }
-  }
-}
-
 const initializeSignaturePad = () => {
-  setNameStyle()
-
   const canvas = signatureCanvas.value
   const ratio = Math.max(window.devicePixelRatio || 1, 1)
   canvas.width = canvas.offsetWidth * ratio
@@ -122,13 +53,15 @@ const initializeSignaturePad = () => {
 
   padData = new SignaturePad(canvas, {
     velocityFilterWeight: 0.1,
-    minWidth: 3,
-    maxWidth: 3,
+    minWidth: signPenSickness.value,
+    maxWidth: signPenSickness.value,
     throttle: 1,
     minPointDistance: 1,
     dotSize: undefined,
     penColor: 'black',
-    backgroundColor: 'rgba(0,0,0,0)'
+    backgroundColor: null
+    // backgroundColor: 'rgba(0,0,0,0)'
+    // backgroundColor: 'red'
   })
 }
 
@@ -150,11 +83,126 @@ const clear = () => {
   if (padData) padData.clear()
 }
 
+const trimCanvas = (canvas) => {
+  const ctx = canvas.getContext('2d')
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  const { data, width, height } = imageData
+
+  let top = 0,
+    left = 0,
+    right = width,
+    bottom = height
+  let found = false
+
+  for (let y = 0; y < height && !found; y++) {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3] > 0) {
+        // Check alpha value
+        top = y
+        found = true
+        break
+      }
+    }
+  }
+
+  found = false
+  for (let y = height - 1; y >= 0 && !found; y--) {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3] > 0) {
+        bottom = y
+        found = true
+        break
+      }
+    }
+  }
+
+  found = false
+  for (let x = 0; x < width && !found; x++) {
+    for (let y = 0; y < height; y++) {
+      if (data[(y * width + x) * 4 + 3] > 0) {
+        left = x
+        found = true
+        break
+      }
+    }
+  }
+
+  found = false
+  for (let x = width - 1; x >= 0 && !found; x--) {
+    for (let y = 0; y < height; y++) {
+      if (data[(y * width + x) * 4 + 3] > 0) {
+        right = x
+        found = true
+        break
+      }
+    }
+  }
+
+  const trimmedCanvas = document.createElement('canvas')
+  trimmedCanvas.width = right - left
+  trimmedCanvas.height = bottom - top
+
+  trimmedCanvas.getContext('2d').putImageData(ctx.getImageData(left, top, right - left, bottom - top), 0, 0)
+
+  return trimmedCanvas
+}
+
+const trimCanvasVertical = (canvas) => {
+  const ctx = canvas.getContext('2d')
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  const { data, width, height } = imageData
+
+  let top = 0
+  let bottom = height
+
+  // Find the first non-transparent row (top)
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3] > 0) {
+        // Check alpha value
+        top = y
+        break
+      }
+    }
+    if (top > 0) break
+  }
+
+  // Find the last non-transparent row (bottom)
+  for (let y = height - 1; y >= 0; y--) {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3] > 0) {
+        // Check alpha value
+        bottom = y
+        break
+      }
+    }
+    if (bottom < height) break
+  }
+
+  // Create a new canvas with the trimmed content
+  const trimmedCanvas = document.createElement('canvas')
+  trimmedCanvas.width = width
+  trimmedCanvas.height = bottom - top
+
+  const trimmedCtx = trimmedCanvas.getContext('2d')
+  trimmedCtx.putImageData(ctx.getImageData(0, top, width, bottom - top), 0, 0)
+
+  return trimmedCanvas
+}
+
 const save = async () => {
   if (padData.isEmpty()) {
     useSnackbarStore().show('먼저 서명을 해주세요.')
   } else {
-    const padDataUrl = await padData.toDataURL()
+    let padDataUrl = null
+    if (props.popupFor === 'sign') {
+      // const trimmedCanvas = trimCanvas(signatureCanvas.value)
+      const trimmedCanvas = trimCanvasVertical(signatureCanvas.value)
+      padDataUrl = trimmedCanvas.toDataURL('image/png')
+    } else {
+      padDataUrl = padData.toDataURL('image/png')
+    }
+
     emit('savePad', padDataUrl)
     emit('closePopup')
   }
@@ -179,8 +227,6 @@ const save = async () => {
   justify-content: center;
   align-items: center;
   overflow-y: auto;
-
-  /* background-color: rgb(149, 137, 86); */
 }
 
 .signpad_main_content .buttons {
@@ -222,9 +268,7 @@ const save = async () => {
   width: 90%;
   justify-content: center;
   position: relative;
-
   align-items: center;
-
   padding: 10px;
   box-sizing: border-box;
 }
@@ -232,7 +276,7 @@ const save = async () => {
 canvas {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: 80%;
   background-color: #00000012;
   border-radius: 6px;
 }

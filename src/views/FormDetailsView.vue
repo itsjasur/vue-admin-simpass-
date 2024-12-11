@@ -21,9 +21,7 @@
         <div class="partition">
           <div v-if="part.type === 'payment'" class="title">
             <span> 자동이체 </span>
-            <a-checkbox class="checkbox left-margin" v-model:checked="selfRegisterChecked"
-              >가입자와 동일</a-checkbox
-            >
+            <a-checkbox class="checkbox left-margin" v-model:checked="selfRegisterChecked">가입자와 동일</a-checkbox>
           </div>
 
           <div v-else :class="part.type === 'empty' ? 'empty_title' : 'title'">
@@ -41,11 +39,7 @@
                   <button @click="changeUsimPlan">변경</button>
                 </div>
 
-                <input
-                  v-else
-                  v-model="FIXED_FORMS[formName].value"
-                  v-bind="inputBindings(formName)"
-                />
+                <input v-else v-model="FIXED_FORMS[formName].value" v-bind="inputBindings(formName)" />
               </template>
 
               <!-- select -->
@@ -71,11 +65,7 @@
               </template>
 
               <p
-                v-if="
-                  formSubmitted &&
-                  FIXED_FORMS[formName].required &&
-                  FIXED_FORMS[formName].error() !== null
-                "
+                v-if="formSubmitted && FIXED_FORMS[formName].required && FIXED_FORMS[formName].error() !== null"
                 class="input-error-message"
               >
                 {{ FIXED_FORMS[formName].error() }}
@@ -88,17 +78,8 @@
 
     <!-- IMAGE UPLOAD -->
     <div class="supperted-images">
-      <a-checkbox class="checkbox" v-model:checked="supportedImagesChecked"
-        >증빙자료첨부(선택사항)</a-checkbox
-      >
-      <input
-        id="file-input"
-        @change="handleFileUpload"
-        type="file"
-        style="display: none"
-        accept="image/*"
-        multiple
-      />
+      <a-checkbox class="checkbox" v-model:checked="supportedImagesChecked">증빙자료첨부(선택사항)</a-checkbox>
+      <input id="file-input" @change="handleFileUpload" type="file" style="display: none" accept="image/*" multiple />
 
       <div v-if="supportedImagesChecked" class="uploadedImagesRow">
         <label for="file-input" class="uploadImageBox">
@@ -108,18 +89,13 @@
 
         <div v-for="(image, index) in supportedImages" :key="index" class="uploadImageBox">
           <img :src="image" :alt="index" />
-          <span @click="deleteDocImages(index)" class="delete-icon material-symbols-outlined">
-            delete
-          </span>
+          <span @click="deleteDocImages(index)" class="delete-icon material-symbols-outlined"> delete </span>
         </div>
       </div>
     </div>
 
     <!-- checks and enables sign container -->
-    <a-checkbox
-      v-if="useDeviceTypeStore().isDeviceMobile()"
-      class="checkbox"
-      v-model:checked="signAfterPrintChecked"
+    <a-checkbox v-if="useDeviceTypeStore().isDeviceMobile()" class="checkbox" v-model:checked="signAfterPrintChecked"
       >신청서 프린트 인쇄후 서명/사인 자필</a-checkbox
     >
 
@@ -136,11 +112,7 @@
           }
         "
         title="가입자서명"
-        :errorMessage="
-          (!nameImageData || !signImageData) && formSubmitted
-            ? '가입자서명을 하지 않았습니다.'
-            : null
-        "
+        :errorMessage="(!nameImageData || !signImageData) && formSubmitted ? '가입자서명을 하지 않았습니다.' : null"
       />
       <!-- payment pad-->
       <SignImageRowContainer
@@ -175,9 +147,7 @@
         "
         title="법정대리인 서명"
         :errorMessage="
-          (!deputyNameImageData || !deputySignImageData) && formSubmitted
-            ? '법정대리인서명을 하지 않았습니다.'
-            : null
+          (!deputyNameImageData || !deputySignImageData) && formSubmitted ? '법정대리인서명을 하지 않았습니다.' : null
         "
       />
       <!-- partner sign pad -->
@@ -193,9 +163,7 @@
         "
         title="판매자 서명"
         :errorMessage="
-          (!partnerNameImageData || !partnerSignImageData) && formSubmitted
-            ? '판매자서명을 하지 않았습니다.'
-            : null
+          (!partnerNameImageData || !partnerSignImageData) && formSubmitted ? '판매자서명을 하지 않았습니다.' : null
         "
       />
 
@@ -332,17 +300,10 @@ function generateInitialForms() {
   const usimPlanInfo = serverData.value?.usim_plan_info
 
   let selectedTypeInfo = PLANSINFO.find((item) => item.code === usimPlanInfo.carrier_type) //selected type
-  let selectedCarrierInfo = selectedTypeInfo.carriers.find(
-    (carrier) => carrier.code === usimPlanInfo.carrier_cd
-  ) //selected carrier
-  let selectedMvnoInfo = selectedCarrierInfo.mvnos.find(
-    (mvno) => mvno.code === usimPlanInfo.mvno_cd
-  ) //selected mvno
+  let selectedCarrierInfo = selectedTypeInfo.carriers.find((carrier) => carrier.code === usimPlanInfo.carrier_cd) //selected carrier
+  let selectedMvnoInfo = selectedCarrierInfo.mvnos.find((mvno) => mvno.code === usimPlanInfo.mvno_cd) //selected mvno
 
-  availableForms.value = [
-    ...(selectedMvnoInfo?.forms ?? []),
-    ...(selectedTypeInfo?.paymentForms ?? [])
-  ]
+  availableForms.value = [...(selectedMvnoInfo?.forms ?? []), ...(selectedTypeInfo?.paymentForms ?? [])]
 
   //adding options to select forms
   for (const formName in FIXED_FORMS) {
@@ -366,10 +327,7 @@ function generateInitialForms() {
   }
 
   //adding transferable number when type is 신규가입 mvno is UPM (codemobile)
-  if (
-    FIXED_FORMS?.usim_act_cd?.value === 'N' &&
-    serverData.value?.usim_plan_info?.mvno_cd === 'COM'
-  ) {
+  if (FIXED_FORMS?.usim_act_cd?.value === 'N' && serverData.value?.usim_plan_info?.mvno_cd === 'COM') {
     availableForms.value.push('phone_number')
     FIXED_FORMS.phone_number.required = false
     FIXED_FORMS.phone_number.pattern.prefix = null

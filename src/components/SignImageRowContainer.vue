@@ -4,46 +4,22 @@
     <div class="group">
       <div class="group_title">서명</div>
       <div class="image_container sign">
-        <span
-          v-if="!signData"
-          class="edit_icon material-symbols-outlined"
-          @click="showPopup('sign')"
-        >
+        <span v-if="!signData" class="edit_icon material-symbols-outlined" @click="showPopup('sign')">
           stylus_note
         </span>
-        <span v-else class="delete_icon material-symbols-outlined" @click="deletePad('sign')">
-          delete
-        </span>
-        <img
-          v-if="signData"
-          class="data_image"
-          :src="signData"
-          alt="서명 오류"
-          @error="signData = null"
-        />
+        <span v-else class="delete_icon material-symbols-outlined" @click="deletePad('sign')"> delete </span>
+        <img v-if="signData" class="data_image" :src="signData" alt="서명 오류" @error="signData = null" />
       </div>
     </div>
     <div class="group">
       <div class="group_title">사인</div>
       <div class="image_container seal">
-        <span
-          v-if="!sealData"
-          class="edit_icon material-symbols-outlined"
-          @click="showPopup('seal')"
-        >
+        <span v-if="!sealData" class="edit_icon material-symbols-outlined" @click="showPopup('seal')">
           stylus_note
         </span>
-        <span v-else class="delete_icon material-symbols-outlined" @click="deletePad('seal')">
-          delete
-        </span>
+        <span v-else class="delete_icon material-symbols-outlined" @click="deletePad('seal')"> delete </span>
 
-        <img
-          v-if="sealData"
-          class="data_image"
-          :src="sealData"
-          alt="서명 오류"
-          @error="sealData = null"
-        />
+        <img v-if="sealData" class="data_image" :src="sealData" alt="서명 오류" @error="sealData = null" />
       </div>
     </div>
     <div class="input-error-message" v-if="errorMessage">{{ errorMessage }}</div>

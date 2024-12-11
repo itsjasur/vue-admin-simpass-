@@ -3,19 +3,9 @@
     <p class="sign_title">{{ props.title }}</p>
     <div class="group">
       <div class="image_container sign">
-        <span v-if="!agreePadData" class="edit_icon material-symbols-outlined" @click="showPopup()">
-          stylus_note
-        </span>
-        <span v-else class="delete_icon material-symbols-outlined" @click="deletePad('sign')">
-          delete
-        </span>
-        <img
-          v-if="agreePadData"
-          class="data_image"
-          :src="agreePadData"
-          alt="서명 오류"
-          @error="agreePadData = null"
-        />
+        <span v-if="!agreePadData" class="edit_icon material-symbols-outlined" @click="showPopup()"> stylus_note </span>
+        <span v-else class="delete_icon material-symbols-outlined" @click="deletePad('sign')"> delete </span>
+        <img v-if="agreePadData" class="data_image" :src="agreePadData" alt="서명 오류" @error="agreePadData = null" />
       </div>
     </div>
 
@@ -28,7 +18,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import GlobalPopupWithOverlay from './GlobalPopupWithOverlay.vue'
 import AgreePadPopupContent from './AgreePadPopupContent.vue'
 
@@ -86,7 +76,7 @@ function deletePad(pfor) {
   border-radius: 5px;
   border: 1px dashed var(--main-color);
   box-sizing: border-box;
-  height: 60px;
+  height: 70px;
   background-color: #ffffff;
   position: relative;
   display: flex;
