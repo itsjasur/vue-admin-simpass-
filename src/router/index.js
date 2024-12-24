@@ -112,13 +112,7 @@ const router = createRouter({
           meta: {
             title: '신청서출력현황',
             requiresAuth: true,
-            requiredRoles: [
-              'ROLE_SUPER',
-              'ROLE_ADMIN',
-              'ROLE_OPEN_ADMIN',
-              'ROLE_OPEN_MANAGER',
-              'ROLE_OPEN_MEMBER'
-            ]
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_OPEN_MANAGER', 'ROLE_OPEN_MEMBER']
           }
         },
 
@@ -153,13 +147,7 @@ const router = createRouter({
           meta: {
             title: '상담사 개통 문의현황',
             requiresAuth: true,
-            requiredRoles: [
-              'ROLE_SUPER',
-              'ROLE_ADMIN',
-              'ROLE_OPEN_ADMIN',
-              'ROLE_OPEN_MANAGER',
-              'ROLE_OPEN_MEMBER'
-            ]
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_OPEN_MANAGER', 'ROLE_OPEN_MEMBER']
           }
         },
 
@@ -170,13 +158,7 @@ const router = createRouter({
           meta: {
             title: '랜탈가입 신청서',
             requiresAuth: true,
-            requiredRoles: [
-              'ROLE_SUPER',
-              'ROLE_ADMIN',
-              'ROLE_OPEN_ADMIN',
-              'ROLE_OPEN_MANAGER',
-              'ROLE_OPEN_MEMBER'
-            ]
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_OPEN_MANAGER', 'ROLE_OPEN_MEMBER']
           }
         },
 
@@ -187,13 +169,7 @@ const router = createRouter({
           meta: {
             title: '가입/번호이동 신청서',
             requiresAuth: true,
-            requiredRoles: [
-              'ROLE_SUPER',
-              'ROLE_ADMIN',
-              'ROLE_OPEN_ADMIN',
-              'ROLE_OPEN_MANAGER',
-              'ROLE_OPEN_MEMBER'
-            ]
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_OPEN_MANAGER', 'ROLE_OPEN_MEMBER']
           }
         },
         {
@@ -203,13 +179,7 @@ const router = createRouter({
           meta: {
             title: '신청서접수현황',
             requiresAuth: true,
-            requiredRoles: [
-              'ROLE_SUPER',
-              'ROLE_ADMIN',
-              'ROLE_OPEN_ADMIN',
-              'ROLE_OPEN_MANAGER',
-              'ROLE_OPEN_MEMBER'
-            ]
+            requiredRoles: ['ROLE_SUPER', 'ROLE_ADMIN', 'ROLE_OPEN_ADMIN', 'ROLE_OPEN_MANAGER', 'ROLE_OPEN_MEMBER']
           }
         },
 

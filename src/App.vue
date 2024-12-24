@@ -119,5 +119,7 @@ body {
   background-color: var(--main-background-color);
   height: 100%;
   z-index: 1;
+  color: var(--text-color);
+  font-family: Arial, sans-serif;
 }
 </style>

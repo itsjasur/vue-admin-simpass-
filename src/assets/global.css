@@ -7,11 +7,6 @@
   --main-background-color: #f7f7f7;
 }
 
-body {
-  color: var(--text-color);
-  font-family: Arial, sans-serif;
-}
-
 button {
   min-height: 40px;
   height: 40px;
@@ -22,7 +17,7 @@ button {
   cursor: pointer;
   transition: background-color 0.3s;
   font-size: 15px;
-  user-select: none; /* unselectable */
+  user-select: none;
   background-color: var(--main-color);
 }
 
@@ -43,7 +38,7 @@ button:hover:enabled {
   color: #fff;
   text-align: center;
   align-content: center;
-  user-select: none; /* unselectable */
+  user-select: none;
   background-color: #ababab;
 }
 

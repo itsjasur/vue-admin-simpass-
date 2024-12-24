@@ -1,120 +1,114 @@
 <template>
-  <div class="container">
-    <div class="forms">
-      <div class="title">가입신청/고객정보</div>
-      <div class="group" style="max-width: 500px">
-        <label>가입자명</label>
-        <input
-          v-model="registrer"
-          placeholder="홍길동"
-          @input="registrer = registrer.toUpperCase()"
-        />
-        <p v-if="!registrer && submitted" class="input-error-message">가입자명 입력하세요.</p>
-      </div>
-
-      <div class="group" style="max-width: 200px">
-        <label>생년월일</label>
-
-        <CleaveInput
-          :value="registrerBirthday"
-          placeholder="91-01-31"
-          :options="cleavePatterns.birthdayPattern"
-          @update:modelValue="validateDate($event)"
-        />
-
-        <p v-if="!registrerBirthday && submitted" class="input-error-message">
-          생년월일 입력하세요.
-        </p>
-      </div>
-
-      <div class="group" style="max-width: 200px">
-        <label>개통번호외 연락번호</label>
-        <CleaveInput
-          v-model="registrerPhoneNumber"
-          placeholder="010-0000-0000"
-          :options="cleavePatterns.phoneNumberPattern"
-        />
-
-        <p v-if="!registrerPhoneNumber && submitted" class="input-error-message">
-          연락처 입력하세요.
-        </p>
-      </div>
-
-      <div class="group" style="max-width: 500px">
-        <label>주소</label>
-        <input
-          @click="openAddressPopup"
-          v-model="address"
-          placeholder="서울시 구로구 디지털로33길 28"
-          readonly
-        />
-        <p v-if="!address && submitted" class="input-error-message">주소 입력하세요.</p>
-      </div>
-
-      <div class="group" style="max-width: 300px">
-        <label>상세주소</label>
-        <input v-model="addressDetails" placeholder="1001호" />
-      </div>
-
-      <div class="group" style="max-width: 300px">
-        <label>USIM 일련번호</label>
-        <input v-model="usimNumber" placeholder="0000000" />
-        <p v-if="!usimNumber && submitted" class="input-error-message">USIM 일련번호 입력하세요.</p>
-      </div>
+  <div class="rental_container">
+    <div class="mvnos_list">
+      <button
+        :class="{ is_mvno_selected: selectedMvno === 'ISM' }"
+        @click="selectedMvno = 'ISM'"
+        class="mvno_option_button"
+      >
+        인스모바일
+      </button>
+      <button
+        :class="{ is_mvno_selected: selectedMvno === 'COM' }"
+        @click="selectedMvno = 'COM'"
+        class="mvno_option_button"
+      >
+        코드모바일
+      </button>
     </div>
 
-    <div class="upload-docs">
-      <div class="title">증빙자료첨부</div>
+    <template v-if="selectedMvno">
+      <div class="forms">
+        <div class="title">가입신청/고객정보</div>
+        <div class="group" style="max-width: 500px">
+          <label>가입자명</label>
+          <input v-model="registrer" placeholder="홍길동" @input="registrer = registrer.toUpperCase()" />
+          <p v-if="!registrer && submitted" class="input-error-message">가입자명 입력하세요.</p>
+        </div>
 
-      <!-- uploads images -->
-      <input
-        id="file-input"
-        @change="handleFileUpload"
-        type="file"
-        class="file-input"
-        accept="image/*"
-        multiple
-      />
+        <div class="group" style="max-width: 200px">
+          <label>생년월일</label>
 
-      <div class="upload-images-row">
-        <label for="file-input" class="upload-images-box">
-          <span class="inner-icon material-symbols-outlined"> add </span>
-          <p>이미지 업로드</p>
-        </label>
+          <CleaveInput
+            :value="registrerBirthday"
+            placeholder="91-01-31"
+            :options="cleavePatterns.birthdayPattern"
+            @update:modelValue="validateDate($event)"
+          />
 
-        <div v-for="(image, index) in supportedImages" :key="index" class="upload-images-box">
-          <img :src="image" :alt="index" />
-          <span @click="deleteDocImages(index)" class="delete-icon material-symbols-outlined">
-            delete
-          </span>
+          <p v-if="!registrerBirthday && submitted" class="input-error-message">생년월일 입력하세요.</p>
+        </div>
+
+        <div class="group" style="max-width: 200px">
+          <label>개통번호외 연락번호</label>
+          <CleaveInput
+            v-model="registrerPhoneNumber"
+            placeholder="010-0000-0000"
+            :options="cleavePatterns.phoneNumberPattern"
+          />
+
+          <p v-if="!registrerPhoneNumber && submitted" class="input-error-message">연락처 입력하세요.</p>
+        </div>
+
+        <div class="group" style="max-width: 500px">
+          <label>주소</label>
+          <input @click="openAddressPopup" v-model="address" placeholder="서울시 구로구 디지털로33길 28" readonly />
+          <p v-if="!address && submitted" class="input-error-message">주소 입력하세요.</p>
+        </div>
+
+        <div class="group" style="max-width: 300px">
+          <label>상세주소</label>
+          <input v-model="addressDetails" placeholder="1001호" />
+        </div>
+
+        <div class="group" style="max-width: 300px">
+          <label>USIM 일련번호</label>
+          <input v-model="usimNumber" placeholder="0000000" />
+          <p v-if="!usimNumber && submitted" class="input-error-message">USIM 일련번호 입력하세요.</p>
         </div>
       </div>
-    </div>
 
-    <!-- checks and enables sign container -->
-    <a-checkbox
-      v-if="useDeviceTypeStore().isDeviceMobile()"
-      class="checkbox"
-      v-model:checked="signAfterPrint"
-      >신청서 프린트 인쇄후 서명/사인 자필</a-checkbox
-    >
+      <div class="upload-docs">
+        <div class="title">증빙자료첨부</div>
 
-    <SignImageRowContainer
-      :overlayText="registrer"
-      title="가입자서명"
-      @updateSignSeal="
-        (sign, seal) => {
-          signData = sign
-          sealData = seal
-        }
-      "
-    />
-    <!-- <button @click="submit">서명/사인 저장</button> -->
+        <!-- uploads images -->
+        <input id="file-input" @change="handleFileUpload" type="file" class="file-input" accept="image/*" multiple />
 
-    <button class="submit" @click="submit" :disabled="isLoading">
-      <LoadingSpinner v-if="isLoading" height="20px" color="#ffffff" />
-      <span v-else> 접수하기</span>
-    </button>
+        <div class="upload-images-row">
+          <label for="file-input" class="upload-images-box">
+            <span class="inner-icon material-symbols-outlined"> add </span>
+            <p>이미지 업로드</p>
+          </label>
+
+          <div v-for="(image, index) in supportedImages" :key="index" class="upload-images-box">
+            <img :src="image" :alt="index" />
+            <span @click="deleteDocImages(index)" class="delete-icon material-symbols-outlined"> delete </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- checks and enables sign container -->
+      <a-checkbox v-if="useDeviceTypeStore().isDeviceMobile()" class="checkbox" v-model:checked="signAfterPrint"
+        >신청서 프린트 인쇄후 서명/사인 자필</a-checkbox
+      >
+
+      <SignImageRowContainer
+        :overlayText="registrer"
+        title="가입자서명"
+        @updateSignSeal="
+          (sign, seal) => {
+            signData = sign
+            sealData = seal
+          }
+        "
+      />
+      <!-- <button @click="submit">서명/사인 저장</button> -->
+
+      <button class="submit" @click="submit" :disabled="isLoading">
+        <LoadingSpinner v-if="isLoading" height="20px" color="#ffffff" />
+        <span v-else> 접수하기</span>
+      </button>
+    </template>
   </div>
 
   <GlobalPopupWithOverlay ref="imageViewerRef">
@@ -132,7 +126,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import * as cleavePatterns from '../utils/cleavePatterns'
 import { useSnackbarStore } from '../stores/snackbar'
 import { fetchWithTokenRefresh } from '../utils/tokenUtils'
@@ -142,6 +136,8 @@ import { useRouter } from 'vue-router'
 import { useDeviceTypeStore } from '@/stores/device-type-store'
 import { base64ToBlobUrl } from '@/utils/helpers'
 import ImageViewPopup from '../components/ImageViewPopup.vue'
+
+const selectedMvno = ref('')
 
 const imageViewerRef = ref()
 const imageBlobUrls = ref([])
@@ -259,6 +255,7 @@ async function submit() {
   formData.set('contact', registrerPhoneNumber.value)
   formData.set('address', address.value + addressDetails.value)
   formData.set('usim_no', usimNumber.value)
+  formData.set('mvno_cd', usimNumber.value)
 
   // //checks if all values are filled
   const checklist = [
@@ -298,7 +295,7 @@ async function submit() {
 </script>
 
 <style scoped>
-.container {
+.rental_container {
   max-width: 1400px;
   width: 100%;
   box-sizing: border-box;
@@ -306,7 +303,30 @@ async function submit() {
   flex-flow: column;
   gap: 30px;
   padding: 20px;
+  height: auto;
 }
+
+.mvnos_list {
+  display: flex;
+  gap: 20px;
+}
+
+.mvno_option_button {
+  min-width: 120px;
+  min-height: 45px;
+  padding: 0px 20px;
+  text-align: center;
+  box-sizing: border-box;
+  border: 2px solid #acacac;
+  background-color: #fff;
+  color: black;
+  font-weight: 500;
+}
+
+.is_mvno_selected {
+  border: 2px solid var(--main-color);
+}
+
 .title {
   font-size: 18px;
   font-weight: 600;
@@ -319,7 +339,6 @@ async function submit() {
   display: flex;
   flex-flow: wrap;
   gap: 20px;
-  margin-top: 10px;
 }
 
 .group {
@@ -419,7 +438,7 @@ async function submit() {
   margin-bottom: 7px;
 }
 
-button {
+.submit {
   max-width: 200px;
   margin-top: 20px;
   height: 45px;

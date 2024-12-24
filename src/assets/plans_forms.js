@@ -146,13 +146,7 @@ export const PLANSINFO = [
 
   {
     code: 'PO',
-    paymentForms: [
-      'paid_transfer_cd',
-      'account_name',
-      'account_birthday',
-      'account_agency',
-      'account_number'
-    ],
+    paymentForms: ['paid_transfer_cd', 'account_name', 'account_birthday', 'account_agency', 'account_number'],
     carriers: [
       {
         code: 'SK',
@@ -361,11 +355,7 @@ export function generateDisplayingForms(availableForms) {
   // console.log('newList', newList)
   availableForms.value.forEach((formName) => {
     // console.log(e)
-    if (
-      ['usim_plan_nm', 'usim_model_list', 'usim_no', 'usim_fee_cd', 'extra_service_cd'].includes(
-        formName
-      )
-    ) {
+    if (['usim_plan_nm', 'usim_model_list', 'usim_no', 'usim_fee_cd', 'extra_service_cd'].includes(formName)) {
       displayingForms[0].forms.push(formName)
     }
     if (
@@ -400,9 +390,7 @@ export function generateDisplayingForms(availableForms) {
       displayingForms[2].forms.push(formName)
     }
 
-    if (
-      ['deputy_name', 'deputy_birthday', 'relationship_cd', 'deputy_contact'].includes(formName)
-    ) {
+    if (['deputy_name', 'deputy_birthday', 'relationship_cd', 'deputy_contact'].includes(formName)) {
       displayingForms[3].forms.push(formName)
     }
 

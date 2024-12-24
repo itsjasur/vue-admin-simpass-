@@ -4,7 +4,7 @@ import { createPinia } from 'pinia'
 import router from './router'
 
 import Antd from 'ant-design-vue'
-import './assets/global.css'
+import '@/assets/global.css'
 import LoadingSpinner from './components/Loader.vue'
 import GlobalPopupWithOverlay from './components/GlobalPopupWithOverlay.vue'
 import CleaveInput from './components/CleaveInput.vue'
